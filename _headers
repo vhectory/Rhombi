@@ -1,0 +1,3 @@
+/glb/*
+  Cache-Control: no-transform
+  Content-Type: model/gltf-binary

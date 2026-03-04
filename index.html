@@ -1,0 +1,3094 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- SEO / Social -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rhombi — Modulaire Lichtobjecten">
+<meta property="og:description" content="3D-geprinte modulaire lamp in vijf varianten. Geen gereedschap, oneindig combineerbaar. Ontwerp: Vincent Hector, Rotterdam.">
+<meta property="og:image" content="fotos/hero/20260206_172451.jpg">
+<meta property="og:url" content="https://rhombi.nl">
+<meta property="og:site_name" content="Rhombi">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="fotos/hero/20260206_172451.jpg">
+<link rel="canonical" href="https://rhombi.nl">
+<meta name="description" content="Rhombi — modulaire lichtobjecten. 3D-geprinte lampen in vijf varianten. Ontwerp: Vincent Hector, Rotterdam.">
+<title>Rhombi — Modulaire Lichtobjecten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-mono: 'Space Mono', 'Courier New', monospace;
+  --amber: #C8884A;
+  --amber-deep: #A86835;
+  --amber-pale: #D9A870;
+  --cream: #EDE4D0;
+  --dark: #12151A;
+  --dark2: #181C23;
+  --dark3: #1E232C;
+  --text: #A8B0B8;
+  --text-dim: #606870;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--dark);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+  color: var(--cream);
+  overflow-x: hidden;
+  cursor: none;
+  max-width: 2560px;
+  margin: 0 auto;
+  box-shadow: 0 0 100px rgba(0,0,0,.6);
+}
+html {
+  background: var(--dark);
+}
+
+/* ── CURSOR ── */
+.cursor {
+  position: fixed; width: 8px; height: 8px;
+  background: var(--amber); border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: width .2s, height .2s;
+}
+.cursor-ring {
+  position: fixed; width: 36px; height: 36px;
+  border: 1px solid rgba(200,136,74,.4); border-radius: 50%;
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%,-50%);
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 36px; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 48px;
+  background: linear-gradient(to bottom, rgba(18,21,26,.95) 0%, transparent 100%);
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-weight: 500;
+}
+.nav-logo svg path {
+  stroke: var(--amber);
+}
+.nav-links { display: flex; gap: 40px; list-style: none; }
+.nav-links a {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--text-dim); text-decoration: none; transition: color .3s;
+}
+.nav-links a:hover { color: var(--amber); }
+
+/* hamburger */
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  background: none; border: none; cursor: pointer; padding: 4px;
+}
+.nav-hamburger span {
+  display: block; width: 24px; height: 1.5px;
+  background: var(--cream); transition: transform .3s, opacity .3s;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+.mobile-menu {
+  display: none; position: fixed; inset: 0;
+  background: rgba(12,14,18,.98); z-index: 400;
+  flex-direction: column; align-items: center; justify-content: center; gap: 32px;
+  overflow-y: auto; padding: 80px 32px 40px;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--cream);
+  text-decoration: none;
+  display: block;
+  text-align: center;
+  padding: 8px 0;
+  width: 100%;
+}
+.mobile-menu ul { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; }
+.mobile-menu li { list-style: none; width: 100%; text-align: center; }
+.mobile-menu a:hover { color: var(--amber); }
+
+/* ── HERO ── */
+.hero {
+  position: relative; min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+.hero-left {
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 160px 48px 80px;
+  position: relative; z-index: 2;
+}
+.hero-right {
+  position: relative; overflow: hidden;
+  aspect-ratio: 1/1;
+}
+.hero-right img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  opacity: 0;
+  animation: fadeIn 1.2s .3s forwards;
+}
+.hero-right::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, var(--dark) 0%, transparent 30%);
+}
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 28px;
+  opacity: 0; animation: fadeUp .8s .2s forwards;
+}
+.hero-title {
+  font-size: clamp(52px, 7vw, 104px);
+  font-weight: 300; line-height: .92; letter-spacing: -.02em;
+  margin-bottom: 36px;
+  opacity: 0; animation: fadeUp .9s .4s forwards;
+}
+.hero-title em { font-style: italic; color: var(--amber-pale); }
+.hero-sub {
+  font-size: 18px; font-weight: 300; line-height: 1.65;
+  color: var(--text); max-width: 440px; margin-bottom: 52px;
+  opacity: 0; animation: fadeUp .9s .6s forwards;
+}
+.hero-actions {
+  display: flex; gap: 24px; align-items: center;
+  opacity: 0; animation: fadeUp .9s .8s forwards;
+}
+.btn-primary {
+  display: inline-block; padding: 15px 36px;
+  background: var(--amber); color: var(--dark);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  text-decoration: none; transition: background .3s, transform .2s;
+}
+.btn-primary:hover { background: var(--amber-pale); transform: translateY(-2px); }
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--text-dim); text-decoration: none; transition: color .3s;
+}
+.btn-ghost::after { content: '→'; transition: transform .3s; }
+.btn-ghost:hover { color: var(--amber); }
+.btn-ghost:hover::after { transform: translateX(4px); }
+
+.scroll-hint {
+  position: absolute; bottom: 40px; left: 48px;
+  display: flex; align-items: center; gap: 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0; animation: fadeUp 1s 1.2s forwards;
+}
+.scroll-line {
+  width: 40px; height: 1px; background: var(--text-dim);
+  position: relative; overflow: hidden;
+}
+.scroll-line::after {
+  content: ''; position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%; background: var(--amber);
+  animation: scanLine 2s 1.5s ease-in-out infinite;
+}
+
+/* ── SECTION COMMON ── */
+.section-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 16px;
+}
+.section-title {
+  font-size: clamp(36px, 5vw, 68px);
+  font-weight: 300; line-height: 1; letter-spacing: -.02em;
+}
+.section-title em { font-style: italic; color: var(--amber-pale); }
+
+/* ── COLLECTION ── */
+.collection { padding: 120px 48px; }
+.collection-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 64px;
+}
+.collection-note {
+  font-size: 15px; color: var(--text-dim);
+  max-width: 300px; text-align: right; line-height: 1.6;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto;
+  gap: 3px;
+}
+.product-card {
+  position: relative; overflow: hidden;
+  background: var(--dark2); cursor: none;
+  aspect-ratio: 3/4;
+}
+.product-card.tall { grid-row: span 2; aspect-ratio: unset; }
+.product-card img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  transition: transform .8s cubic-bezier(.25,.46,.45,.94);
+}
+.product-card:hover img { transform: scale(1.05); }
+.card-inner {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 28px;
+  background: linear-gradient(to top, rgba(18,21,26,.88) 0%, transparent 55%);
+}
+.card-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: .25em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 6px;
+}
+.card-name { font-size: 28px; font-weight: 300; margin-bottom: 4px; }
+.card-sub {
+  font-size: 12px; color: var(--text-dim);
+  font-family: 'Space Mono', monospace;
+}
+.card-arrow {
+  position: absolute; top: 24px; right: 24px;
+  width: 36px; height: 36px;
+  border: 1px solid rgba(200,136,74,.35);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--amber); font-size: 16px;
+  opacity: 0; transform: translate(8px,-8px);
+  transition: opacity .3s, transform .3s;
+}
+.product-card:hover .card-arrow { opacity: 1; transform: translate(0,0); }
+
+/* ── GALLERY ── */
+.gallery { padding: 0; }
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 320px;
+  gap: 3px;
+}
+.gallery-item { overflow: hidden; position: relative; }
+.gallery-item.wide { grid-column: span 2; }
+.gallery-item.tall { grid-row: span 2; }
+.gallery-item img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .8s cubic-bezier(.25,.46,.45,.94);
+}
+.gallery-item:hover img { transform: scale(1.04); }
+
+/* ── ABOUT ── */
+.about { padding: 120px 48px; }
+.about-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 80px; align-items: start; }
+.about-body p { font-size: 18px; line-height: 1.8; color: var(--text); margin-bottom: 28px; }
+.about-body p:last-child { color: var(--text-dim); font-size: 16px; }
+
+/* ── DESIGN ── */
+.design { padding: 120px 48px; background: var(--dark2); position: relative; overflow: hidden; }
+.design::before {
+  content: 'RHOMBI';
+  position: absolute; font-size: 220px; font-weight: 700;
+  letter-spacing: -.05em;
+  color: rgba(200,136,74,.03);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  white-space: nowrap; pointer-events: none;
+}
+.design-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; position: relative; z-index: 1; }
+.feature-list { margin-top: 48px; }
+.feature-item {
+  display: flex; gap: 24px; padding: 24px 0;
+  border-top: 1px solid rgba(255,255,255,.06); transition: border-color .3s;
+}
+.feature-item:last-child { border-bottom: 1px solid rgba(255,255,255,.06); }
+.feature-item:hover { border-top-color: rgba(200,136,74,.3); }
+.feature-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; color: var(--amber);
+  letter-spacing: .1em; min-width: 32px; padding-top: 4px;
+}
+.feature-content h4 { font-size: 20px; font-weight: 400; margin-bottom: 6px; }
+.feature-content p { font-size: 14px; color: var(--text-dim); line-height: 1.65; }
+
+.design-photo {
+  position: relative; aspect-ratio: 1/1; overflow: hidden;
+}
+.design-photo img { width: 100%; height: 100%; object-fit: cover; }
+.design-photo::before {
+  content: '';
+  position: absolute; inset: 16px; border: 1px solid rgba(200,136,74,.2);
+  z-index: 1; pointer-events: none;
+}
+
+/* ── MATERIAAL ── */
+.materiaal { padding: 100px 48px; }
+.materiaal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.materiaal-photo { aspect-ratio: 1/1; overflow: hidden; }
+.materiaal-photo img { width: 100%; height: 100%; object-fit: cover; }
+.spec-row { display: flex; margin-top: 40px; }
+.spec-item {
+  flex: 1; padding-top: 20px;
+  border-top: 1px solid rgba(200,136,74,.3);
+}
+.spec-item + .spec-item { padding-left: 24px; border-left: 1px solid rgba(255,255,255,.05); }
+.spec-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 8px;
+}
+.spec-val { font-size: 16px; }
+
+/* ── COLOURS ── */
+.colours { padding: 100px 48px; }
+.swatches { display: flex; height: 220px; margin-top: 56px; }
+.swatch {
+  flex: 1; display: flex; align-items: flex-end; padding: 24px;
+  cursor: none; transition: flex .5s cubic-bezier(.25,.46,.45,.94);
+  overflow: hidden;
+}
+.swatch:hover { flex: 3; }
+.swatch-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .3s .1s, transform .3s .1s; white-space: nowrap;
+}
+.swatch:hover .swatch-label { opacity: 1; transform: none; }
+
+/* ── MONTAGE ── */
+.montage { padding: 120px 48px; background: var(--dark2); }
+.montage-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 64px; }
+.parts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-bottom: 3px; }
+.part-card {
+  background: var(--dark3); padding: 28px 24px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.part-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 26px; color: rgba(200,136,74,.22); font-weight: 700; line-height: 1;
+}
+.part-name { font-size: 17px; font-weight: 400; }
+.part-info {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--text-dim); letter-spacing: .1em;
+}
+.steps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+.step-card {
+  background: var(--dark3); padding: 28px 20px; position: relative; overflow: hidden;
+}
+.step-num {
+  position: absolute; top: 16px; right: 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: rgba(200,136,74,.25); letter-spacing: .1em;
+}
+.step-bar { width: 28px; height: 2px; background: var(--amber); margin-bottom: 18px; }
+.step-card p { font-size: 14px; line-height: 1.65; color: var(--text); }
+
+/* ── CTA ── */
+.cta {
+  padding: 160px 48px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.cta::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(200,136,74,.06) 0%, transparent 70%);
+}
+.cta h2 {
+  font-size: clamp(44px, 7vw, 96px);
+  font-weight: 300; line-height: .95; letter-spacing: -.02em;
+  margin-bottom: 36px; position: relative;
+}
+.cta h2 em { font-style: italic; color: var(--amber-pale); }
+.cta p {
+  font-size: 18px; color: var(--text);
+  max-width: 500px; margin: 0 auto 52px; line-height: 1.65; position: relative;
+}
+.cta-btns { display: flex; gap: 20px; justify-content: center; position: relative; }
+
+
+/* ── CONFIGURATOR SECTION ── */
+.configurator {
+  padding: 0;
+  background: var(--dark);
+}
+.configurator-header {
+  padding: 80px 60px 40px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+}
+.configurator-intro {
+  max-width: 480px;
+}
+.configurator-frame {
+  width: 100%;
+  height: 80vh;
+  min-height: 560px;
+  border: none;
+  display: block;
+  border-top: 1px solid rgba(255,255,255,.05);
+}
+@media (max-width: 768px) {
+  .configurator-header { padding: 60px 24px 28px; flex-direction: column; align-items: flex-start; }
+  .configurator-frame { height: 90vh; min-height: 480px; }
+}
+
+/* ── FOOTER ── */
+footer {
+  padding: 36px 48px; border-top: 1px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer-logo { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .25em; color: var(--amber); }
+.footer-links { display: flex; gap: 32px; list-style: none; }
+.footer-links a {
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--text-dim); text-decoration: none; transition: color .3s;
+}
+.footer-links a:hover { color: var(--amber); }
+.footer-note { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: .15em; color: var(--text-dim); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scanLine { 0% { left: -100%; } 100% { left: 100%; } }
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity .5s ease, transform .5s ease; will-change: opacity, transform; }
+.reveal.visible { opacity: 1; transform: none; }
+
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  nav { padding: 20px 32px; }
+  .hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: clamp(280px, 56vw, 520px) auto;
+    min-height: unset;
+    padding-top: max(112px, var(--nav-offset, 112px));
+  }
+  .hero-right {
+    display: block;
+    grid-row: 1;
+    aspect-ratio: unset;
+    height: clamp(280px, 56vw, 520px);
+    margin-top: 0;
+  }
+  .hero-right::after {
+    background: linear-gradient(to bottom, transparent 50%, var(--dark) 100%);
+  }
+  .hero-left {
+    grid-row: 2;
+    padding: 28px 32px 72px;
+    min-height: unset;
+    justify-content: flex-start;
+  }
+  .hero-eyebrow, .hero-title, .hero-sub, .hero-actions {
+    opacity: 1 !important; animation: none !important;
+  }
+  .collection, .about, .design, .materiaal, .colours, .montage, .cta { padding: 80px 32px; }
+  .collection-header, .montage-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .collection-note { text-align: left; max-width: 100%; }
+  .product-grid { grid-template-columns: 1fr 1fr; }
+  .product-card.tall { grid-row: auto; aspect-ratio: 3/4; }
+  .about-grid, .design-grid, .materiaal-grid { grid-template-columns: 1fr; gap: 40px; }
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 260px; }
+  .gallery-item.wide { grid-column: span 2; }
+  footer { padding: 32px; }
+}
+
+@media (max-width: 768px) {
+  body { cursor: auto; }
+  .cursor, .cursor-ring { display: none; }
+  nav { padding: 18px 24px; }
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+  .hero-left { padding: 100px 24px 64px; }
+  .hero-right img { object-position: center 65%; animation: none; opacity: 1; }
+  .hero-title { font-size: clamp(42px, 12vw, 68px); }
+  .hero-sub { font-size: 15px; }
+  .hero-actions { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .btn-primary { width: 100%; text-align: center; }
+  .scroll-hint { display: none; }
+  .collection, .about, .design, .materiaal, .colours, .montage, .cta { padding: 64px 24px; }
+  .product-grid { grid-template-columns: 1fr 1fr; gap: 2px; }
+  .gallery-grid { grid-template-columns: 1fr 1fr; grid-auto-rows: 200px; }
+  .gallery-item.tall { grid-row: auto; }
+  .parts-grid { grid-template-columns: 1fr 1fr; }
+  .steps-grid { grid-template-columns: 1fr 1fr; }
+  .swatches { flex-direction: column; height: auto; }
+  .swatch { height: 60px; align-items: center; }
+  .swatch:hover { flex: 1; }
+  .swatch-label { opacity: 1; transform: none; }
+  .spec-row { flex-direction: column; gap: 16px; }
+  .spec-item + .spec-item { padding-left: 0; border-left: none; border-top: 1px solid rgba(255,255,255,.06); padding-top: 16px; }
+  .cta-btns { flex-direction: column; align-items: center; }
+  footer { flex-direction: column; gap: 20px; text-align: center; padding: 28px 24px; }
+  .footer-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+}
+
+/* Mobile: lighter animations to prevent crashes */
+@media (max-width: 768px) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .carousel-track { transition: none !important; }
+}
+
+@media (max-width: 480px) {
+  .product-grid { grid-template-columns: 1fr; }
+  .gallery-grid { grid-template-columns: 1fr; grid-auto-rows: 260px; }
+  .gallery-item.wide { grid-column: auto; }
+  .parts-grid { grid-template-columns: 1fr 1fr; }
+  .steps-grid { grid-template-columns: 1fr; }
+}
+
+@media (hover: none) {
+  .swatch:hover { flex: 1; }
+  .swatch-label { opacity: 1; transform: none; }
+  .product-card:hover img { transform: none; }
+  .card-arrow { display: none; }
+}
+
+/* ── RHOMBI FRAME ── */
+.rhombi-frame {
+  clip-path: polygon(22px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 22px);
+  border-radius: 0 0 18px 0;
+  overflow: hidden;
+  cursor: zoom-in;
+  position: relative;
+}
+.rhombi-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(200,136,74,.18);
+  clip-path: inherit;
+  border-radius: inherit;
+}
+.rhombi-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: transform .5s cubic-bezier(.25,.46,.45,.94);
+}
+.rhombi-frame:hover img { transform: scale(1.03); }
+
+/* ── LIGHTBOX ── */
+#lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10,12,16,.92);
+  backdrop-filter: blur(12px);
+  cursor: zoom-out;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+#lightbox.open { display: flex; }
+#lightbox-frame {
+  width: min(82vh, 82vw);
+  height: min(82vh, 82vw);
+  overflow: hidden;
+  clip-path: polygon(28px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 28px);
+  border-radius: 0 0 22px 0;
+  box-shadow: 0 32px 80px rgba(0,0,0,.6);
+  animation: lbIn .3s cubic-bezier(.25,.46,.45,.94);
+  flex-shrink: 0;
+}
+#lightbox-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+#lightbox-close {
+  position: absolute;
+  top: 24px; right: 28px;
+  font-family: "Space Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color .2s;
+  background: none; border: none;
+}
+#lightbox-close:hover { color: var(--amber); }
+@keyframes lbIn {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+/* uitleg-grid--ont: see below uitleg-grid */
+
+/* ── GRID MOBILE STACKING ── */
+@media (max-width: 768px) {
+  .uitleg-grid,
+  .uitleg-grid--ont,
+  .handleiding-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px;
+  }
+  .uitleg-grid > *,
+  .uitleg-grid--ont > *,
+  .handleiding-grid > * {
+    order: unset !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .uitleg-photo,
+  .handleiding-photo {
+    max-height: 320px;
+  }
+  #ontwerper,
+  #uitleg,
+  #handleiding,
+  .handleiding-section {
+    padding: 60px 24px !important;
+  }
+  .uitleg-grid--ont {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── STAP DIAGRAMMEN ── */
+/* ── HANDLEIDING: subheader ── */
+.handleiding-subhead {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--amber);
+  padding: 24px 0 12px;
+}
+
+/* ── HANDLEIDING: intro (overzicht + maten) ── */
+.handleiding-intro {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 3px;
+  margin-top: 24px;
+  margin-bottom: 3px;
+  height: 200px;
+}
+.handleiding-intro > div { overflow: hidden; }
+.handleiding-intro-main { overflow: hidden; }
+.handleiding-intro-side { display: contents; }
+.handleiding-intro-side > div { overflow: hidden; }
+@media (max-width: 600px) {
+  .handleiding-intro { grid-template-columns: 1fr; height: auto; }
+  .handleiding-intro > div { aspect-ratio: 4/3; }
+}
+
+/* ── ONDERDELEN CAROUSEL ── */
+.onderdelen-carousel { position: relative; margin-bottom: 3px; }
+.onderdelen-track-wrap { overflow: hidden; width: 100%; position: relative; }
+.onderdelen-track {
+  display: flex;
+  width: 100%;
+  transition: transform .4s cubic-bezier(.25,.46,.45,.94);
+}
+.onderdeel-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 3px;
+  height: 320px;
+}
+.onderdeel-slide-img {
+  background: var(--dark3);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 320px;
+  height: 320px;
+  clip-path: polygon(22px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 22px);
+  border-radius: 0 0 18px 0;
+}
+.onderdeel-slide-img img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 24px;
+}
+.onderdeel-slide-text {
+  background: var(--dark3);
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+@media (max-width: 700px) {
+  .onderdeel-slide { grid-template-columns: 1fr; height: auto; }
+  .onderdeel-slide-img { width: 100%; height: 260px; }
+}
+.onderdeel-slide-num {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: rgba(200,136,74,.18);
+  line-height: 1;
+}
+.onderdeel-slide-name {
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--cream);
+}
+.onderdeel-slide-info {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: .1em;
+}
+.onderdelen-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+.onderdelen-dl {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--amber);
+  text-decoration: none;
+  border: 1px solid rgba(200,136,74,.3);
+  padding: 6px 14px;
+  transition: background .2s;
+}
+.onderdelen-dl:hover { background: rgba(200,136,74,.08); }
+@media (max-width: 600px) {
+}
+
+/* ── STAPPEN CAROUSEL ── */
+.stappen-carousel {
+  position: relative;
+  margin-bottom: 3px;
+}
+.stappen-track-wrap {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+.stappen-track {
+  display: flex;
+  width: 100%;
+  transition: transform .4s cubic-bezier(.25,.46,.45,.94);
+}
+.stap-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 520px 1fr;
+  gap: 3px;
+  height: 520px;
+}
+.stap-slide-img {
+  background: var(--dark3);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 520px;
+  height: 520px;
+  clip-path: polygon(22px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 22px);
+  border-radius: 0 0 18px 0;
+}
+.stap-slide-img img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 28px;
+}
+.stap-slide-text {
+  background: var(--dark3);
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  height: 400px;
+}
+@media (max-width: 768px) {
+  .stap-slide { grid-template-columns: 1fr; height: auto; }
+  .stap-slide-img { height: 280px; }
+  .stap-slide-text { height: auto; padding: 24px 20px; gap: 12px; }
+}
+.stap-slide-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .2em;
+  color: var(--amber);
+}
+.stap-slide-text p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text);
+  margin: 0;
+}
+.stappen-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+.stappen-btn {
+  width: 36px; height: 36px;
+  background: var(--dark3);
+  border: 1px solid rgba(255,255,255,.08);
+  color: var(--cream);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s, border-color .2s;
+  flex-shrink: 0;
+}
+.stappen-btn:hover { background: rgba(200,136,74,.12); border-color: var(--amber); }
+.stappen-dots {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+.stappen-dot {
+  width: 20px; height: 2px;
+  background: rgba(255,255,255,.15);
+  cursor: pointer;
+  transition: background .2s, width .2s;
+}
+.stappen-dot.active {
+  background: var(--amber);
+  width: 32px;
+}
+.stappen-counter {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: .15em;
+  flex-shrink: 0;
+}
+
+/* ── HANDLEIDING: final assembled ── */
+.handleiding-final {
+  overflow: hidden;
+}
+.handleiding-final img {
+  width: 100%;
+  display: block;
+  object-fit: contain;
+  max-height: 380px;
+  background: var(--dark3);
+  padding: 32px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .handleiding-intro { grid-template-columns: 1fr; }
+  .handleiding-intro-side { grid-template-rows: unset; grid-template-columns: 1fr 1fr; }
+  .parts-strip { grid-template-columns: repeat(5, 1fr); }
+}
+@media (max-width: 600px) {
+  .parts-strip { grid-template-columns: repeat(5, 1fr); }
+  .part-chip-name { font-size: 10px; }
+}
+
+/* keep old classes for compatibility */
+.part-card--img, .part-card-img { display: none; }
+
+
+@media (max-width: 768px) {
+  /* Ontwerper foto kleiner */
+  .uitleg-grid--ont .uitleg-photo {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  /* Hero tekst mobiel */
+}
+</style>
+<style>
+
+/* LANG TOGGLE */
+.lang-toggle {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  margin-left: 24px;
+  flex-shrink: 0;
+}
+.lang-btn {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 4px 7px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all .2s;
+  line-height: 1;
+}
+.lang-btn:hover { border-color: rgba(200,136,74,.4); color: var(--cream); }
+.lang-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(200,136,74,.08); }
+@media (max-width: 768px) {
+  .lang-toggle { margin-left: 8px; }
+  .lang-btn { font-size: 8px; padding: 3px 6px; }
+}
+
+
+nav.scrolled {
+  background: rgba(18,21,26,.98);
+  box-shadow: 0 1px 0 rgba(255,255,255,.05);
+}
+
+
+/* ── MATERIALEN SECTIE ── */
+.materialen-section {
+  padding: 60px 48px;
+  background: var(--dark2);
+}
+.materialen-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.materialen-intro-note {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .15em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  max-width: 280px;
+  line-height: 1.7;
+  text-align: right;
+}
+/* ── MATERIALEN CAROUSEL ── */
+.materialen-carousel { position: relative; }
+.materialen-track-wrap { overflow: hidden; width: 100%; position: relative; }
+.materialen-track {
+  display: flex;
+  width: 100%;
+  transition: transform .4s cubic-bezier(.25,.46,.45,.94);
+}
+.mat-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 3px;
+  height: 340px;
+}
+.mat-slide-photo {
+  position: relative;
+  overflow: hidden;
+  clip-path: polygon(22px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 22px);
+  border-radius: 0 0 18px 0;
+  height: 340px;
+}
+.mat-slide-photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform .5s;
+  display: block;
+}
+.mat-slide-text {
+  background: var(--dark3);
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+.mat-slide-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .2em;
+  color: var(--amber);
+  text-transform: uppercase;
+}
+.mat-slide-name {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--cream);
+  line-height: 1;
+}
+.mat-slide-desc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+  max-width: 360px;
+}
+.mat-slide-props {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.mat-slide-prop {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+.mat-slide-prop span:first-child { color: var(--text-dim); }
+.mat-slide-prop span:last-child { color: var(--cream); }
+.materialen-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+.mat-labels {
+  display: flex;
+  gap: 3px;
+  margin-top: 12px;
+}
+.mat-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 5px 10px;
+  background: var(--dark3);
+  cursor: pointer;
+  transition: color .2s, background .2s;
+  white-space: nowrap;
+}
+.mat-label.active {
+  color: var(--amber);
+  background: rgba(200,136,74,.1);
+}
+@media (max-width: 768px) {
+  .mat-slide { grid-template-columns: 1fr; min-height: unset; }
+  .mat-slide-photo { aspect-ratio: 4/3; }
+  .mat-slide-text { padding: 24px 20px; }
+}
+.mat-card-tag {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--amber);
+  display: block;
+  margin-bottom: 7px;
+}
+.mat-card-name {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--cream);
+  margin-bottom: 10px;
+  display: block;
+}
+.mat-card-desc {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text);
+}
+.mat-card-props {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mat-prop {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .08em;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  color: var(--text-dim);
+}
+.mat-prop span:last-child { color: var(--cream); }
+.mat-more {
+  grid-column: 1 / -1;
+  margin-top: 3px;
+  padding: 22px 24px;
+  background: rgba(200,136,74,.04);
+  border: 1px dashed rgba(200,136,74,.2);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mat-more-icon {
+  width: 32px; height: 32px;
+  border: 1px solid rgba(200,136,74,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--amber); flex-shrink: 0;
+}
+.mat-more-text {
+  font-size: 13px; color: var(--text); line-height: 1.6;
+}
+.mat-more-text strong { color: var(--cream); font-weight: 500; }
+
+@media (max-width: 1024px) {
+  .materialen-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  .materialen-section { padding: 60px 24px; }
+  .materialen-grid { grid-template-columns: repeat(2, 1fr); }
+  .materialen-intro { flex-direction: column; align-items: flex-start; }
+  .materialen-intro-note { text-align: left; }
+}
+/* Mobile: lighter animations to prevent crashes */
+@media (max-width: 768px) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .carousel-track { transition: none !important; }
+}
+
+@media (max-width: 480px) {
+  .materialen-grid { grid-template-columns: 1fr; }
+}
+
+
+
+/* ── HERO SPLIT ── */
+.hero-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+  max-height: 100vh;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 140px 60px 80px;
+  max-width: 700px;
+}
+.hero-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 40px 60px 20px;
+  overflow: hidden;
+  max-height: 100vh;
+}
+.hero-img-frame {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 160px);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-img-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* ── CAROUSEL HEIGHT LIMIT ── */
+.carousel-section {
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .hero-split {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    max-height: none;
+  }
+  .hero-left {
+    padding: 140px 32px 40px;
+    max-width: 100%;
+  }
+  .hero-right {
+    padding: 0 24px 48px;
+    height: 50vw;
+    min-height: 260px;
+    max-height: 420px;
+  }
+  .hero-img-frame {
+    max-height: 100%;
+  }
+}
+
+
+.type-card-count {
+  position: absolute;
+  bottom: 52px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--amber);
+  background: rgba(18,21,26,.8);
+  padding: 3px 7px;
+  opacity: 0;
+  transition: opacity .3s;
+}
+.type-card:hover .type-card-count {
+  opacity: 1;
+}
+.type-card-arrow {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  color: var(--amber);
+  font-size: 18px;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity .3s;
+}
+.type-card:hover .type-card-arrow {
+  opacity: 1;
+}
+
+
+/* ── TOUCH / MOBILE ── */
+html {
+  -webkit-text-size-adjust: 100%;
+  touch-action: pan-y;
+}
+input, textarea, select {
+  font-size: 16px; /* prevents iOS zoom on focus */
+}
+
+
+/* Performance: skip rendering off-screen sections */
+#kunst, #uitleg, #materialen, #handleiding, #ontwerper {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
+}
+
+/* ── TOPBANNER ── */
+.topbanner {
+  width: 100%;
+  background: var(--amber);
+  color: var(--dark);
+  text-align: center;
+  padding: 10px 24px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 300;
+}
+.topbanner a {
+  color: var(--dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── NIEUWE LAYOUT STIJLEN ── */
+
+/* LAMP TYPES GRID */
+.types-section {
+  padding: 80px 48px;
+  background: var(--dark);
+}
+.types-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  margin-top: 48px;
+}
+.type-card {
+  position: relative;
+  aspect-ratio: 1/1;
+  cursor: zoom-in;
+  text-decoration: none;
+  display: block;
+}
+.type-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  transition: transform .6s cubic-bezier(.25,.46,.45,.94);
+}
+.type-card:hover img {
+  transform: scale(1.04);
+}
+.type-card-label {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 32px 20px 16px;
+  background: linear-gradient(to top, rgba(12,14,18,.9) 0%, transparent 100%);
+}
+.type-card-hint {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(200,136,74,.5);
+  display: block;
+  margin-top: 6px;
+  transition: color .2s;
+}
+.type-card:hover .type-card-hint {
+  color: var(--amber);
+}
+.type-card-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--amber);
+  display: block;
+  margin-bottom: 4px;
+}
+.type-card-title {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--cream);
+}
+.type-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid transparent;
+  transition: border-color .3s;
+  z-index: 3;
+  pointer-events: none;
+}
+.type-card:hover::before {
+  border-color: rgba(200,136,74,.5);
+}
+.type-card-arrow {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 28px; height: 28px;
+  border: 1px solid rgba(200,136,74,.5);
+  background: rgba(12,14,18,.6);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--amber); font-size: 13px;
+  opacity: 1;
+  transition: background .2s, transform .2s;
+  z-index: 4;
+  border-radius: 2px;
+}
+.type-card:hover .type-card-arrow {
+  background: rgba(200,136,74,.15);
+  transform: scale(1.1);
+}
+.type-card:hover .type-card-arrow { opacity: 1; }
+
+/* CAROUSEL */
+.carousel-section {
+  padding: 80px 0;
+  background: var(--dark2);
+  overflow: hidden;
+}
+.carousel-header {
+  padding: 0 48px 40px;
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.carousel-track-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.carousel-track {
+  display: flex;
+  gap: 20px;
+  transition: transform .65s cubic-bezier(.16, 1, .3, 1);
+  will-change: transform;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.carousel-slide {
+  flex-shrink: 0;
+  width: clamp(260px, 38vw, 500px);
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  cursor: zoom-in;
+}
+@media (max-width: 768px) {
+  .carousel-slide { width: 80vw !important; aspect-ratio: 1/1 !important; }
+  .type-card { aspect-ratio: 1/1 !important; }
+}
+.carousel-slide img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform .5s;
+}
+.carousel-slide:hover img { transform: scale(1.03); }
+.carousel-controls {
+  display: flex; gap: 8px; align-items: center;
+  padding: 24px 48px 0;
+}
+.carousel-btn {
+  width: 40px; height: 40px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: none; color: var(--cream);
+  cursor: pointer; font-size: 16px;
+  transition: all .2s; display: flex; align-items: center; justify-content: center;
+}
+.carousel-btn:hover { border-color: var(--amber); color: var(--amber); }
+.carousel-dots {
+  display: flex; gap: 6px; margin-left: 16px;
+}
+.carousel-dot {
+  width: 20px; height: 1px; background: rgba(255,255,255,.2);
+  cursor: pointer; transition: all .2s;
+}
+.carousel-dot.active { background: var(--amber); width: 32px; }
+
+/* UITLEG SECTIE */
+.uitleg-section {
+  padding: 100px 48px;
+  background: var(--dark);
+}
+.uitleg-grid {
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  gap: 80px;
+  align-items: start;
+}
+.uitleg-grid.uitleg-grid--ont {
+  grid-template-columns: 160px 1fr;
+  gap: 48px;
+}
+.uitleg-text h2 { font-size: 36px; font-weight: 300; line-height: 1.2; margin-bottom: 24px; }
+.uitleg-text h2 em { font-style: italic; color: var(--amber-pale); }
+.uitleg-text p { font-size: 15px; line-height: 1.8; color: var(--text); margin-bottom: 16px; }
+.uitleg-specs { margin-top: 32px; display: flex; flex-direction: column; gap: 0; }
+.uitleg-spec { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.uitleg-spec-k { font-family: var(--font-mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--text-dim); }
+.uitleg-spec-v { font-size: 13px; color: var(--cream); }
+.uitleg-photo { position: relative; }
+.uitleg-photo img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+
+/* HANDLEIDING / MONTAGE */
+.handleiding-section {
+  padding: 52px 48px;
+  background: var(--dark2);
+}
+.handleiding-grid {
+  display: grid;
+  grid-template-columns: 440px 1fr;
+  gap: 48px;
+  margin-top: 32px;
+  align-items: start;
+}
+.handleiding-photo img {
+  width: 100%; aspect-ratio: 1/1; object-fit: cover;
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+  .types-grid { grid-template-columns: repeat(2, 1fr); gap: 3px; }
+  .types-section { padding: 60px 24px; }
+  .carousel-section { padding: 60px 0; }
+  .carousel-header { padding: 0 24px 32px; }
+  .carousel-slide { width: calc(85vw); }
+  .carousel-controls { padding: 20px 24px 0; }
+  .uitleg-section { padding: 60px 24px; }
+  .uitleg-grid { grid-template-columns: 1fr; gap: 40px; }
+  .handleiding-section { padding: 60px 24px; }
+  .handleiding-grid { grid-template-columns: 1fr; gap: 40px; }
+}
+/* Mobile: lighter animations to prevent crashes */
+@media (max-width: 768px) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .carousel-track { transition: none !important; }
+}
+
+@media (max-width: 480px) {
+  .types-grid { grid-template-columns: 1fr 1fr; }
+  .type-card { aspect-ratio: 1/1; }
+}
+
+/* ── PRINT ── */
+@media print {
+  nav, .carousel-section, .configurator, .cta, footer, .cursor { display: none !important; }
+  body { background: white; color: black; }
+  .handleiding-section { padding: 20px; }
+}
+</style>
+  <!-- Favicon & PWA icons -->
+  <link rel="icon" type="image/svg+xml" href="icons/icon-32.svg">
+  <link rel="icon" type="image/svg+xml" sizes="16x16" href="icons/icon-16.svg">
+  <link rel="icon" type="image/svg+xml" sizes="32x32" href="icons/icon-32.svg">
+  <link rel="apple-touch-icon" href="icons/icon-180.svg">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#12151A">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Rhombi">
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- MOBILE MENU -->
+<div class="topbanner" data-i18n="topbanner">
+  ◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener">Galerie T</a>, Middelburg
+</div>
+
+<div class="mobile-menu" id="mobileMenu" onclick="if(event.target===this)closeMobileMenu()">
+  <button onclick="closeMobileMenu()" aria-label="Sluit menu" style="position:absolute;top:44px;right:24px;background:none;border:none;color:var(--cream);font-size:22px;cursor:pointer;padding:8px;line-height:1;opacity:.6">✕</button>
+  <ul>
+    <li><a href="#configurator" onclick="closeMobileMenu()" data-i18n="nav-conf">Configurator</a></li>
+    <li><a href="#types" onclick="closeMobileMenu()" data-i18n="nav-types">Varianten</a></li>
+    <li><a href="#carousel" onclick="closeMobileMenu()" data-i18n="nav-sfeer">Sfeer</a></li>
+    <li><a href="#kunst" onclick="closeMobileMenu()" data-i18n="nav-kunst">Kunst</a></li>
+    <li><a href="#uitleg" onclick="closeMobileMenu()" data-i18n="nav-about">Over Rhombi</a></li>
+    <li><a href="#materialen" onclick="closeMobileMenu()" data-i18n="nav-mat">Materiaal</a></li>
+    <li><a href="#handleiding" onclick="closeMobileMenu()" data-i18n="nav-montage">Montage</a></li>
+    <li><a href="#ontwerper" onclick="closeMobileMenu()" data-i18n="nav-ont">Ontwerper</a></li>
+    <li><a href="#contact" onclick="closeMobileMenu()" data-i18n="nav-contact">Contact</a></li>
+  </ul>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo" style="display:flex;align-items:center;gap:10px;color:var(--amber)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="36" height="36" style="flex-shrink:0" aria-label="Rhombi">
+    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"
+    d="M1131.5,582.5 C1130.56,584.79 1128.68,586.32 1127,588 C973.33,741.67 819.66,895.32 666.07,1049.07 C662.79,1052.35 659.51,1053.4 655.01,1053.62 C617.51,1055.4 580,1054.17 542.5,1054.44 C532.34,1054.51 522.17,1053.77 512,1053.56 C510.33,1053.53 509.12,1052.93 508.02,1051.98 C506.6,1050.74 505.33,1049.33 504,1048 C351,895 198,742 45.01,589 C43,586.98 40.67,585.23 39.37,582.21 C46.65,573.68 55.13,566.13 63.02,558.02 C64.53,556.47 66.38,556.56 67.99,558.01 C69.38,559.28 70.67,560.67 72,562 C215.33,705.33 358.69,848.64 501.9,992.1 C506.66,996.87 511.41,998.66 518,998.62 C564.17,998.39 610.33,998.45 656.5,998.58 C660.61,998.59 663.86,997.59 666.51,994.51 C667.28,993.62 668.17,992.83 669,992 C812.33,848.67 955.67,705.33 1099,562 C1106,555 1106,555 1113,562 C1117.83,566.83 1122.68,571.66 1127.49,576.51 C1129.11,578.13 1131.01,579.55 1131.5,582Z"/>
+    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"
+    d="M1087.5,543 C1087.01,540.55 1085.11,539.12 1083.5,537.5 C1009.5,463.5 935.65,389.35 861.36,315.64 C847.48,301.87 833.73,287.93 819.47,274.54 C784.66,241.85 750.3,208.61 711.49,180.51 C690.65,165.42 668.59,152.47 643.96,144.62 C631.71,140.72 619.02,138.33 606,138.48 C594.83,138.6 583.68,138.08 572.5,138.17 C547.13,138.37 523.52,144.21 501,155.48 C477.47,167.23 456.29,182.46 436.01,199.02 C418.44,213.36 401.57,228.5 384.93,243.93 C369.71,258.04 354.82,272.48 339.96,286.96 C255.39,369.39 172.82,453.82 89.01,537.01 C87,539.01 84.67,540.77 83.51,543.46 C84.42,545.81 86.32,547.32 88,549 C226.67,687.67 365.35,826.32 503.93,965.07 C507.21,968.35 510.48,969.41 514.99,969.62 C553.16,971.42 591.33,970.16 629.5,970.44 C639.66,970.51 649.83,969.77 660,969.56 C661.67,969.53 662.88,968.93 663.98,967.98 C665.4,966.74 666.67,965.33 668,964 C806,826 944,688 1082,550 C1084.01,547.98 1086.27,546.18 1087.5,543.5Z"/>
+  </svg><span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--cream)">RHOMBI</span></a>
+  <ul class="nav-links">
+    <li><a href="#configurator" data-i18n="nav-conf">Configurator</a></li>
+    <li><a href="#types" data-i18n="nav-types">Varianten</a></li>
+    <li><a href="#carousel" data-i18n="nav-sfeer">Sfeer</a></li>
+    <li><a href="#kunst" data-i18n="nav-kunst">Kunst</a></li>
+    <li><a href="#uitleg" data-i18n="nav-about">Over Rhombi</a></li>
+    <li><a href="#materialen" data-i18n="nav-mat">Materiaal</a></li>
+    <li><a href="#handleiding" data-i18n="nav-montage">Montage</a></li>
+    <li><a href="#ontwerper" data-i18n="nav-ont">Ontwerper</a></li>
+    <li><a href="#contact" data-i18n="nav-contact">Contact</a></li>
+  </ul>
+  <button class="nav-hamburger" id="hamburger" aria-label="Menu" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('nl')" id="btn-nl">NL</button>
+    <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+    <button class="lang-btn" onclick="setLang('de')" id="btn-de">DE</button>
+  </div>
+</nav>
+
+<section class="hero hero-split">
+  <div class="hero-left">
+    <p class="hero-eyebrow" style="opacity:0;animation:fadeUp .7s .2s forwards" data-i18n="hero-eyebrow">◆ Modulaire lichtobjecten</p>
+    <h1 class="hero-title" style="opacity:0;animation:fadeUp .8s .4s forwards"><span data-i18n="hero-t1">Geometrie</span><br><span data-i18n="hero-t2">ontmoet</span><br><em data-i18n="hero-t3">licht.</em></h1>
+    <p class="hero-sub" data-i18n="hero-sub" style="opacity:0;animation:fadeUp .8s .6s forwards">Rhombi is een lijn modulaire lichtobjecten waarin geometrie, licht en digitale fabricage samenkomen. Elk object is volledig 3D-geprint en functioneert zowel als sfeerverlichting als sculpturaal element in de ruimte.</p>
+    <div class="hero-actions" style="opacity:0;animation:fadeUp .8s .8s forwards">
+      <a href="#types" class="btn-primary" data-i18n="hero-btn1">Bekijk de varianten</a>
+      <a href="#configurator" class="btn-ghost" data-i18n="hero-btn2">Open 3D configurator</a>
+    </div>
+  </div>
+  <div class="hero-right" style="opacity:0;animation:fadeUp .9s .5s forwards">
+    <div class="hero-img-frame rhombi-frame">
+      <img decoding="async" id="heroImg" src="fotos/hero/20260206_172451.jpg" data-folder="hero" 
+           alt="Rhombi lamp in de sneeuw, Rotterdam"
+           loading="eager" fetchpriority="high">
+    </div>
+  </div>
+</section>
+
+<!-- 2b. KUNST CAROUSEL -->
+<section id="kunst" class="carousel-section">
+  <div class="carousel-header">
+    <div>
+      <p class="section-label reveal" data-i18n="kunst-label">◆ Kunst</p>
+      <h2 class="section-title reveal" style="margin-bottom:12px" ><span data-i18n="kunst-title">Rhombi ontmoet</span><br><em data-i18n="kunst-title2">kunst.</em></h2>
+      <p class="reveal" style="max-width:560px;font-size:15px;line-height:1.8;color:var(--text);transition-delay:.15s" data-i18n="kunst-sub">Rhombi is meer dan verlichting; het is een object dat dialoog aangaat met kunst en ruimte. Voor vragen over de getoonde werken of de betrokken kunstenaars kunt u contact opnemen met <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(200,136,74,.3)">Galerie T, Middelburg</a>.</p>
+    </div>
+  </div>
+  <div class="carousel-track-wrap">
+    <div class="carousel-track" id="kunstTrack"></div>
+  </div>
+  <div class="carousel-controls">
+    <button class="carousel-btn" onclick="kunstPrev()">←</button>
+    <button class="carousel-btn" onclick="kunstNext()">→</button>
+    <div class="carousel-dots" id="kunstDots"></div>
+  </div>
+</section>
+
+<!-- 3. CONFIGURATOR -->
+<section id="configurator" style="padding:0 48px 80px;background:var(--dark)">
+  <div style="padding:80px 48px 40px;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;flex-wrap:wrap">
+    <div>
+      <p class="section-label" data-i18n="conf-label">◆ 3D Configurator</p>
+      <h2 class="section-title" ><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
+      <p style="font-size:15px;line-height:1.7;color:var(--text);margin-top:16px;max-width:440px" data-i18n="conf-sub">Kies je variant, onderdeel en kleur. Gedeelde onderdelen vliegen mee naar de nieuwe positie.</p>
+    </div>
+    <p style="font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;color:var(--text-dim);text-transform:uppercase" data-i18n="conf-types">Tafel · Wand · Plafond · Accent · Hang</p>
+  </div>
+  <iframe src="viewer.html" 
+          style="width:100%;height:82vh;min-height:560px;border:none;display:block;border-top:1px solid rgba(255,255,255,.05)"
+          title="Rhombi 3D Configurator" allowfullscreen></iframe>
+</section>
+<section class="types-section" id="types">
+  <p class="section-label reveal" data-i18n="types-label">◆ Varianten</p>
+  <h2 class="section-title reveal" ><span data-i18n="types-t1">Meerdere vormen,</span><br><em data-i18n="types-t2">één systeem.</em></h2>
+
+  <div class="types-grid">
+    <div class="type-card reveal rhombi-frame" onclick="openVariantLightbox('tafel')" style="cursor:pointer">
+      <img decoding="async" id="imgTafel" src="fotos/tafel/20260215_114157.jpg" alt="Rhombi tafellamp" data-folder="tafel" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 30%">
+      <div class="type-card-label">
+        <span class="type-card-title" data-i18n="type-tafel">Tafellamp</span>
+        <span class="type-card-hint" data-i18n="type-hint">Tik voor foto's</span>
+      </div>
+      <div class="type-card-count" id="count-tafel"></div>
+      <span class="type-card-arrow">⊕</span>
+    </div>
+    <div class="type-card reveal rhombi-frame" onclick="openVariantLightbox('accent')" style="cursor:pointer">
+      <img decoding="async" id="imgAccent" src="fotos/accent/20241101_190621.jpg" alt="Rhombi accentlamp" data-folder="accent" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 20%">
+      <div class="type-card-label">
+        <span class="type-card-title" data-i18n="type-accent">Accentlamp</span>
+        <span class="type-card-hint" data-i18n="type-hint">Tik voor foto's</span>
+      </div>
+      <div class="type-card-count" id="count-accent"></div>
+      <span class="type-card-arrow">⊕</span>
+    </div>
+    <div class="type-card reveal rhombi-frame" onclick="openVariantLightbox('wand')" style="cursor:pointer">
+      <img decoding="async" id="imgWand" src="fotos/wand/20250822_135224.jpg" alt="Rhombi wandlamp" data-folder="wand" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 25%">
+      <div class="type-card-label">
+        <span class="type-card-title" data-i18n="type-wand">Wandlamp</span>
+        <span class="type-card-hint" data-i18n="type-hint">Tik voor foto's</span>
+      </div>
+      <div class="type-card-count" id="count-wand"></div>
+      <span class="type-card-arrow">⊕</span>
+    </div>
+    <div class="type-card reveal rhombi-frame" onclick="openVariantLightbox('plafond')" style="cursor:pointer">
+      <img decoding="async" id="imgPlafond" src="fotos/plafond/20260117_184346.jpg" alt="Rhombi plafondlamp" data-folder="plafond" loading="lazy"  style="width:100%;height:100%;object-fit:cover;object-position:center">
+      <div class="type-card-label">
+        <span class="type-card-title" data-i18n="type-plafond">Plafondlamp</span>
+        <span class="type-card-hint" data-i18n="type-hint">Tik voor foto's</span>
+      </div>
+      <div class="type-card-count" id="count-plafond"></div>
+      <span class="type-card-arrow">⊕</span>
+    </div>
+    <div class="type-card reveal rhombi-frame" onclick="openVariantLightbox('hang')" style="cursor:pointer">
+      <img decoding="async" id="imgHang" src="fotos/hang/20260123_115636.jpg" alt="Rhombi hanglamp" data-folder="hang" loading="lazy"  style="width:100%;height:100%;object-fit:cover;object-position:center">
+      <div class="type-card-label">
+        <span class="type-card-title" data-i18n="type-hang">Hanglamp</span>
+        <span class="type-card-hint" data-i18n="type-hint">Tik voor foto's</span>
+      </div>
+      <div class="type-card-count" id="count-hang"></div>
+      <span class="type-card-arrow">⊕</span>
+    </div>
+  </div>
+</section>
+<!-- 5. SFEER CARROUSEL -->
+<section class="carousel-section" id="carousel">
+  <div class="carousel-header">
+    <div>
+      <p class="section-label" data-i18n="sfeer-label">◆ Sfeer</p>
+      <h2 class="section-title" style="margin-bottom:0" data-i18n="sfeer-title">Licht in context.</h2>
+    </div>
+  </div>
+  <div class="carousel-track-wrap">
+    <div class="carousel-track" id="carouselTrack"></div>
+  </div>
+  <div class="carousel-controls">
+    <button class="carousel-btn" onclick="carouselPrev()">←</button>
+    <button class="carousel-btn" onclick="carouselNext()">→</button>
+    <div class="carousel-dots" id="carouselDots"></div>
+  </div>
+</section>
+<!-- 6. UITLEG -->
+<section id="uitleg" style="padding:80px 48px">
+  <div class="uitleg-grid">
+    <div class="uitleg-photo reveal rhombi-frame" style="order:2;transition-delay:.15s">
+      <img decoding="async" id="uitlegImg" src="fotos/uitleg/20260214_153218.jpg" data-folder="uitleg" alt="Rhombi tafellamp in context" style="object-position:center 35%" loading="lazy">
+    </div>
+    <div class="uitleg-text reveal" style="order:1">
+      <p class="section-label" data-i18n="uitleg-label">◆ Over Rhombi</p>
+      <h2 ><span data-i18n="uitleg-t1">Licht als</span><br><em data-i18n="uitleg-t2">materiaal.</em></h2>
+      <p data-i18n="uitleg-p1">Rhombi is een persoonlijk onderzoek naar de grenzen van wat 3D-printtechnologie visueel en functioneel kan betekenen. Elk onderdeel is ontworpen om te kunnen worden geprint op een standaard FDM-printer.</p>
+      <p data-i18n="uitleg-p2">De kap filtert en vervormt het licht op een manier die afhangt van de printrichting, de laagdikte en de kleur van het filament. Geen twee exemplaren zijn exact hetzelfde.</p>
+      <p data-i18n="uitleg-p3">Ontworpen in Rotterdam door Vincent Hector, Vhector.</p>
+      <div class="uitleg-specs">
+        <div class="uitleg-spec"><span class="uitleg-spec-k" data-i18n="spec-materiaal">Materiaal</span><span class="uitleg-spec-v">PLA — biobased kunststof</span></div>
+        <div class="uitleg-spec"><span class="uitleg-spec-k" data-i18n="spec-fitting">Fitting</span><span class="uitleg-spec-v">E14 · max. 8W LED</span></div>
+        <div class="uitleg-spec"><span class="uitleg-spec-k" data-i18n="spec-componenten">Componenten</span><span class="uitleg-spec-v">8 modulaire onderdelen</span></div>
+        <div class="uitleg-spec"><span class="uitleg-spec-k" data-i18n="nav-montage">Montage</span><span class="uitleg-spec-v" data-i18n="spec-montage-val">Geen gereedschap nodig</span></div>
+        <div class="uitleg-spec"><span class="uitleg-spec-k" data-i18n="spec-kleuren">Kleuren</span><span class="uitleg-spec-v" data-i18n="spec-kleuren-val">12 standaard · maatwerk mogelijk</span></div>
+        <div class="uitleg-spec"><span class="uitleg-spec-k">Ontwerp</span><span class="uitleg-spec-v">Vincent Hector · Rotterdam NL</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- MATERIALEN -->
+<section class="materialen-section" id="materialen">
+  <div class="materialen-intro">
+    <div>
+      <p class="section-label reveal" data-i18n="mat-label">◆ Materiaal</p>
+      <h2 class="section-title reveal" data-i18n="mat-title">Dezelfde vorm,<br><em>ander karakter.</em></h2>
+    </div>
+    <p class="materialen-intro-note reveal" style="transition-delay:.15s" data-i18n="mat-note">
+      Elk onderdeel kan in een ander materiaal worden geprint.<br>
+      Meer varianten zijn altijd mogelijk op aanvraag.
+    </p>
+  </div>
+  <div class="materialen-carousel reveal">
+    <div class="materialen-track-wrap">
+      <div class="materialen-track" id="materialenTrack">
+        <div class="mat-slide">
+          <div class="mat-slide-photo rhombi-frame" style="background:linear-gradient(135deg, #D8CFC4 0%, #EDE4D0 50%, #C8B89A 100%)">
+            <img decoding="async" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-folder="materiaal/basic" alt="Rhombi Basic" loading="lazy"
+              onerror="this.style.display='none'">
+          </div>
+          <div class="mat-slide-text">
+            <span class="mat-slide-tag">◆ PLA Basic</span>
+            <span class="mat-slide-name">Basic</span>
+            <p class="mat-slide-desc">Glad oppervlak met een lichte satijnglans. Licht schijnt helder en egaal door de kap. De standaard keuze.</p>
+            <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Glad</span></div><div class="mat-slide-prop"><span>Licht</span><span>Helder · egaal</span></div><div class="mat-slide-prop"><span>Glans</span><span>Licht satijn</span></div></div>
+          </div>
+        </div>
+        <div class="mat-slide">
+          <div class="mat-slide-photo rhombi-frame" style="background:linear-gradient(135deg, #8A8070 0%, #A89880 50%, #7A7060 100%)">
+            <img decoding="async" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-folder="materiaal/mat" alt="Rhombi Mat" loading="lazy"
+              onerror="this.style.display='none'">
+          </div>
+          <div class="mat-slide-text">
+            <span class="mat-slide-tag">◆ PLA Mat</span>
+            <span class="mat-slide-name">Mat</span>
+            <p class="mat-slide-desc">Volledig matte afwerking. Licht wordt diffuus verstrooid voor een zachte, warme sfeer.</p>
+            <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Mat</span></div><div class="mat-slide-prop"><span>Licht</span><span>Diffuus · warm</span></div><div class="mat-slide-prop"><span>Glans</span><span>Geen</span></div></div>
+          </div>
+        </div>
+        <div class="mat-slide">
+          <div class="mat-slide-photo rhombi-frame" style="background:linear-gradient(135deg, #1A1A1A 0%, #2E2E2E 40%, #111 100%)">
+            <img decoding="async" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-folder="materiaal/cf" alt="Rhombi Carbon" loading="lazy"
+              onerror="this.style.display='none'">              onerror="this.style.display='none'">
+          </div>
+          <div class="mat-slide-text">
+            <span class="mat-slide-tag">◆ CF-PLA</span>
+            <span class="mat-slide-name">Carbon</span>
+            <p class="mat-slide-desc">Koolstofvezel versterkt PLA. Donker en industrieel. Licht filtert spaarzaam door de textuur.</p>
+            <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Vezeltextuur</span></div><div class="mat-slide-prop"><span>Licht</span><span>Spaarzaam · dramatisch</span></div><div class="mat-slide-prop"><span>Glans</span><span>Subtiel</span></div></div>
+          </div>
+        </div>
+        <div class="mat-slide">
+          <div class="mat-slide-photo rhombi-frame" style="background:linear-gradient(135deg, #9A9A9A 0%, #C8C8C8 40%, #787878 80%, #B0B0B0 100%)">
+            <img decoding="async" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-folder="materiaal/metal" alt="Rhombi Metal" loading="lazy"
+              onerror="this.style.display='none'">
+          </div>
+          <div class="mat-slide-text">
+            <span class="mat-slide-tag">◆ Metal PLA</span>
+            <span class="mat-slide-name">Metal</span>
+            <p class="mat-slide-desc">Metaalpoeder in het filament geeft een echte metaalglans. Reflecterend, zwaar van uitstraling.</p>
+            <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Metaalglans</span></div><div class="mat-slide-prop"><span>Licht</span><span>Gereflecteerd</span></div><div class="mat-slide-prop"><span>Glans</span><span>Hoog</span></div></div>
+          </div>
+        </div>
+        <div class="mat-slide">
+          <div class="mat-slide-photo rhombi-frame" style="background:linear-gradient(135deg, rgba(200,220,220,.6) 0%, rgba(220,240,240,.8) 50%, rgba(180,210,215,.5) 100%)">
+            <img decoding="async" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-folder="materiaal/translucent" alt="Rhombi Translucent" loading="lazy"
+              onerror="this.style.display='none'">
+          </div>
+          <div class="mat-slide-text">
+            <span class="mat-slide-tag">◆ PETG</span>
+            <span class="mat-slide-name">Translucent</span>
+            <p class="mat-slide-desc">Doorschijnend materiaal voor maximale lichtdoorlatendheid. De printstructuur wordt zelf onderdeel van het effect.</p>
+            <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Transparant</span></div><div class="mat-slide-prop"><span>Licht</span><span>Maximaal · structuur zichtbaar</span></div><div class="mat-slide-prop"><span>Glans</span><span>Licht</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mat-labels">
+      <span class="mat-label" data-idx="0">Basic</span>
+      <span class="mat-label" data-idx="1">Mat</span>
+      <span class="mat-label" data-idx="2">Carbon</span>
+      <span class="mat-label" data-idx="3">Metal</span>
+      <span class="mat-label" data-idx="4">Translucent</span>
+    </div>
+    <div class="materialen-nav">
+      <button class="stappen-btn" id="matPrev" aria-label="Vorig materiaal">←</button>
+      <div class="stappen-dots" id="matDots"></div>
+      <span class="stappen-counter" id="matCounter">1 / 5</span>
+      <button class="stappen-btn" id="matNext" aria-label="Volgend materiaal">→</button>
+    </div>
+  </div>
+</section>
+<!-- 7. HANDLEIDING & MONTAGE -->
+<section class="handleiding-section" id="handleiding">
+  <p class="section-label reveal" data-i18n="mont-label">◆ Montage</p>
+  <h2 class="section-title reveal"><span data-i18n="mont-t1">Stap voor stap</span><br><em data-i18n="mont-t2">in elkaar.</em></h2>
+
+  <!-- Intro: overview illustration + dimensions -->
+  <div class="handleiding-intro reveal" style="transition-delay:.1s">
+    <div style="overflow:hidden;background:var(--dark3)">
+      <img decoding="async" src="fotos/handleiding/overzicht.png" alt="Rhombi lamp overzicht" style="width:100%;height:100%;object-fit:contain;padding:16px" loading="lazy"
+        onerror="this.src='fotos/handleiding/00_lamp_volledig.jpg';this.style.objectFit='cover';this.style.padding='0';this.onerror=null">
+    </div>
+    <div style="overflow:hidden;background:var(--dark3)">
+      <img decoding="async" src="fotos/handleiding/maat_zij.png" alt="Maatvoering zijaanzicht" style="width:100%;height:100%;object-fit:contain;padding:16px" loading="lazy"
+        onerror="this.closest('div').style.display='none'">
+    </div>
+    <div style="overflow:hidden;background:var(--dark3)">
+      <img decoding="async" src="fotos/handleiding/maat_voor.png" alt="Maatvoering vooraanzicht" style="width:100%;height:100%;object-fit:contain;padding:16px" loading="lazy"
+        onerror="this.closest('div').style.display='none'">
+    </div>
+  </div>
+
+  <!-- Parts -->
+  <!-- Onderdelen carousel -->
+  <div class="reveal" style="transition-delay:.15s">
+    <p class="handleiding-subhead" data-i18n="mont-onderdelen">Onderdelen</p>
+    <div class="onderdelen-carousel">
+      <div class="onderdelen-track-wrap">
+        <div class="onderdelen-track" id="onderdelenTrack">
+        <div class="onderdeel-slide">
+          <div class="onderdeel-slide-img" style="background:var(--dark3)">
+            <img src="fotos/handleiding/part_01_kap.png" alt="Kap" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+          </div>
+          <div class="onderdeel-slide-text">
+            <span class="onderdeel-slide-num">01</span>
+            <span class="onderdeel-slide-name">Kap</span>
+            <span class="onderdeel-slide-info">200 × 100 mm · PLA</span>
+          </div>
+        </div>
+        <div class="onderdeel-slide">
+          <div class="onderdeel-slide-img" style="background:var(--dark3)">
+            <img src="fotos/handleiding/part_02_vleugel_L.png" alt="Vleugel L" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+          </div>
+          <div class="onderdeel-slide-text">
+            <span class="onderdeel-slide-num">02</span>
+            <span class="onderdeel-slide-name">Vleugel L</span>
+            <span class="onderdeel-slide-info">Zijpaneel links</span>
+          </div>
+        </div>
+        <div class="onderdeel-slide">
+          <div class="onderdeel-slide-img" style="background:var(--dark3)">
+            <img src="fotos/handleiding/part_03_vleugel_R.png" alt="Vleugel R" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+          </div>
+          <div class="onderdeel-slide-text">
+            <span class="onderdeel-slide-num">03</span>
+            <span class="onderdeel-slide-name">Vleugel R</span>
+            <span class="onderdeel-slide-info">Zijpaneel rechts</span>
+          </div>
+        </div>
+        <div class="onderdeel-slide">
+          <div class="onderdeel-slide-img" style="background:var(--dark3)">
+            <img src="fotos/handleiding/part_04_kern.png" alt="Kern" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+          </div>
+          <div class="onderdeel-slide-text">
+            <span class="onderdeel-slide-num">04</span>
+            <span class="onderdeel-slide-name">Kern</span>
+            <span class="onderdeel-slide-info">Centrale fitting-houder</span>
+          </div>
+        </div>
+        <div class="onderdeel-slide">
+          <div class="onderdeel-slide-img" style="background:var(--dark3)">
+            <img src="fotos/handleiding/part_05_ring.png" alt="Ring" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+          </div>
+          <div class="onderdeel-slide-text">
+            <span class="onderdeel-slide-num">05</span>
+            <span class="onderdeel-slide-name">Ring</span>
+            <span class="onderdeel-slide-info">E14 · vervangbaar</span>
+          </div>
+        </div>
+        <div class="onderdeel-slide">
+          <div class="onderdeel-slide-img" style="background:var(--dark3)">
+            <img src="fotos/handleiding/part_06_kader_L.png" alt="Kader L" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+          </div>
+          <div class="onderdeel-slide-text">
+            <span class="onderdeel-slide-num">06</span>
+            <span class="onderdeel-slide-name">Kader L</span>
+            <span class="onderdeel-slide-info">Zijkader links</span>
+          </div>
+        </div>
+        <div class="onderdeel-slide">
+          <div class="onderdeel-slide-img" style="background:var(--dark3)">
+            <img src="fotos/handleiding/part_07_kader_R.png" alt="Kader R" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+          </div>
+          <div class="onderdeel-slide-text">
+            <span class="onderdeel-slide-num">07</span>
+            <span class="onderdeel-slide-name">Kader R</span>
+            <span class="onderdeel-slide-info">Zijkader rechts · klikhaken</span>
+          </div>
+        </div>
+        <div class="onderdeel-slide">
+          <div class="onderdeel-slide-img" style="background:var(--dark3)">
+            <img src="fotos/handleiding/part_08_kader.png" alt="Kader" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+          </div>
+          <div class="onderdeel-slide-text">
+            <span class="onderdeel-slide-num">08</span>
+            <span class="onderdeel-slide-name">Kader</span>
+            <span class="onderdeel-slide-info">Frontframe · afwerking</span>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="onderdelen-nav">
+        <button class="stappen-btn" id="ondPrev" aria-label="Vorig onderdeel">←</button>
+        <div class="stappen-dots" id="ondDots"></div>
+        <span class="stappen-counter" id="ondCounter">1 / 8</span>
+        <button class="stappen-btn" id="ondNext" aria-label="Volgend onderdeel">→</button>
+        <a href="Rhombi_handleiding.pdf" class="onderdelen-dl" data-i18n="dl-manual">PDF ↓</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stappen carousel -->
+  <p class="handleiding-subhead reveal" data-i18n="mont-stappen">Montage</p>
+  <div class="stappen-carousel reveal">
+    <div class="stappen-track-wrap">
+      <div class="stappen-track" id="stappenTrack">
+        <div class="stap-slide">
+          <div class="stap-slide-img rhombi-frame" style="background:var(--dark3)">
+            <img decoding="async" src="fotos/handleiding/stap_0.png" alt="Overzicht" onerror="this.parentElement.style.background='var(--dark3)';this.remove()">
+          </div>
+          <div class="stap-slide-text">
+            <span class="stap-slide-label" data-i18n="step-00-label">OVERZICHT</span>
+            <p data-i18n="step-00">De kap wordt van binnenuit opgebouwd. Alle onderdelen klikken zonder gereedschap in elkaar.</p>
+          </div>
+        </div>
+        <div class="stap-slide">
+          <div class="stap-slide-img rhombi-frame" style="background:var(--dark3)">
+            <img decoding="async" src="fotos/handleiding/stap_1.png" alt="Stap 1">
+          </div>
+          <div class="stap-slide-text">
+            <span class="stap-slide-label" data-i18n="step-01-label">STAP 01</span>
+            <p data-i18n="step-01">Plaats vleugel L (2) en vleugel R (3) in de kap. Zorg dat de klikverbinding goed vastzit.</p>
+          </div>
+        </div>
+        <div class="stap-slide">
+          <div class="stap-slide-img rhombi-frame" style="background:var(--dark3)">
+            <img decoding="async" src="fotos/handleiding/stap_2.png" alt="Stap 2">
+          </div>
+          <div class="stap-slide-text">
+            <span class="stap-slide-label" data-i18n="step-02-label">STAP 02</span>
+            <p data-i18n="step-02">Schuif de kern (4) in de fitting-houder en vergrendel de positie.</p>
+          </div>
+        </div>
+        <div class="stap-slide">
+          <div class="stap-slide-img rhombi-frame" style="background:var(--dark3)">
+            <img decoding="async" src="fotos/handleiding/stap_3.png" alt="Stap 3">
+          </div>
+          <div class="stap-slide-text">
+            <span class="stap-slide-label" data-i18n="step-03-label">STAP 03</span>
+            <p data-i18n="step-03">Klik de E14 ring (5) op de kern. De ring is vervangbaar voor andere fittingversies.</p>
+          </div>
+        </div>
+        <div class="stap-slide">
+          <div class="stap-slide-img rhombi-frame" style="background:var(--dark3)">
+            <img decoding="async" src="fotos/handleiding/stap_4.png" alt="Stap 4">
+          </div>
+          <div class="stap-slide-text">
+            <span class="stap-slide-label" data-i18n="step-04-label">STAP 04</span>
+            <p data-i18n="step-04">Bevestig kader L (6) en kader R (7). Voer het snoer door de snoergeleider.</p>
+          </div>
+        </div>
+        <div class="stap-slide">
+          <div class="stap-slide-img rhombi-frame" style="background:var(--dark3)">
+            <img decoding="async" src="fotos/handleiding/stap_5.png" alt="Stap 5">
+          </div>
+          <div class="stap-slide-text">
+            <span class="stap-slide-label" data-i18n="step-05-label">STAP 05</span>
+            <p data-i18n="step-05">Sluit de kap door de fitting van bovenaf naar beneden te schuiven. Combineer met het gewenste onderstel.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mat-labels" id="stapLabels">
+      <span class="mat-label active" data-idx="0">Overzicht</span>
+      <span class="mat-label" data-idx="1">Stap 1</span>
+      <span class="mat-label" data-idx="2">Stap 2</span>
+      <span class="mat-label" data-idx="3">Stap 3</span>
+      <span class="mat-label" data-idx="4">Stap 4</span>
+      <span class="mat-label" data-idx="5">Stap 5</span>
+    </div>
+    <div class="stappen-nav">
+      <button class="stappen-btn" id="stapPrev" aria-label="Vorige stap">←</button>
+      <div class="stappen-dots" id="stapDots"></div>
+      <span class="stappen-counter" id="stapCounter">1 / 6</span>
+      <button class="stappen-btn" id="stapNext" aria-label="Volgende stap">→</button>
+    </div>
+  </div>
+
+  <!-- Compleet -->
+  <div class="handleiding-final reveal rhombi-frame" style="background:var(--dark3)">
+    <img decoding="async" src="fotos/handleiding/compleet.png" alt="Rhombi compleet gemonteerd" loading="lazy"
+      onerror="this.closest('div').style.display='none'">
+  </div>
+
+</section>
+<!-- ONTWERPER -->
+<!-- ONTWERPER -->
+<section id="ontwerper" style="background:var(--dark2);padding:80px 48px">
+  <div class="uitleg-grid uitleg-grid--ont">
+    <div class="uitleg-photo reveal rhombi-frame" style="transition-delay:.15s;aspect-ratio:1/1">
+      <img decoding="async" src="fotos/ontwerper/portret.jpg" data-folder="ontwerper" alt="Vincent Hector — ontwerper Rhombi" style="width:100%;height:100%;object-fit:cover;object-position:center top" loading="lazy"
+        onerror="this.style.display='none'">
+    </div>
+    <div class="uitleg-text reveal">
+      <p class="section-label" data-i18n="ont-label">◆ Ontwerper</p>
+      <h2 ><span data-i18n="ont-title">Ontmoet de</span><br><em data-i18n="ont-title2">ontwerper.</em></h2>
+      <p data-i18n="ont-p1">Vincent Hector is architect en visualisator uit Rotterdam en werkzaam op het snijvlak van architectuur, productontwerp en digitale beeldvorming. In zijn werk onderzoekt hij de wisselwerking tussen structuur, licht en ruimtelijke perceptie, met een nadruk op modulair denken en digitale maakprocessen.</p>
+      <p style="margin-top:16px" data-i18n="ont-p2">In uiteenlopende projecten, van ruimtelijke ontwerpen tot visuele representaties, streeft hij naar helderheid in vorm en een subtiele, gelaagde ruimtelijke ervaring. Vincent maakt gebruik van technieken zoals 3D-modellering, digitale fabricage en visualisatie om ontwerpen te ontwikkelen en te verfijnen. Met deze werkwijze verbindt hij het architectonische met het sculpturale, waarbij licht niet enkel functioneel is maar een integraal onderdeel vormt van het ontwerpconcept.</p>
+      <p style="margin-top:16px" data-i18n="ont-p3">Als ontwerper zoekt hij naar objecten die zowel een rustige aanwezigheid als een expressieve vormkwaliteit bezitten en die uitnodigen om licht en ruimte op een nieuwe manier te ervaren.</p>
+      <p style="margin-top:24px"><a href="https://www.instagram.com/vhector/" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(200,136,74,.3)">@vhector</a></p>
+    
+      </div>
+    </div>
+</div>
+  </div>
+</section>
+
+<!-- 8. CONTACT -->
+<section class="cta" id="contact">
+  <h2 class="reveal" ><span data-i18n="cta-t1">Tussen product</span><br><em data-i18n="cta-t2">en autonoom object.</em></h2>
+  <p class="reveal" style="transition-delay:.15s" data-i18n="cta-sub">Rhombi is ontworpen voor interieur, expositie en designcontext. Neem contact op voor informatie, bestellingen of maatwerk.</p>
+  <div class="cta-btns reveal" style="transition-delay:.3s">
+    <a href="/cdn-cgi/l/email-protection#10797e767f5066787573647f623e7e7c" class="btn-primary" data-i18n="cta-btn1">Neem contact op</a>
+    <a href="#types" class="btn-ghost" data-i18n="cta-btn2">Bekijk varianten</a>
+  </div>
+</section>
+
+<footer>
+  <a href="#" style="display:flex;align-items:center;gap:8px;color:var(--amber);text-decoration:none"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="28" height="28" style="flex-shrink:0" aria-label="Rhombi">
+    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"
+    d="M1131.5,582.5 C1130.56,584.79 1128.68,586.32 1127,588 C973.33,741.67 819.66,895.32 666.07,1049.07 C662.79,1052.35 659.51,1053.4 655.01,1053.62 C617.51,1055.4 580,1054.17 542.5,1054.44 C532.34,1054.51 522.17,1053.77 512,1053.56 C510.33,1053.53 509.12,1052.93 508.02,1051.98 C506.6,1050.74 505.33,1049.33 504,1048 C351,895 198,742 45.01,589 C43,586.98 40.67,585.23 39.37,582.21 C46.65,573.68 55.13,566.13 63.02,558.02 C64.53,556.47 66.38,556.56 67.99,558.01 C69.38,559.28 70.67,560.67 72,562 C215.33,705.33 358.69,848.64 501.9,992.1 C506.66,996.87 511.41,998.66 518,998.62 C564.17,998.39 610.33,998.45 656.5,998.58 C660.61,998.59 663.86,997.59 666.51,994.51 C667.28,993.62 668.17,992.83 669,992 C812.33,848.67 955.67,705.33 1099,562 C1106,555 1106,555 1113,562 C1117.83,566.83 1122.68,571.66 1127.49,576.51 C1129.11,578.13 1131.01,579.55 1131.5,582Z"/>
+    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"
+    d="M1087.5,543 C1087.01,540.55 1085.11,539.12 1083.5,537.5 C1009.5,463.5 935.65,389.35 861.36,315.64 C847.48,301.87 833.73,287.93 819.47,274.54 C784.66,241.85 750.3,208.61 711.49,180.51 C690.65,165.42 668.59,152.47 643.96,144.62 C631.71,140.72 619.02,138.33 606,138.48 C594.83,138.6 583.68,138.08 572.5,138.17 C547.13,138.37 523.52,144.21 501,155.48 C477.47,167.23 456.29,182.46 436.01,199.02 C418.44,213.36 401.57,228.5 384.93,243.93 C369.71,258.04 354.82,272.48 339.96,286.96 C255.39,369.39 172.82,453.82 89.01,537.01 C87,539.01 84.67,540.77 83.51,543.46 C84.42,545.81 86.32,547.32 88,549 C226.67,687.67 365.35,826.32 503.93,965.07 C507.21,968.35 510.48,969.41 514.99,969.62 C553.16,971.42 591.33,970.16 629.5,970.44 C639.66,970.51 649.83,969.77 660,969.56 C661.67,969.53 662.88,968.93 663.98,967.98 C665.4,966.74 666.67,965.33 668,964 C806,826 944,688 1082,550 C1084.01,547.98 1086.27,546.18 1087.5,543.5Z"/>
+  </svg><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--cream)">RHOMBI</span></a>
+  <ul class="footer-links">
+    <li><a href="#">Instagram</a></li>
+    <li><a href="#">Etsy</a></li>
+    <li><a href="#">Printables</a></li>
+    <li><a href="#contact" data-i18n="nav-contact">Contact</a></li>
+  </ul>
+  <span class="footer-note" data-i18n="footer-note">Ontwerp: Vincent Hector · Vhector · Rotterdam, NL</span>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+// Lightbox
+function openLightbox(src, alt) {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightbox-img');
+  img.src = src;
+  img.alt = alt || '';
+  lb.style.display='flex'; lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+
+// Wire up all rhombi-frame imgs
+function wireFrames() {
+  document.querySelectorAll('.rhombi-frame').forEach(frame => {
+    const img = frame.querySelector('img');
+    if(!img) return;
+    if(frame.dataset.wired) return;
+    frame.dataset.wired = '1';
+    frame.style.cursor = 'zoom-in';
+    frame.addEventListener('click', e => {
+      if(e.target.tagName === 'BUTTON') return;
+      e.preventDefault();
+      e.stopPropagation();
+      openLightbox(img.src, img.alt);
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', wireFrames);
+// Also run immediately in case DOM already loaded
+if(document.readyState !== 'loading') wireFrames();
+</script><script>
+// Hamburger
+function toggleMenu() {
+  const m = document.getElementById('mobileMenu');
+  const b = document.getElementById('hamburger');
+  m.classList.toggle('open'); b.classList.toggle('open');
+  document.body.style.overflow = m.classList.contains('open') ? 'hidden' : '';
+}
+function closeMobileMenu() {
+  document.getElementById('mobileMenu').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => {
+  mx=e.clientX; my=e.clientY;
+  cursor.style.left=mx+'px'; cursor.style.top=my+'px';
+});
+function animRing() {
+  rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+document.querySelectorAll('a,button').forEach(el => {
+  el.addEventListener('mouseenter',()=>ring.classList.add('hover'));
+  el.addEventListener('mouseleave',()=>ring.classList.remove('hover'));
+});
+
+// Scroll reveal
+// Reveal observer — runs after full DOM is ready
+function initReveal() {
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold: 0.12});
+  revealEls.forEach(el => revealObs.observe(el));
+}
+if(document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initReveal);
+} else {
+  initReveal();
+}
+
+// ── Carousel ────────────────────────────────────────────────
+const track       = document.getElementById('carouselTrack');
+
+// ── Dynamic carousel loader ──────────────────────────────
+async function loadCarousel() {
+  try {
+    const res = await fetch('fotos.json');
+    if(!res.ok) throw new Error('fotos.json niet gevonden (HTTP ' + res.status + ')');
+    const data = await res.json();
+    let files = [...data.sfeer];
+
+    // Fisher-Yates shuffle
+    for (let i = files.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [files[i], files[j]] = [files[j], files[i]];
+    }
+
+    files.forEach((file, idx) => {
+      const div = document.createElement('div');
+      div.className = 'carousel-slide rhombi-frame';
+      div.style.cssText = 'cursor:zoom-in';
+      const img = document.createElement('img');
+      img.src = "fotos/sfeer/" + file;
+      img.alt = 'Rhombi sfeerfoto ' + (idx + 1);
+      img.loading = 'lazy';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center 50%';
+      img.addEventListener('dragstart', e => e.preventDefault());
+      div.appendChild(img);
+      track.appendChild(div);
+    });
+
+    // Init carousel after slides are loaded
+    initCarousel(files.length);
+
+    // Wire lightbox on new slides (after DOM update)
+    setTimeout(() => { if(typeof wireFrames === 'function') wireFrames(); }, 50);
+
+  } catch(e) {
+    console.warn('fotos.json niet gevonden, fallback:', e);
+    initCarousel(0);
+  }
+}
+
+loadCarousel();
+
+// ── Carousel init (called after slides are built) ────────
+function initCarousel(total) {
+const dotsEl      = document.getElementById('carouselDots');
+let TOTAL = total;
+let carIdx        = 0;
+let autoTimer     = null;
+let dragging      = false;
+let dragStartX    = 0;
+let dragStartOff  = 0;
+let currentOffset = 0;
+let velocity      = 0;
+let lastX         = 0;
+let lastT         = 0;
+
+function slideW() {
+  const s = track.querySelector('.carousel-slide');
+  return s ? s.offsetWidth + 20 : 0;
+}
+
+function centerOffset(idx) {
+  // Centers the active slide in the viewport
+  const sw = slideW();
+  const wrapW = track.parentElement ? track.parentElement.offsetWidth : window.innerWidth;
+  const s = track.querySelector('.carousel-slide');
+  const slideOnly = s ? s.offsetWidth : sw;
+  return -(idx * sw) + (wrapW / 2) - (slideOnly / 2);
+}
+
+function setOffset(x, animated) {
+  track.style.transition = animated
+    ? 'transform .65s cubic-bezier(.16, 1, .3, 1)'
+    : 'none';
+  track.style.transform = `translateX(${x}px)`;
+  currentOffset = x;
+}
+
+function buildDots(count) {
+  TOTAL = count;
+  dotsEl.innerHTML = '';
+  for(let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+}
+
+function updateDots() {
+  document.querySelectorAll('.carousel-dot').forEach((d, i) =>
+    d.classList.toggle('active', i === carIdx));
+}
+
+function goTo(idx) {
+  carIdx = ((idx % TOTAL) + TOTAL) % TOTAL;
+  setOffset(centerOffset(carIdx), true);
+  updateDots();
+}
+
+function carouselNext() { goTo(carIdx + 1); }
+function carouselPrev() { goTo(carIdx - 1); }
+
+function startAuto() {
+  stopAuto();
+  autoTimer = setInterval(carouselNext, 5000);
+}
+function stopAuto() {
+  if(autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+}
+
+// ── Mouse drag ──
+track.addEventListener('mousedown', e => {
+  dragging   = true;
+  dragStartX = e.clientX;
+  dragStartOff = currentOffset;
+  velocity   = 0; lastX = e.clientX; lastT = Date.now();
+  track.style.transition = 'none';
+  stopAuto();
+  e.preventDefault();
+});
+
+window.addEventListener('mousemove', e => {
+  if(!dragging) return;
+  const dx = e.clientX - dragStartX;
+  const now = Date.now();
+  velocity = (e.clientX - lastX) / Math.max(1, now - lastT);
+  lastX = e.clientX; lastT = now;
+  setOffset(dragStartOff + dx, false);
+});
+
+window.addEventListener('mouseup', e => {
+  if(!dragging) return;
+  dragging = false;
+  const dx = e.clientX - dragStartX;
+  const sw = slideW();
+  // momentum: if fast swipe, go 2 slides
+  const momentum = velocity * 200;
+  const totalDx  = dx + momentum;
+  if(Math.abs(totalDx) > sw * 0.25) {
+    goTo(totalDx < 0 ? carIdx + 1 : carIdx - 1);
+  } else {
+    goTo(carIdx); // snap back
+  }
+  startAuto();
+});
+
+// ── Touch drag ──
+track.addEventListener('touchstart', e => {
+  dragStartX   = e.touches[0].clientX;
+  dragStartOff = currentOffset;
+  velocity = 0; lastX = dragStartX; lastT = Date.now();
+  track.style.transition = 'none';
+  stopAuto();
+}, {passive: true});
+
+track.addEventListener('touchmove', e => {
+  const dx  = e.touches[0].clientX - dragStartX;
+  const now = Date.now();
+  velocity  = (e.touches[0].clientX - lastX) / Math.max(1, now - lastT);
+  lastX = e.touches[0].clientX; lastT = now;
+  setOffset(dragStartOff + dx, false);
+}, {passive: true});
+
+track.addEventListener('touchend', e => {
+  const dx       = e.changedTouches[0].clientX - dragStartX;
+  const sw       = slideW();
+  const momentum = velocity * 200;
+  const totalDx  = dx + momentum;
+  if(Math.abs(totalDx) > sw * 0.2) {
+    goTo(totalDx < 0 ? carIdx + 1 : carIdx - 1);
+  } else {
+    goTo(carIdx);
+  }
+  startAuto();
+});
+
+// prevent img drag interfering
+track.querySelectorAll('img').forEach(img => {
+  img.addEventListener('dragstart', e => e.preventDefault());
+});
+
+// ── Init ──
+  if(total === 0) return;
+  buildDots(total);
+  startAuto();
+}
+window.addEventListener('resize', () => { if(typeof setOffset==='function' && track) setOffset(centerOffset(carIdx), false); });
+
+// Nav scroll effect
+window.addEventListener('scroll', () => {
+  document.querySelector('nav').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// Lightbox
+function openLightbox(src, alt) {
+  const lb = document.getElementById('lb');
+  const img = document.getElementById('lb-img');
+  img.src = src; img.alt = alt || '';
+  lb.style.display='flex'; lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  const lb=document.getElementById('lightbox');
+  lb.style.display='none'; lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+document.querySelectorAll('.rhombi-frame').forEach(frame => {
+  const img = frame.querySelector('img');
+  if(!img) return;
+  // Only open lightbox on non-link frames, or if it's a type-card open lightbox and stop nav
+  const isLink = frame.tagName === 'A' || frame.closest('a');
+  if(!isLink) {
+    frame.addEventListener('click', () => openLightbox(img.src, img.alt));
+  } else {
+    // For type-cards: single click = navigate, long press / dedicated zoom icon = lightbox
+    // Simple: add a zoom button overlay instead
+    const zoom = document.createElement('button');
+    zoom.innerHTML = '⊕';
+    zoom.style.cssText = 'position:absolute;top:10px;right:10px;z-index:5;background:rgba(18,21,26,.7);border:1px solid rgba(200,136,74,.3);color:#C8884A;width:28px;height:28px;font-size:13px;cursor:zoom-in;display:flex;align-items:center;justify-content:center;';
+    zoom.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openLightbox(img.src, img.alt); });
+    frame.style.position = frame.style.position || 'relative';
+    frame.appendChild(zoom);
+  }
+});
+
+// ── i18n ──────────────────────────────────────────────────────
+const TRANSLATIONS = {
+  nl: {
+    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij Galerie T, Middelburg',
+    'type-hint': "Tik voor foto's",
+    'type-tafel-label': '◆ Tafellamp',
+    'type-hang-label': '◆ Hang',
+    'type-plafond-label': '◆ Plafond',
+    'type-wand-label': '◆ Wand',
+    'type-accent-label': '◆ Accent',
+    'kunst-sub': `Rhombi is meer dan verlichting; het is een object dat dialoog aangaat met kunst en ruimte. Voor vragen over de getoonde werken of de betrokken kunstenaars kunt u contact opnemen met <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(200,136,74,.3)">Galerie T, Middelburg</a>.`,
+    'kunst-label': '◆ Kunst',
+    'kunst-title': 'Rhombi ontmoet',
+    'kunst-title2': 'kunst.',
+    'nav-kunst': 'Kunst',
+    'ont-label': '◆ Ontwerper',
+    'nav-ont': 'Ontwerper',
+    'ont-title': 'Ontmoet de',
+    'ont-title2': 'ontwerper.',
+    'ont-p1': 'Vincent Hector is architect en visualisator uit Rotterdam en werkzaam op het snijvlak van architectuur, productontwerp en digitale beeldvorming. In zijn werk onderzoekt hij de wisselwerking tussen structuur, licht en ruimtelijke perceptie, met een nadruk op modulair denken en digitale maakprocessen.',
+    'ont-p2': 'In uiteenlopende projecten, van ruimtelijke ontwerpen tot visuele representaties, streeft hij naar helderheid in vorm en een subtiele, gelaagde ruimtelijke ervaring. Vincent maakt gebruik van technieken zoals 3D-modellering, digitale fabricage en visualisatie om ontwerpen te ontwikkelen en te verfijnen. Met deze werkwijze verbindt hij het architectonische met het sculpturale, waarbij licht niet enkel functioneel is maar een integraal onderdeel vormt van het ontwerpconcept.',
+    'ont-p3': 'Als ontwerper zoekt hij naar objecten die zowel een rustige aanwezigheid als een expressieve vormkwaliteit bezitten en die uitnodigen om licht en ruimte op een nieuwe manier te ervaren.',    'nav-conf': 'Configurator',
+    'nav-types': 'Varianten',
+    'nav-sfeer': 'Sfeer',
+    'nav-about': 'Over Rhombi',
+    'nav-montage': 'Montage',
+    'nav-contact': 'Contact',
+    'nav-mat': 'Materiaal',
+    'hero-eyebrow': '◆ Modulaire lichtobjecten',
+    'hero-t1': 'Geometrie',
+    'hero-t2': 'ontmoet',
+    'hero-t3': 'licht.',
+    'hero-sub': 'Rhombi is een lijn modulaire lichtobjecten waarin geometrie, licht en digitale fabricage samenkomen. Elk object is volledig 3D-geprint en functioneert zowel als sfeerverlichting als sculpturaal element in de ruimte.',
+    'hero-btn1': 'Bekijk de varianten',
+    'hero-btn2': 'Open 3D configurator',
+    'conf-open': 'Open 3D Configurator',
+    'conf-close': '✕ Sluiten',
+    'conf-label': '◆ 3D Configurator',
+    'conf-t1': 'Stel jouw',
+    'conf-t2': 'Rhombi samen.',
+    'conf-sub': 'Kies je variant, onderdeel en kleur. Gedeelde onderdelen vliegen mee naar de nieuwe positie.',
+    'conf-types': 'Tafel · Wand · Plafond · Accent · Hang',
+    'types-label': '◆ Varianten',
+    'types-t1': 'Meerdere vormen,',
+    'types-t2': 'één systeem.',
+    'type-tafel': 'Tafellamp',
+    'type-wand': 'Wandlamp',
+    'type-plafond': 'Plafondlamp',
+    'type-accent': 'Accentlamp',
+    'type-hang': 'Hanglamp',
+    'sfeer-label': '◆ Sfeer',
+    'sfeer-title': 'Licht in context.',
+    'uitleg-label': '◆ Over Rhombi',
+    'uitleg-t1': 'Licht als',
+    'uitleg-t2': 'materiaal.',
+    'uitleg-p1': 'Rhombi is een persoonlijk onderzoek naar de grenzen van wat 3D-printtechnologie visueel en functioneel kan betekenen. Elk onderdeel is ontworpen om te kunnen worden geprint op een standaard FDM-printer.',
+    'uitleg-p2': 'De kap filtert en vervormt het licht op een manier die afhangt van de printrichting, de laagdikte en de kleur van het filament. Geen twee exemplaren zijn exact hetzelfde.',
+    'uitleg-p3': 'Ontworpen in Rotterdam door Vincent Hector, Vhector.',
+    'spec-materiaal': 'Materiaal',
+    'spec-fitting': 'Fitting',
+    'spec-componenten': 'Componenten',
+    'spec-montage-val': 'Geen gereedschap nodig',
+    'spec-kleuren': 'Kleuren',
+    'spec-kleuren-val': '12 standaard · maatwerk mogelijk',
+    'mont-label': '◆ Montage',
+    'mont-onderdelen': 'Onderdelen',
+    'mont-stappen': 'Montage stappen',
+    'step-00-label': 'OVERZICHT',
+    'step-00': 'De kap wordt van binnenuit opgebouwd. Alle onderdelen klikken zonder gereedschap in elkaar.',
+    'mont-t1': 'Stap voor stap',
+    'mont-t2': 'in elkaar.',
+    'part-02': 'Vleugel L + R',
+    'part-02-info': 'Zijpanelen · klikverbinding',
+    'part-04': 'Kern',
+    'part-04-info': 'Centrale fitting-houder',
+    'part-05-info': 'Vervangbaar voor andere versies',
+    'part-06-info': 'Zijkader links',
+    'part-07-info': 'Zijkader rechts · klikhaken',
+    'part-08-info': 'Frontframe · afwerking',
+    'dl-manual': 'handleiding →',
+    'step-01-label': 'STAP 01',
+    'step-01': 'Plaats vleugel L (2) en vleugel R (3) in de kap. Zorg dat de klikverbinding goed vastzit.',
+    'step-02-label': 'STAP 02',
+    'step-02': 'Schuif de kern (4) in de fitting-houder en vergrendel de positie.',
+    'step-03-label': 'STAP 03',
+    'step-03': 'Klik de E14 ring (5) op de kern. De ring is vervangbaar voor andere fittingversies.',
+    'step-04-label': 'STAP 04',
+    'step-04': 'Bevestig kader L (6) en kader R (7). Voer het snoer door de snoergeleider.',
+    'step-05-label': 'STAP 05',
+    'step-05': 'Sluit de kap door de fitting van bovenaf naar beneden te schuiven. Combineer met het gewenste onderstel.',
+    'cta-t1': 'Tussen product',
+    'cta-t2': 'en autonoom object.',
+    'cta-sub': 'Rhombi is ontworpen voor interieur, expositie en designcontext. Neem contact op voor informatie, bestellingen of maatwerk.',
+    'cta-btn1': 'Neem contact op',
+    'cta-btn2': 'Bekijk varianten',
+    'footer-note': 'Ontwerp: Vincent Hector · Vhector · Rotterdam, NL',
+    'lb-close': '✕ Sluiten',
+    'mat-label': '◆ Materiaal',
+    'mat-title': 'Dezelfde vorm, ander karakter.',
+    'mat-note': 'Elk onderdeel kan in een ander materiaal worden geprint. Meer varianten zijn altijd mogelijk op aanvraag.',
+    'mat-more': 'Meer mogelijk. Heb je een specifiek filament of afwerking in gedachten? Neem contact op voor de mogelijkheden, de lijst groeit.',
+
+  },
+  en: {
+    'topbanner': '◆ For now exclusively available at Galerie T, Middelburg',
+    'type-hint': 'Tap for photos',
+    'type-tafel-label': '◆ Table lamp',
+    'type-hang-label': '◆ Pendant',
+    'type-plafond-label': '◆ Ceiling',
+    'type-wand-label': '◆ Wall',
+    'type-accent-label': '◆ Accent',
+    'kunst-sub': `Rhombi is more than lighting — it is an object that enters into dialogue with art and space. For enquiries about the works shown or the artists involved, please contact <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(200,136,74,.3)">Galerie T, Middelburg</a>.`,
+    'kunst-label': '◆ Art',
+    'kunst-title': 'Rhombi meets',
+    'kunst-title2': 'art.',
+    'nav-kunst': 'Art',
+    'ont-label': '◆ Designer',
+    'nav-ont': 'Designer',
+    'ont-title': 'Meet the',
+    'ont-title2': 'designer.',
+    'ont-p1': 'Vincent Hector is an architect and visualiser from Rotterdam, working at the intersection of architecture, product design and digital imaging. In his work he explores the interplay between structure, light and spatial perception, with an emphasis on modular thinking and digital fabrication processes.',
+    'ont-p2': 'Across diverse projects — from spatial designs to visual representations — he strives for clarity of form and a subtle, layered spatial experience. Vincent uses techniques such as 3D modelling, digital fabrication and visualisation to develop and refine his designs. Through this approach he connects the architectural with the sculptural, where light is not merely functional but an integral part of the design concept.',
+    'ont-p3': 'As a designer he seeks objects that possess both a quiet presence and an expressive formal quality, inviting people to experience light and space in a new way.',    'nav-conf': 'Configurator',
+    'nav-types': 'Variants',
+    'nav-sfeer': 'Atmosphere',
+    'nav-about': 'About Rhombi',
+    'nav-montage': 'Assembly',
+    'nav-contact': 'Contact',
+    'nav-mat': 'Material',
+    'hero-eyebrow': '◆ Modular light objects',
+    'hero-t1': 'Geometry',
+    'hero-t2': 'meets',
+    'hero-t3': 'light.',
+    'hero-sub': 'Rhombi is a line of modular light objects where geometry, light and digital fabrication meet. Each object is fully 3D-printed and functions both as atmospheric lighting and as a sculptural element in the space.',
+    'hero-btn1': 'View the variants',
+    'hero-btn2': 'Open 3D configurator',
+    'conf-open': 'Open 3D Configurator',
+    'conf-close': '✕ Close',
+    'conf-label': '◆ 3D Configurator',
+    'conf-t1': 'Configure your',
+    'conf-t2': 'Rhombi.',
+    'conf-sub': 'Choose your variant, part and colour. Shared parts fly to their new position.',
+    'conf-types': 'Table · Wall · Ceiling · Accent · Pendant',
+    'types-label': '◆ Variants',
+    'types-t1': 'Multiple forms,',
+    'types-t2': 'one system.',
+    'type-tafel': 'Table lamp',
+    'type-wand': 'Wall lamp',
+    'type-plafond': 'Ceiling lamp',
+    'type-accent': 'Mantle lamp',
+    'type-hang': 'Pendant lamp',
+    'sfeer-label': '◆ Atmosphere',
+    'sfeer-title': 'Light in context.',
+    'uitleg-label': '◆ About Rhombi',
+    'uitleg-t1': 'Light as',
+    'uitleg-t2': 'material.',
+    'uitleg-p1': 'Rhombi is a personal exploration of the visual and functional possibilities of 3D-print technology. Every component is designed to be printed on a standard FDM printer.',
+    'uitleg-p2': 'The shade filters and bends light in ways that depend on print direction, layer height and filament colour. No two pieces are exactly alike.',
+    'uitleg-p3': 'Designed in Rotterdam by Vincent Hector — Vhector.',
+    'spec-materiaal': 'Material',
+    'spec-fitting': 'Socket',
+    'spec-componenten': 'Components',
+    'spec-montage-val': 'No tools required',
+    'spec-kleuren': 'Colours',
+    'spec-kleuren-val': '12 standard · custom on request',
+    'mont-label': '◆ Assembly',
+    'mont-onderdelen': 'Components',
+    'mont-stappen': 'Assembly steps',
+    'step-00-label': 'OVERVIEW',
+    'step-00': 'The shade is assembled from the inside out. All parts click together without tools.',
+    'mont-t1': 'Step by step',
+    'mont-t2': 'together.',
+    'part-02': 'Wing L + R',
+    'part-02-info': 'Side panels · click connection',
+    'part-04': 'Core',
+    'part-04-info': 'Central socket holder',
+    'part-05-info': 'Replaceable for other versions',
+    'part-06-info': 'Side frame left',
+    'part-07-info': 'Side frame right · click hooks',
+    'part-08-info': 'Front frame · finish',
+    'dl-manual': 'manual →',
+    'step-01-label': 'STEP 01',
+    'step-01': 'Insert wing L (2) and wing R (3) into the shade. Make sure the click connection is secure.',
+    'step-02-label': 'STEP 02',
+    'step-02': 'Slide the core (4) into the socket holder and lock the position.',
+    'step-03-label': 'STEP 03',
+    'step-03': 'Click the E14 ring (5) onto the core. The ring is replaceable for other socket versions.',
+    'step-04-label': 'STEP 04',
+    'step-04': 'Attach frame L (6) and frame R (7). Route the cable through the cable guide.',
+    'step-05-label': 'STEP 05',
+    'step-05': 'Close the shade by sliding the socket from top to bottom. Combine with your chosen base.',
+    'cta-t1': 'Between product',
+    'cta-t2': 'and autonomous object.',
+    'cta-sub': 'Rhombi is designed for interior, exhibition and design contexts. Get in touch for information, orders or custom work.',
+    'cta-btn1': 'Get in touch',
+    'cta-btn2': 'View variants',
+    'footer-note': 'Design: Vincent Hector — Vhector · Rotterdam, NL',
+    'lb-close': '✕ Close',
+    'mat-label': '◆ Material',
+    'mat-title': 'Same form, different character.',
+    'mat-note': 'Every part can be printed in a different material. More options are always possible on request.',
+    'mat-more': 'More possible. Have a specific filament or finish in mind? Get in touch — the list keeps growing.',
+
+  },
+  de: {
+    'topbanner': '◆ Vorerst exklusiv erhältlich bei Galerie T, Middelburg',
+    'type-hint': 'Tippen für Fotos',
+    'type-tafel-label': '◆ Tischleuchte',
+    'type-hang-label': '◆ Hänge',
+    'type-plafond-label': '◆ Decke',
+    'type-wand-label': '◆ Wand',
+    'type-accent-label': '◆ Akzent',
+    'kunst-sub': `Rhombi ist mehr als Beleuchtung — es ist ein Objekt, das in Dialog mit Kunst und Raum tritt. Für Fragen zu den gezeigten Werken oder den beteiligten Künstlern wenden Sie sich bitte an <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(200,136,74,.3)">Galerie T, Middelburg</a>.`,
+    'kunst-label': '◆ Kunst',
+    'kunst-title': 'Rhombi trifft',
+    'kunst-title2': 'Kunst.',
+    'nav-kunst': 'Kunst',
+    'ont-label': '◆ Designer',
+    'nav-ont': 'Designer',
+    'ont-title': 'Der',
+    'ont-title2': 'Designer.',
+    'ont-p1': 'Vincent Hector ist Architekt und Visualisierer aus Rotterdam und arbeitet an der Schnittstelle von Architektur, Produktdesign und digitaler Bildgebung. In seiner Arbeit untersucht er das Wechselspiel zwischen Struktur, Licht und räumlicher Wahrnehmung, mit Schwerpunkt auf modularem Denken und digitalen Fertigungsprozessen.',
+    'ont-p2': 'In unterschiedlichen Projekten — von Raumgestaltungen bis hin zu visuellen Darstellungen — strebt er nach Klarheit der Form und einer subtilen, vielschichtigen Raumwahrnehmung. Vincent nutzt Techniken wie 3D-Modellierung, digitale Fertigung und Visualisierung, um Entwürfe zu entwickeln und zu verfeinern. Mit diesem Ansatz verbindet er das Architektonische mit dem Skulpturalen, wobei Licht nicht nur funktional ist, sondern ein integraler Bestandteil des Entwurfskonzepts.',
+    'ont-p3': 'Als Designer sucht er nach Objekten, die sowohl eine ruhige Präsenz als auch eine ausdrucksstarke Formqualität besitzen und dazu einladen, Licht und Raum auf eine neue Weise zu erleben.',    'nav-conf': 'Konfigurator',
+    'nav-mat': 'Material',
+    'nav-types': 'Varianten',
+    'nav-sfeer': 'Atmosphäre',
+    'nav-about': 'Über Rhombi',
+    'nav-montage': 'Montage',
+    'nav-contact': 'Kontakt',
+    'hero-eyebrow': '◆ Modulare Lichtobjekte',
+    'hero-t1': 'Geometrie',
+    'hero-t2': 'trifft',
+    'hero-t3': 'Licht.',
+    'hero-sub': 'Rhombi ist eine Linie modularer Lichtobjekte, in der Geometrie, Licht und digitale Fertigung zusammenkommen. Jedes Objekt ist vollständig 3D-gedruckt und fungiert sowohl als Stimmungsbeleuchtung als auch als skulpturales Element im Raum.',
+    'hero-btn1': 'Varianten ansehen',
+    'hero-btn2': '3D-Konfigurator öffnen',
+    'conf-open': '3D Konfigurator öffnen',
+    'conf-close': '✕ Schließen',
+    'conf-label': '◆ 3D Konfigurator',
+    'conf-t1': 'Gestalte dein',
+    'conf-t2': 'Rhombi.',
+    'conf-sub': 'Wähle Variante, Teil und Farbe. Gemeinsame Teile fliegen in die neue Position.',
+    'conf-types': 'Tisch · Wand · Decke · Akzent · Hänge',
+    'types-label': '◆ Varianten',
+    'types-t1': 'Mehrere Formen,',
+    'types-t2': 'ein System.',
+    'type-tafel': 'Tischleuchte',
+    'type-wand': 'Wandleuchte',
+    'type-plafond': 'Deckenleuchte',
+    'type-accent': 'Akzentleuchte',
+    'type-hang': 'Hängeleuchte',
+    'sfeer-label': '◆ Atmosphäre',
+    'sfeer-title': 'Licht im Kontext.',
+    'uitleg-label': '◆ Über Rhombi',
+    'uitleg-t1': 'Licht als',
+    'uitleg-t2': 'Material.',
+    'uitleg-p1': 'Rhombi ist eine persönliche Erforschung der visuellen und funktionalen Möglichkeiten des 3D-Drucks. Jedes Bauteil wurde so entwickelt, dass es auf einem handelsüblichen FDM-Drucker gedruckt werden kann.',
+    'uitleg-p2': 'Der Schirm filtert und bricht das Licht auf eine Weise, die von der Druckrichtung, der Schichthöhe und der Farbe des Filaments abhängt. Keine zwei Exemplare sind genau gleich.',
+    'uitleg-p3': 'Entworfen in Rotterdam von Vincent Hector — Vhector.',
+    'spec-materiaal': 'Material',
+    'spec-fitting': 'Fassung',
+    'spec-componenten': 'Bauteile',
+    'spec-montage-val': 'Kein Werkzeug erforderlich',
+    'spec-kleuren': 'Farben',
+    'spec-kleuren-val': '12 Standard · Sonderfarben möglich',
+    'mont-label': '◆ Montage',
+    'mont-onderdelen': 'Bauteile',
+    'mont-stappen': 'Montageschritte',
+    'step-00-label': 'ÜBERSICHT',
+    'step-00': 'Der Schirm wird von innen zusammengebaut. Alle Teile rasten werkzeuglos ein.',
+    'mont-t1': 'Schritt für Schritt',
+    'mont-t2': 'zusammenbauen.',
+    'part-02': 'Flügel L + R',
+    'part-02-info': 'Seitenpaneele · Klickverbindung',
+    'part-04': 'Kern',
+    'part-04-info': 'Zentraler Fassungshalter',
+    'part-05-info': 'Austauschbar für andere Versionen',
+    'part-06-info': 'Seitenrahmen links',
+    'part-07-info': 'Seitenrahmen rechts · Klickhaken',
+    'part-08-info': 'Frontrahmen · Abschluss',
+    'dl-manual': 'Anleitung →',
+    'step-01-label': 'SCHRITT 01',
+    'step-01': 'Flügel L (2) und Flügel R (3) in den Schirm einsetzen. Sicherstellen, dass die Klickverbindung hält.',
+    'step-02-label': 'SCHRITT 02',
+    'step-02': 'Kern (4) in den Fassungshalter schieben und Position arretieren.',
+    'step-03-label': 'SCHRITT 03',
+    'step-03': 'E14-Ring (5) auf den Kern klicken. Der Ring ist für andere Fassungsversionen austauschbar.',
+    'step-04-label': 'SCHRITT 04',
+    'step-04': 'Rahmen L (6) und Rahmen R (7) befestigen. Das Kabel durch die Kabelführung führen.',
+    'step-05-label': 'SCHRITT 05',
+    'step-05': 'Schirm schließen, indem die Fassung von oben nach unten geschoben wird. Mit dem gewünschten Sockel kombinieren.',
+    'cta-t1': 'Zwischen Produkt',
+    'cta-t2': 'und autonomem Objekt.',
+    'cta-sub': 'Rhombi ist für Interieur, Ausstellung und Designkontexte konzipiert. Kontakt aufnehmen für Informationen, Bestellungen oder Sonderwünsche.',
+    'cta-btn1': 'Kontakt aufnehmen',
+    'cta-btn2': 'Varianten ansehen',
+    'footer-note': 'Entwurf: Vincent Hector — Vhector · Rotterdam, NL',
+    'lb-close': '✕ Schließen',
+    'mat-label': '◆ Material',
+    'mat-title': 'Gleiche Form, anderer Charakter.',
+    'mat-note': 'Jedes Bauteil kann in einem anderen Material gedruckt werden. Weitere Varianten sind jederzeit auf Anfrage möglich.',
+    'mat-more': 'Mehr möglich. Ein bestimmtes Filament oder eine Oberfläche im Sinn? Kontakt aufnehmen — die Liste wächst.',
+
+  }
+};
+
+let currentLang = 'nl';
+
+function setLang(lang) {
+  if(!TRANSLATIONS[lang]) return;
+  currentLang = lang;
+  const t = TRANSLATIONS[lang];
+
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if(t[key] === undefined) return;
+    // Skip if element has child elements with data-i18n (they handle themselves)
+    if(el.querySelector('[data-i18n]')) return;
+    if(el.classList.contains('topbanner')) {
+      const lang3 = {'nl':'Galerie T','en':'Galerie T','de':'Galerie T'};
+      el.innerHTML = '◆ ' + {'nl':'Vooralsnog exclusief verkrijgbaar bij ','en':'For now exclusively available at ','de':'Vorerst exklusiv erhältlich bei '}[lang]
+        + '<a href="https://galerie-t.nl" target="_blank" rel="noopener">' + lang3[lang] + '</a>'
+        + {'nl':', Middelburg','en':', Middelburg','de':', Middelburg'}[lang];
+    } else if(key === 'kunst-sub') {
+      el.innerHTML = t[key];
+    } else {
+      el.textContent = t[key];
+    }
+  });
+
+  // Update html lang attribute
+  document.documentElement.lang = lang;
+
+  // Update page title
+  const titles = { nl: 'Rhombi — Modulaire Lichtobjecten', en: 'Rhombi — Modular Light Objects', de: 'Rhombi — Modulare Lichtobjekte' };
+  document.title = titles[lang];
+
+  // Update active button
+  ['nl','en','de'].forEach(l => {
+    document.getElementById('btn-'+l).classList.toggle('active', l===lang);
+  });
+}
+
+// ── VARIANT LIGHTBOX ──────────────────────────────────────
+let variantPhotos = [];
+let variantIdx = 0;
+let variantName = '';
+
+async function openVariantLightbox(variant) {
+  try {
+    const res = await fetch('fotos.json');
+    if(!res.ok) throw new Error('fotos.json niet gevonden');
+    const data = await res.json();
+    const photos = data[variant] || [];
+    if(!photos.length) return;
+    
+    variantPhotos = photos;
+    variantIdx = 0;
+    variantName = variant;
+    
+    // Update count badges
+    const countEl = document.getElementById('count-' + variant);
+    if(countEl && photos.length > 1) countEl.textContent = photos.length + ' fotos';
+    
+    showVariantPhoto();
+    
+    const lb = document.getElementById('variantLightbox');
+    lb.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Update title
+    const names = {tafel:'Tafellamp', accent:'Accentlamp', wand:'Wandlamp', plafond:'Plafondlamp', hang:'Hanglamp'};
+    document.getElementById('variantLbTitle').textContent = '◆ ' + (names[variant] || variant);
+    
+  } catch(e) { console.warn('Variant lightbox error:', e); }
+}
+
+function showVariantPhoto() {
+  const img = document.getElementById('variantLbImg');
+  img.src = 'fotos/' + variantName + '/' + variantPhotos[variantIdx];
+  img.alt = 'Rhombi ' + variantName + ' ' + (variantIdx + 1);
+  document.getElementById('variantLbCounter').textContent = (variantIdx + 1) + ' / ' + variantPhotos.length;
+}
+
+function variantNext() {
+  variantIdx = (variantIdx + 1) % variantPhotos.length;
+  showVariantPhoto();
+}
+
+function variantPrev() {
+  variantIdx = (variantIdx - 1 + variantPhotos.length) % variantPhotos.length;
+  showVariantPhoto();
+}
+
+function closeVariantLightbox() {
+  document.getElementById('variantLightbox').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Keyboard nav for variant lightbox
+document.addEventListener('keydown', e => {
+  const lb = document.getElementById('variantLightbox');
+  if(lb && lb.style.display !== 'none') {
+    if(e.key === 'ArrowRight') variantNext();
+    if(e.key === 'ArrowLeft') variantPrev();
+    if(e.key === 'Escape') closeVariantLightbox();
+  }
+});
+
+
+// ── Kunst carousel ───────────────────────────────────────
+const kunstTrack = document.getElementById('kunstTrack');
+const kunstDotsEl = document.getElementById('kunstDots');
+let kunstIdx = 0, kunstTotal = 0, kunstTimer = null;
+let kunstDragging = false, kunstDragStartX = 0, kunstDragOff = 0, kunstCurOff = 0;
+
+async function loadKunstCarousel() {
+  try {
+    const res = await fetch('fotos.json');
+    if(!res.ok) throw new Error('fotos.json niet gevonden (HTTP ' + res.status + ')');
+    const data = await res.json();
+    const files = data.kunst || [];
+    if(!files.length) {
+      document.getElementById('kunst').style.display = 'none';
+      return;
+    }
+    files.forEach((file, idx) => {
+      const div = document.createElement('div');
+      div.className = 'carousel-slide rhombi-frame';
+      const img = document.createElement('img');
+      img.src = 'fotos/kunst/' + file;
+      img.alt = 'Rhombi kunst ' + (idx + 1);
+      img.loading = 'lazy';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center';
+      img.addEventListener('dragstart', e => e.preventDefault());
+      div.appendChild(img);
+      kunstTrack.appendChild(div);
+    });
+    if(typeof wireFrames === 'function') setTimeout(wireFrames, 50);
+    initKunstCarousel(files.length);
+  } catch(e) { console.warn('Kunst carousel error:', e); }
+}
+
+function initKunstCarousel(total) {
+  if(!total) return;
+  kunstTotal = total;
+  buildKunstDots(total);
+  startKunstAuto();
+
+  kunstTrack.addEventListener('mousedown',  e => { kunstDragging=true; kunstDragStartX=e.clientX; kunstDragOff=kunstCurOff; stopKunstAuto(); });
+  kunstTrack.addEventListener('touchstart', e => { kunstDragging=true; kunstDragStartX=e.touches[0].clientX; kunstDragOff=kunstCurOff; stopKunstAuto(); }, {passive:true});
+  kunstTrack.addEventListener('mousemove',  e => { if(!kunstDragging) return; setKunstOffset(kunstDragOff+(e.clientX-kunstDragStartX)); });
+  kunstTrack.addEventListener('touchmove',  e => { if(!kunstDragging) return; setKunstOffset(kunstDragOff+(e.touches[0].clientX-kunstDragStartX)); }, {passive:true});
+  ['mouseup','mouseleave','touchend'].forEach(ev => kunstTrack.addEventListener(ev, () => {
+    if(!kunstDragging) return; kunstDragging=false;
+    const diff = kunstCurOff - kunstDragOff;
+    if(diff < -40) kunstGoTo(kunstIdx+1); else if(diff > 40) kunstGoTo(kunstIdx-1); else kunstGoTo(kunstIdx);
+    startKunstAuto();
+  }));
+}
+
+function setKunstOffset(x) {
+  kunstCurOff = x;
+  kunstTrack.style.transition = kunstDragging ? 'none' : 'transform .5s cubic-bezier(.25,.46,.45,.94)';
+  kunstTrack.style.transform = `translateX(${x}px)`;
+}
+function buildKunstDots(n) {
+  kunstDotsEl.innerHTML = '';
+  for(let i=0;i<n;i++){const d=document.createElement('button');d.className='carousel-dot'+(i===0?' active':'');d.onclick=()=>kunstGoTo(i);kunstDotsEl.appendChild(d);}
+}
+function updateKunstDots() {
+  kunstDotsEl.querySelectorAll('.carousel-dot').forEach((d,i)=>d.classList.toggle('active',i===kunstIdx));
+}
+function kunstGoTo(i) {
+  kunstIdx = Math.max(0, Math.min(i, kunstTotal-1));
+  const sw = (kunstTrack.querySelector('.carousel-slide')?.offsetWidth || 0) + 20;
+  const wrapW = kunstTrack.parentElement ? kunstTrack.parentElement.offsetWidth : window.innerWidth;
+  const slideOnly = kunstTrack.querySelector('.carousel-slide')?.offsetWidth || sw;
+  const offset = -(kunstIdx * sw) + (wrapW / 2) - (slideOnly / 2);
+  setKunstOffset(offset);
+  updateKunstDots();
+}
+function kunstNext() { kunstGoTo(kunstIdx < kunstTotal-1 ? kunstIdx+1 : 0); }
+function kunstPrev() { kunstGoTo(kunstIdx > 0 ? kunstIdx-1 : kunstTotal-1); }
+function startKunstAuto() { stopKunstAuto(); kunstTimer = setInterval(kunstNext, 4500); }
+function stopKunstAuto()  { clearInterval(kunstTimer); }
+
+loadKunstCarousel();
+
+
+// ── Random single-photo loader ────────────────────────────
+// All images with data-folder="x" pick a random photo from fotos.json[x] on each load
+async function loadRandomImages() {
+  try {
+    const res = await fetch('fotos.json');
+    if(!res.ok) return;
+    const data = await res.json();
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function loadWithFallback(img, folder, files) {
+      if (!files || !files.length) return;
+      // Shuffle so we get variety but can fall through on 404
+      const shuffled = [...files].sort(() => Math.random() - 0.5);
+      let i = 0;
+      function tryNext() {
+        if (i >= shuffled.length) return;
+        img.onerror = () => { i++; tryNext(); };
+        img.src = 'fotos/' + folder + '/' + shuffled[i];
+        i++;
+      }
+      tryNext();
+    }
+
+    document.querySelectorAll('img[data-folder]').forEach(img => {
+      const folder = img.dataset.folder;
+      const files  = data[folder];
+      loadWithFallback(img, folder, files);
+    });
+
+  } catch(e) { console.warn('loadRandomImages error:', e); }
+}
+
+loadRandomImages();
+
+// ── Dynamic nav offset ──
+(function() {
+  function setNavOffset() {
+    const banner = document.querySelector('.topbanner');
+    const nav = document.querySelector('nav');
+    if (!banner || !nav) return;
+    const offset = banner.offsetHeight + nav.offsetHeight;
+    document.documentElement.style.setProperty('--nav-offset', offset + 'px');
+  }
+  document.addEventListener('DOMContentLoaded', setNavOffset);
+  window.addEventListener('resize', setNavOffset);
+  if (document.readyState !== 'loading') setNavOffset();
+})();
+
+// ── Configurator popup ────────────────────────────────────
+function openConfigurator() {
+  const popup = document.getElementById('confPopup');
+  const iframe = document.getElementById('confIframe');
+  if(!iframe.src || iframe.src === window.location.href) {
+    iframe.src = 'viewer.html';
+  }
+  popup.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  // Request fullscreen on mobile for best experience
+  if(popup.requestFullscreen) popup.requestFullscreen().catch(()=>{});
+  else if(popup.webkitRequestFullscreen) popup.webkitRequestFullscreen();
+}
+
+function closeConfigurator() {
+  const popup = document.getElementById('confPopup');
+  popup.style.display = 'none';
+  document.body.style.overflow = '';
+  if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  else if(document.webkitFullscreenElement) document.webkitExitFullscreen();
+}
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeConfigurator();
+});
+
+// ── CAROUSELS (pixel-width approach - bulletproof) ──
+(function() {
+  function makeCarousel(opts) {
+    // opts: { trackId, dotsId, counterId, prevId, nextId, slideClass }
+    const track   = document.getElementById(opts.trackId);
+    const dotsEl  = document.getElementById(opts.dotsId);
+    const counter = document.getElementById(opts.counterId);
+    const prev    = document.getElementById(opts.prevId);
+    const next    = document.getElementById(opts.nextId);
+    if (!track) return;
+
+    const wrap   = track.parentElement;
+    const slides = Array.from(track.querySelectorAll('.' + opts.slideClass));
+    const total  = slides.length;
+    let cur = 0;
+
+    function setWidths() {
+      const w = wrap.offsetWidth;
+      slides.forEach(s => { s.style.width = w + 'px'; s.style.flex = '0 0 ' + w + 'px'; });
+      goTo(cur, false);
+    }
+
+    // dots
+    slides.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'stappen-dot' + (i === 0 ? ' active' : '');
+      d.addEventListener('click', () => goTo(i));
+      dotsEl.appendChild(d);
+    });
+
+    // optional named labels (materialen)
+    const labels = opts.labelsSelector ? document.querySelectorAll(opts.labelsSelector) : [];
+    labels.forEach(l => l.addEventListener('click', () => goTo(+l.dataset.idx)));
+
+    function goTo(n, animate) {
+      cur = (n + total) % total;
+      const w = wrap.offsetWidth;
+      if (animate === false) {
+        track.style.transition = 'none';
+      } else {
+        track.style.transition = 'transform .4s cubic-bezier(.25,.46,.45,.94)';
+      }
+      track.style.transform = 'translateX(-' + (cur * w) + 'px)';
+      dotsEl.querySelectorAll('.stappen-dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+      labels.forEach(l => l.classList.toggle('active', +l.dataset.idx === cur));
+      if (counter) counter.textContent = (cur + 1) + ' / ' + total;
+    }
+
+    prev && prev.addEventListener('click', () => goTo(cur - 1));
+    next && next.addEventListener('click', () => goTo(cur + 1));
+
+    let sx = 0;
+    wrap.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive: true});
+    wrap.addEventListener('touchend',   e => {
+      const dx = e.changedTouches[0].clientX - sx;
+      if (Math.abs(dx) > 40) goTo(dx < 0 ? cur + 1 : cur - 1);
+    }, {passive: true});
+
+    setWidths();
+    window.addEventListener('resize', setWidths);
+  }
+
+  function initAll() {
+    makeCarousel({ trackId: 'materialenTrack', dotsId: 'matDots',  counterId: 'matCounter', prevId: 'matPrev', nextId: 'matNext', slideClass: 'mat-slide', labelsSelector: '.mat-label' });
+    makeCarousel({ trackId: 'onderdelenTrack', dotsId: 'ondDots',  counterId: 'ondCounter', prevId: 'ondPrev', nextId: 'ondNext', slideClass: 'onderdeel-slide' });
+    makeCarousel({ trackId: 'stappenTrack',    dotsId: 'stapDots', counterId: 'stapCounter', prevId: 'stapPrev', nextId: 'stapNext', slideClass: 'stap-slide', labelsSelector: '#stapLabels .mat-label' });
+  }
+
+  document.addEventListener('DOMContentLoaded', initAll);
+  if (document.readyState !== 'loading') initAll();
+})();
+
+
+</script>
+
+<div id="lightbox" onclick="if(event.target===this)closeLightbox()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,12,16,.92);backdrop-filter:blur(12px);cursor:zoom-out;align-items:center;justify-content:center;padding:40px">
+  <button onclick="closeLightbox()" style="position:absolute;top:24px;right:28px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#606870;background:none;border:1px solid rgba(255,255,255,.1);padding:6px 12px;cursor:pointer" data-i18n="lb-close">&#10005; Sluiten</button>
+  <div id="lightbox-frame"><img decoding="async" id="lightbox-img" src="" alt=""></div>
+</div>
+
+
+<!-- VARIANT LIGHTBOX -->
+<div id="variantLightbox" onclick="if(event.target===this)closeVariantLightbox()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,12,16,.95);backdrop-filter:blur(16px);align-items:center;justify-content:center;flex-direction:column;gap:0">
+  <button onclick="closeVariantLightbox()" style="position:absolute;top:24px;right:32px;background:none;border:none;color:var(--cream);font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;cursor:pointer;opacity:.7" data-i18n="lb-close">✕ Sluiten</button>
+  <div style="display:flex;align-items:center;gap:12px;width:100%;max-width:1200px;padding:0 16px;height:min(80vh,80vw);max-height:700px">
+    <button onclick="variantPrev()" style="flex-shrink:0;background:none;border:1px solid rgba(200,136,74,.3);color:var(--amber);width:44px;height:44px;font-size:18px;cursor:pointer;">←</button>
+    <div class="rhombi-frame" style="flex:1;aspect-ratio:1/1;height:100%;max-height:100%;overflow:hidden">
+      <img decoding="async" id="variantLbImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center">
+      </div>
+      <div id="variantLbCounter" style="position:absolute;bottom:10px;right:12px;font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;color:rgba(237,232,222,.5)"></div>
+    </div>
+    <button onclick="variantNext()" style="flex-shrink:0;background:none;border:1px solid rgba(200,136,74,.3);color:var(--amber);width:44px;height:44px;font-size:18px;cursor:pointer;">→</button>
+  </div>
+  <div id="variantLbTitle" style="font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-top:-20px"></div>
+</div>
+
+</body>
+</html>

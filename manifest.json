@@ -1,0 +1,23 @@
+{
+  "name": "Rhombi",
+  "short_name": "Rhombi",
+  "description": "Modulaire lichtobjecten \u2014 3D geprint, geometrisch ontwerp",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#12151A",
+  "theme_color": "#12151A",
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
