@@ -27,6 +27,7 @@ FOLDERS = {
     "hang":               "hang",
     "uitleg":             "uitleg",
     "ontwerper":          "ontwerper",
+    "geometrie":          "geometrie",
     "materiaal/basic":    "materiaal/basic",
     "materiaal/mat":      "materiaal/mat",
     "materiaal/cf":       "materiaal/cf",

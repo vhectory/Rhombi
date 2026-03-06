@@ -453,6 +453,15 @@ nav {
   .configurator-frame { height: 90vh; min-height: 480px; }
 }
 
+/* ── CONFIGURATOR MOBIEL ── */
+@media (max-width: 768px) {
+  #configurator .section-title { font-size: clamp(28px, 7vw, 42px); }
+  #configurator iframe { height: 88vh !important; min-height: 480px !important; }
+}
+@media (max-width: 480px) {
+  #configurator iframe { height: 92vh !important; }
+}
+
 /* ── FOOTER ── */
 footer {
   padding: 36px 48px; border-top: 1px solid rgba(255,255,255,.06);
@@ -481,16 +490,8 @@ footer {
   nav { padding: 20px 32px; }
   .hero {
     grid-template-columns: 1fr;
-    grid-template-rows: clamp(280px, 56vw, 520px) auto;
     min-height: unset;
-    padding-top: max(112px, var(--nav-offset, 112px));
-  }
-  .hero-right {
-    display: block;
-    grid-row: 1;
-    aspect-ratio: unset;
-    height: clamp(280px, 56vw, 520px);
-    margin-top: 0;
+    padding-top: 0;
   }
   .hero-right::after {
     background: linear-gradient(to bottom, transparent 50%, var(--dark) 100%);
@@ -522,7 +523,6 @@ footer {
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
   .hero-left { padding: 100px 24px 64px; }
-  .hero-right img { object-position: center 65%; animation: none; opacity: 1; }
   .hero-title { font-size: clamp(42px, 12vw, 68px); }
   .hero-sub { font-size: 15px; }
   .hero-actions { flex-direction: column; align-items: flex-start; gap: 14px; }
@@ -840,8 +840,8 @@ footer {
 }
 @media (max-width: 768px) {
   .stap-slide { grid-template-columns: 1fr; height: auto; }
-  .stap-slide-img { height: 280px; }
-  .stap-slide-text { height: auto; padding: 24px 20px; gap: 12px; }
+  .stap-slide-img { height: 280px; width: 100%; }
+  .stap-slide-text { height: auto; padding: 24px 20px; gap: 12px; text-align: center; align-items: center; }
 }
 .stap-slide-label {
   font-family: var(--font-mono);
@@ -931,6 +931,11 @@ footer {
     margin: 0 auto;
   }
   /* Hero tekst mobiel */
+}
+
+@media (max-width: 768px) {
+  #geometrie > div { grid-template-columns: 1fr !important; }
+  #geometrie > div > div:last-child { padding: 32px 24px !important; }
 }
 </style>
 <style>
@@ -1234,21 +1239,37 @@ nav.scrolled {
 @media (max-width: 900px) {
   .hero-split {
     grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
     min-height: auto;
     max-height: none;
-  }
-  .hero-left {
-    padding: 140px 32px 40px;
-    max-width: 100%;
+    padding-top: 0;
   }
   .hero-right {
-    padding: 0 24px 48px;
-    height: 50vw;
-    min-height: 260px;
-    max-height: 420px;
+    order: -1;
+    padding: 0;
+    height: 60vw;
+    min-height: 240px;
+    max-height: 440px;
+    margin-top: max(56px, var(--nav-offset, 56px));
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .hero-right img {
+    object-fit: cover;
+    object-position: center 35%;
+    width: 100%;
+    height: 100%;
+    animation: none !important;
+    opacity: 1 !important;
   }
   .hero-img-frame {
+    width: 100%;
+    height: 100%;
     max-height: 100%;
+  }
+  .hero-left {
+    padding: 24px 24px 56px;
+    max-width: 100%;
   }
 }
 
@@ -1637,7 +1658,8 @@ input, textarea, select {
     <div class="hero-img-frame rhombi-frame">
       <img decoding="async" id="heroImg" src="fotos/hero/20260206_172451.jpg" data-folder="hero" 
            alt="Rhombi lamp in de sneeuw, Rotterdam"
-           loading="eager" fetchpriority="high">
+           loading="eager" fetchpriority="high"
+           style="transition:opacity .4s" onload="this.style.opacity='1'" onerror="this.style.opacity='1'">
     </div>
   </div>
 </section>
@@ -1661,9 +1683,39 @@ input, textarea, select {
   </div>
 </section>
 
+
+<!-- 2c. GEOMETRIE / NAAM -->
+<section id="geometrie" style="padding:80px 48px;background:var(--dark2)">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;max-width:1400px;margin:0 auto" class="reveal">
+
+    <div class="rhombi-frame" style="aspect-ratio:1/1;background:var(--dark3);overflow:hidden">
+      <img id="imgGeometrie" decoding="async" data-folder="geometrie"
+        src="fotos/geometrie/placeholder.jpg"
+        alt="Rhombi geometrie — ruitpatroon in de kap"
+        style="width:100%;height:100%;object-fit:cover;display:block"
+        onerror="this.style.display='none'">
+    </div>
+
+    <div style="background:var(--dark3);padding:56px 52px;display:flex;flex-direction:column;justify-content:center;gap:28px">
+      <p class="section-label" data-i18n="geo-label">◆ Geometrie &amp; naam</p>
+      <h2 style="font-family:var(--font-serif);font-size:clamp(28px,3.5vw,48px);font-weight:300;line-height:1.15;color:var(--cream)">
+        <span data-i18n="geo-t1">De kap als</span><br>
+        <em style="color:var(--amber)" data-i18n="geo-t2">architectonische huid.</em>
+      </h2>
+      <p style="font-family:var(--font-sans);font-size:15px;line-height:1.75;color:var(--text-dim);max-width:480px" data-i18n="geo-p1">
+        De kap van Rhombi functioneert als een architectonische huid rond het licht. De ruitvorm wordt in een ritmisch patroon herhaald en vormt een open, sculpturale structuur die het licht filtert en verzacht.
+      </p>
+      <p style="font-family:var(--font-sans);font-size:15px;line-height:1.75;color:var(--text-dim);max-width:480px" data-i18n="geo-p2">
+        Het raster breekt de directe lichtbron en creëert een warme, gelaagde gloed. De naam <em style="color:var(--cream)">Rhombi</em> verwijst naar deze herhaling van vormen: niet één gebaar, maar een samenstelling van geometrieën die samen het licht vormgeven.
+      </p>
+    </div>
+
+  </div>
+</section>
+
 <!-- 3. CONFIGURATOR -->
-<section id="configurator" style="padding:0 48px 80px;background:var(--dark)">
-  <div style="padding:80px 48px 40px;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;flex-wrap:wrap">
+<section id="configurator" style="padding:0;background:var(--dark)">
+  <div style="padding:clamp(40px,6vw,80px) clamp(20px,5vw,60px) clamp(24px,3vw,40px);display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
     <div>
       <p class="section-label" data-i18n="conf-label">◆ 3D Configurator</p>
       <h2 class="section-title" ><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
@@ -1672,7 +1724,7 @@ input, textarea, select {
     <p style="font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;color:var(--text-dim);text-transform:uppercase" data-i18n="conf-types">Tafel · Wand · Plafond · Accent · Hang</p>
   </div>
   <iframe src="viewer.html" 
-          style="width:100%;height:82vh;min-height:560px;border:none;display:block;border-top:1px solid rgba(255,255,255,.05)"
+          style="width:100%;height:85vh;min-height:520px;max-height:900px;border:none;display:block;border-top:1px solid rgba(255,255,255,.05)"
           title="Rhombi 3D Configurator" allowfullscreen></iframe>
 </section>
 <section class="types-section" id="types">
@@ -2522,6 +2574,11 @@ const TRANSLATIONS = {
     'footer-note': 'Ontwerp: Vincent Hector · Vhector · Rotterdam, NL',
     'lb-close': '✕ Sluiten',
     'mat-label': '◆ Materiaal',
+    'geo-label': '◆ Geometrie & naam',
+    'geo-t1': 'De kap als',
+    'geo-t2': 'architectonische huid.',
+    'geo-p1': 'De kap van Rhombi functioneert als een architectonische huid rond het licht. De ruitvorm wordt in een ritmisch patroon herhaald en vormt een open, sculpturale structuur die het licht filtert en verzacht.',
+    'geo-p2': 'Het raster breekt de directe lichtbron en creëert een warme, gelaagde gloed. De naam <em style="color:var(--cream)">Rhombi</em> verwijst naar deze herhaling van vormen: niet één gebaar, maar een samenstelling van geometrieën die samen het licht vormgeven.',
     'mat-title': 'Dezelfde vorm, ander karakter.',
     'mat-note': 'Elk onderdeel kan in een ander materiaal worden geprint. Meer varianten zijn altijd mogelijk op aanvraag.',
     'mat-more': 'Meer mogelijk. Heb je een specifiek filament of afwerking in gedachten? Neem contact op voor de mogelijkheden, de lijst groeit.',
