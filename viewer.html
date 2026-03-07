@@ -1412,7 +1412,7 @@ function _partColor(pid) {
 function _groupColor(grp) {
   // Kleur van groep = kleur van eerste member die geladen is
   if (!grp.members) return _partColor(grp.id);
-  const first = grp.members.find(m => activeGLBGroups ? !!activeGLBGroups[m] : !!M[m]);
+  const first = grp.members.find(m => !!activeGLBGroups && !!activeGLBGroups[m]);
   return first ? _partColor(first) : _partColor(grp.id);
 }
 
@@ -1420,7 +1420,7 @@ function buildPList(){
   const list = document.getElementById("plist"); list.innerHTML = "";
 
   // Welke mesh-ids zijn beschikbaar in het geladen model?
-  const available = activeGLBGroups ? Object.keys(activeGLBGroups) : Object.keys(M);
+  const available = activeGLBGroups ? Object.keys(activeGLBGroups) : [];
 
   // Bouw lijst op basis van PART_GROUPS — alleen tonen wat er in het model zit
   PART_GROUPS.forEach(grp => {
