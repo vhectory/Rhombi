@@ -86,8 +86,8 @@ nav {
 }
 .nav-links { display: flex; gap: 40px; list-style: none; }
 .nav-links a {
-  font-family: 'Space Mono', monospace;
-  font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
   color: var(--text-dim); text-decoration: none; transition: color .3s;
 }
 .nav-links a:hover { color: var(--amber); }
@@ -113,7 +113,7 @@ nav {
 }
 .mobile-menu.open { display: flex; }
 .mobile-menu a {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 13px;
   letter-spacing: .2em;
   text-transform: uppercase;
@@ -453,15 +453,6 @@ nav {
   .configurator-frame { height: 90vh; min-height: 480px; }
 }
 
-/* ── CONFIGURATOR MOBIEL ── */
-@media (max-width: 768px) {
-  #configurator .section-title { font-size: clamp(28px, 7vw, 42px); }
-  #configurator iframe { height: 88vh !important; min-height: 480px !important; }
-}
-@media (max-width: 480px) {
-  #configurator iframe { height: 92vh !important; }
-}
-
 /* ── FOOTER ── */
 footer {
   padding: 36px 48px; border-top: 1px solid rgba(255,255,255,.06);
@@ -670,7 +661,7 @@ footer {
   #uitleg,
   #handleiding,
   .handleiding-section {
-    padding: 60px 24px !important;
+    padding: 80px 48px !important;
   }
   .uitleg-grid--ont {
     grid-template-columns: 1fr !important;
@@ -977,7 +968,7 @@ nav.scrolled {
 
 /* ── MATERIALEN SECTIE ── */
 .materialen-section {
-  padding: 60px 48px;
+  padding: 80px 48px;
   background: var(--dark2);
 }
 .materialen-intro {
@@ -1256,7 +1247,7 @@ nav.scrolled {
   }
   .hero-right img {
     object-fit: cover;
-    object-position: center 35%;
+    object-position: center center;
     width: 100%;
     height: 100%;
     animation: none !important;
@@ -1501,7 +1492,7 @@ input, textarea, select {
 
 /* UITLEG SECTIE */
 .uitleg-section {
-  padding: 100px 48px;
+  padding: 80px 48px;
   background: var(--dark);
 }
 .uitleg-grid {
@@ -1526,7 +1517,7 @@ input, textarea, select {
 
 /* HANDLEIDING / MONTAGE */
 .handleiding-section {
-  padding: 52px 48px;
+  padding: 80px 48px;
   background: var(--dark2);
 }
 .handleiding-grid {
@@ -1550,7 +1541,7 @@ input, textarea, select {
   .carousel-controls { padding: 20px 24px 0; }
   .uitleg-section { padding: 60px 24px; }
   .uitleg-grid { grid-template-columns: 1fr; gap: 40px; }
-  .handleiding-section { padding: 60px 24px; }
+  .handleiding-section { padding: 60px 32px; }
   .handleiding-grid { grid-template-columns: 1fr; gap: 40px; }
 }
 /* Mobile: lighter animations to prevent crashes */
@@ -1603,10 +1594,11 @@ input, textarea, select {
 <div class="mobile-menu" id="mobileMenu" onclick="if(event.target===this)closeMobileMenu()">
   <button onclick="closeMobileMenu()" aria-label="Sluit menu" style="position:absolute;top:44px;right:24px;background:none;border:none;color:var(--cream);font-size:22px;cursor:pointer;padding:8px;line-height:1;opacity:.6">✕</button>
   <ul>
+    <li><a href="#kunst" onclick="closeMobileMenu()" data-i18n="nav-kunst">Kunst</a></li>
+    <li><a href="#geometrie" onclick="closeMobileMenu()" data-i18n="nav-geo">Geometrie</a></li>
     <li><a href="#configurator" onclick="closeMobileMenu()" data-i18n="nav-conf">Configurator</a></li>
     <li><a href="#types" onclick="closeMobileMenu()" data-i18n="nav-types">Varianten</a></li>
     <li><a href="#carousel" onclick="closeMobileMenu()" data-i18n="nav-sfeer">Sfeer</a></li>
-    <li><a href="#kunst" onclick="closeMobileMenu()" data-i18n="nav-kunst">Kunst</a></li>
     <li><a href="#uitleg" onclick="closeMobileMenu()" data-i18n="nav-about">Over Rhombi</a></li>
     <li><a href="#materialen" onclick="closeMobileMenu()" data-i18n="nav-mat">Materiaal</a></li>
     <li><a href="#handleiding" onclick="closeMobileMenu()" data-i18n="nav-montage">Montage</a></li>
@@ -1622,12 +1614,13 @@ input, textarea, select {
     d="M1131.5,582.5 C1130.56,584.79 1128.68,586.32 1127,588 C973.33,741.67 819.66,895.32 666.07,1049.07 C662.79,1052.35 659.51,1053.4 655.01,1053.62 C617.51,1055.4 580,1054.17 542.5,1054.44 C532.34,1054.51 522.17,1053.77 512,1053.56 C510.33,1053.53 509.12,1052.93 508.02,1051.98 C506.6,1050.74 505.33,1049.33 504,1048 C351,895 198,742 45.01,589 C43,586.98 40.67,585.23 39.37,582.21 C46.65,573.68 55.13,566.13 63.02,558.02 C64.53,556.47 66.38,556.56 67.99,558.01 C69.38,559.28 70.67,560.67 72,562 C215.33,705.33 358.69,848.64 501.9,992.1 C506.66,996.87 511.41,998.66 518,998.62 C564.17,998.39 610.33,998.45 656.5,998.58 C660.61,998.59 663.86,997.59 666.51,994.51 C667.28,993.62 668.17,992.83 669,992 C812.33,848.67 955.67,705.33 1099,562 C1106,555 1106,555 1113,562 C1117.83,566.83 1122.68,571.66 1127.49,576.51 C1129.11,578.13 1131.01,579.55 1131.5,582Z"/>
     <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"
     d="M1087.5,543 C1087.01,540.55 1085.11,539.12 1083.5,537.5 C1009.5,463.5 935.65,389.35 861.36,315.64 C847.48,301.87 833.73,287.93 819.47,274.54 C784.66,241.85 750.3,208.61 711.49,180.51 C690.65,165.42 668.59,152.47 643.96,144.62 C631.71,140.72 619.02,138.33 606,138.48 C594.83,138.6 583.68,138.08 572.5,138.17 C547.13,138.37 523.52,144.21 501,155.48 C477.47,167.23 456.29,182.46 436.01,199.02 C418.44,213.36 401.57,228.5 384.93,243.93 C369.71,258.04 354.82,272.48 339.96,286.96 C255.39,369.39 172.82,453.82 89.01,537.01 C87,539.01 84.67,540.77 83.51,543.46 C84.42,545.81 86.32,547.32 88,549 C226.67,687.67 365.35,826.32 503.93,965.07 C507.21,968.35 510.48,969.41 514.99,969.62 C553.16,971.42 591.33,970.16 629.5,970.44 C639.66,970.51 649.83,969.77 660,969.56 C661.67,969.53 662.88,968.93 663.98,967.98 C665.4,966.74 666.67,965.33 668,964 C806,826 944,688 1082,550 C1084.01,547.98 1086.27,546.18 1087.5,543.5Z"/>
-  </svg><span style="font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--cream)">RHOMBI</span></a>
+  </svg><span style="font-family:var(--font-sans);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--cream)">RHOMBI</span></a>
   <ul class="nav-links">
+    <li><a href="#kunst" data-i18n="nav-kunst">Kunst</a></li>
+    <li><a href="#geometrie" data-i18n="nav-geo">Geometrie</a></li>
     <li><a href="#configurator" data-i18n="nav-conf">Configurator</a></li>
     <li><a href="#types" data-i18n="nav-types">Varianten</a></li>
     <li><a href="#carousel" data-i18n="nav-sfeer">Sfeer</a></li>
-    <li><a href="#kunst" data-i18n="nav-kunst">Kunst</a></li>
     <li><a href="#uitleg" data-i18n="nav-about">Over Rhombi</a></li>
     <li><a href="#materialen" data-i18n="nav-mat">Materiaal</a></li>
     <li><a href="#handleiding" data-i18n="nav-montage">Montage</a></li>
@@ -1690,17 +1683,16 @@ input, textarea, select {
 
     <div class="rhombi-frame" style="aspect-ratio:1/1;background:var(--dark3);overflow:hidden">
       <img id="imgGeometrie" decoding="async" data-folder="geometrie"
-        src="fotos/geometrie/placeholder.jpg"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
         alt="Rhombi geometrie — ruitpatroon in de kap"
-        style="width:100%;height:100%;object-fit:cover;display:block"
-        onerror="this.style.display='none'">
+        style="width:100%;height:100%;object-fit:cover;display:block">
     </div>
 
     <div style="background:var(--dark3);padding:56px 52px;display:flex;flex-direction:column;justify-content:center;gap:28px">
-      <p class="section-label" data-i18n="geo-label">◆ Geometrie &amp; naam</p>
-      <h2 style="font-family:var(--font-serif);font-size:clamp(28px,3.5vw,48px);font-weight:300;line-height:1.15;color:var(--cream)">
+      <p class="section-label reveal" data-i18n="geo-label">◆ Geometrie</p>
+      <h2 class="section-title reveal">
         <span data-i18n="geo-t1">De kap als</span><br>
-        <em style="color:var(--amber)" data-i18n="geo-t2">architectonische huid.</em>
+        <em data-i18n="geo-t2">architectonische huid.</em>
       </h2>
       <p style="font-family:var(--font-sans);font-size:15px;line-height:1.75;color:var(--text-dim);max-width:480px" data-i18n="geo-p1">
         De kap van Rhombi functioneert als een architectonische huid rond het licht. De ruitvorm wordt in een ritmisch patroon herhaald en vormt een open, sculpturale structuur die het licht filtert en verzacht.
@@ -1714,17 +1706,17 @@ input, textarea, select {
 </section>
 
 <!-- 3. CONFIGURATOR -->
-<section id="configurator" style="padding:0;background:var(--dark)">
-  <div style="padding:clamp(40px,6vw,80px) clamp(20px,5vw,60px) clamp(24px,3vw,40px);display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
+<section id="configurator" style="padding:0 48px 80px;background:var(--dark)">
+  <div style="padding:80px 48px 40px;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;flex-wrap:wrap">
     <div>
-      <p class="section-label" data-i18n="conf-label">◆ 3D Configurator</p>
-      <h2 class="section-title" ><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
+      <p class="section-label reveal" data-i18n="conf-label">◆ 3D Configurator</p>
+      <h2 class="section-title reveal" ><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
       <p style="font-size:15px;line-height:1.7;color:var(--text);margin-top:16px;max-width:440px" data-i18n="conf-sub">Kies je variant, onderdeel en kleur. Gedeelde onderdelen vliegen mee naar de nieuwe positie.</p>
     </div>
     <p style="font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;color:var(--text-dim);text-transform:uppercase" data-i18n="conf-types">Tafel · Wand · Plafond · Accent · Hang</p>
   </div>
   <iframe src="viewer.html" 
-          style="width:100%;height:85vh;min-height:520px;max-height:900px;border:none;display:block;border-top:1px solid rgba(255,255,255,.05)"
+          style="width:100%;height:82vh;min-height:560px;border:none;display:block;border-top:1px solid rgba(255,255,255,.05)"
           title="Rhombi 3D Configurator" allowfullscreen></iframe>
 </section>
 <section class="types-section" id="types">
@@ -1783,8 +1775,8 @@ input, textarea, select {
 <section class="carousel-section" id="carousel">
   <div class="carousel-header">
     <div>
-      <p class="section-label" data-i18n="sfeer-label">◆ Sfeer</p>
-      <h2 class="section-title" style="margin-bottom:0" data-i18n="sfeer-title">Licht in context.</h2>
+      <p class="section-label reveal" data-i18n="sfeer-label">◆ Sfeer</p>
+      <h2 class="section-title reveal" style="margin-bottom:0" data-i18n="sfeer-title">Licht in context.</h2>
     </div>
   </div>
   <div class="carousel-track-wrap">
@@ -1804,7 +1796,7 @@ input, textarea, select {
     </div>
     <div class="uitleg-text reveal" style="order:1">
       <p class="section-label" data-i18n="uitleg-label">◆ Over Rhombi</p>
-      <h2 ><span data-i18n="uitleg-t1">Licht als</span><br><em data-i18n="uitleg-t2">materiaal.</em></h2>
+      <h2 class="section-title"><span data-i18n="uitleg-t1">Licht als</span><br><em data-i18n="uitleg-t2">materiaal.</em></h2>
       <p data-i18n="uitleg-p1">Rhombi is een persoonlijk onderzoek naar de grenzen van wat 3D-printtechnologie visueel en functioneel kan betekenen. Elk onderdeel is ontworpen om te kunnen worden geprint op een standaard FDM-printer.</p>
       <p data-i18n="uitleg-p2">De kap filtert en vervormt het licht op een manier die afhangt van de printrichting, de laagdikte en de kleur van het filament. Geen twee exemplaren zijn exact hetzelfde.</p>
       <p data-i18n="uitleg-p3">Ontworpen in Rotterdam door Vincent Hector, Vhector.</p>
@@ -2125,7 +2117,7 @@ input, textarea, select {
     </div>
     <div class="uitleg-text reveal">
       <p class="section-label" data-i18n="ont-label">◆ Ontwerper</p>
-      <h2 ><span data-i18n="ont-title">Ontmoet de</span><br><em data-i18n="ont-title2">ontwerper.</em></h2>
+      <h2 class="section-title"><span data-i18n="ont-title">Ontmoet de</span><br><em data-i18n="ont-title2">ontwerper.</em></h2>
       <p data-i18n="ont-p1">Vincent Hector is architect en visualisator uit Rotterdam en werkzaam op het snijvlak van architectuur, productontwerp en digitale beeldvorming. In zijn werk onderzoekt hij de wisselwerking tussen structuur, licht en ruimtelijke perceptie, met een nadruk op modulair denken en digitale maakprocessen.</p>
       <p style="margin-top:16px" data-i18n="ont-p2">In uiteenlopende projecten, van ruimtelijke ontwerpen tot visuele representaties, streeft hij naar helderheid in vorm en een subtiele, gelaagde ruimtelijke ervaring. Vincent maakt gebruik van technieken zoals 3D-modellering, digitale fabricage en visualisatie om ontwerpen te ontwikkelen en te verfijnen. Met deze werkwijze verbindt hij het architectonische met het sculpturale, waarbij licht niet enkel functioneel is maar een integraal onderdeel vormt van het ontwerpconcept.</p>
       <p style="margin-top:16px" data-i18n="ont-p3">Als ontwerper zoekt hij naar objecten die zowel een rustige aanwezigheid als een expressieve vormkwaliteit bezitten en die uitnodigen om licht en ruimte op een nieuwe manier te ervaren.</p>
@@ -2153,7 +2145,7 @@ input, textarea, select {
     d="M1131.5,582.5 C1130.56,584.79 1128.68,586.32 1127,588 C973.33,741.67 819.66,895.32 666.07,1049.07 C662.79,1052.35 659.51,1053.4 655.01,1053.62 C617.51,1055.4 580,1054.17 542.5,1054.44 C532.34,1054.51 522.17,1053.77 512,1053.56 C510.33,1053.53 509.12,1052.93 508.02,1051.98 C506.6,1050.74 505.33,1049.33 504,1048 C351,895 198,742 45.01,589 C43,586.98 40.67,585.23 39.37,582.21 C46.65,573.68 55.13,566.13 63.02,558.02 C64.53,556.47 66.38,556.56 67.99,558.01 C69.38,559.28 70.67,560.67 72,562 C215.33,705.33 358.69,848.64 501.9,992.1 C506.66,996.87 511.41,998.66 518,998.62 C564.17,998.39 610.33,998.45 656.5,998.58 C660.61,998.59 663.86,997.59 666.51,994.51 C667.28,993.62 668.17,992.83 669,992 C812.33,848.67 955.67,705.33 1099,562 C1106,555 1106,555 1113,562 C1117.83,566.83 1122.68,571.66 1127.49,576.51 C1129.11,578.13 1131.01,579.55 1131.5,582Z"/>
     <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"
     d="M1087.5,543 C1087.01,540.55 1085.11,539.12 1083.5,537.5 C1009.5,463.5 935.65,389.35 861.36,315.64 C847.48,301.87 833.73,287.93 819.47,274.54 C784.66,241.85 750.3,208.61 711.49,180.51 C690.65,165.42 668.59,152.47 643.96,144.62 C631.71,140.72 619.02,138.33 606,138.48 C594.83,138.6 583.68,138.08 572.5,138.17 C547.13,138.37 523.52,144.21 501,155.48 C477.47,167.23 456.29,182.46 436.01,199.02 C418.44,213.36 401.57,228.5 384.93,243.93 C369.71,258.04 354.82,272.48 339.96,286.96 C255.39,369.39 172.82,453.82 89.01,537.01 C87,539.01 84.67,540.77 83.51,543.46 C84.42,545.81 86.32,547.32 88,549 C226.67,687.67 365.35,826.32 503.93,965.07 C507.21,968.35 510.48,969.41 514.99,969.62 C553.16,971.42 591.33,970.16 629.5,970.44 C639.66,970.51 649.83,969.77 660,969.56 C661.67,969.53 662.88,968.93 663.98,967.98 C665.4,966.74 666.67,965.33 668,964 C806,826 944,688 1082,550 C1084.01,547.98 1086.27,546.18 1087.5,543.5Z"/>
-  </svg><span style="font-family:var(--font-mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--cream)">RHOMBI</span></a>
+  </svg><span style="font-family:var(--font-sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--cream)">RHOMBI</span></a>
   <ul class="footer-links">
     <li><a href="#">Instagram</a></li>
     <li><a href="#">Etsy</a></li>
@@ -2491,6 +2483,7 @@ const TRANSLATIONS = {
     'kunst-title': 'Rhombi ontmoet',
     'kunst-title2': 'kunst.',
     'nav-kunst': 'Kunst',
+    'nav-geo': 'Geometrie',
     'ont-label': '◆ Ontwerper',
     'nav-ont': 'Ontwerper',
     'ont-title': 'Ontmoet de',
@@ -2574,7 +2567,7 @@ const TRANSLATIONS = {
     'footer-note': 'Ontwerp: Vincent Hector · Vhector · Rotterdam, NL',
     'lb-close': '✕ Sluiten',
     'mat-label': '◆ Materiaal',
-    'geo-label': '◆ Geometrie & naam',
+    'geo-label': '◆ Geometrie',
     'geo-t1': 'De kap als',
     'geo-t2': 'architectonische huid.',
     'geo-p1': 'De kap van Rhombi functioneert als een architectonische huid rond het licht. De ruitvorm wordt in een ritmisch patroon herhaald en vormt een open, sculpturale structuur die het licht filtert en verzacht.',
@@ -2597,6 +2590,7 @@ const TRANSLATIONS = {
     'kunst-title': 'Rhombi meets',
     'kunst-title2': 'art.',
     'nav-kunst': 'Art',
+    'nav-geo': 'Geometry',
     'ont-label': '◆ Designer',
     'nav-ont': 'Designer',
     'ont-title': 'Meet the',
