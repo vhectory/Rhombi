@@ -349,7 +349,7 @@ canvas{ touch-action:none }
     <button class="cb on" id="bBl" onclick="toggleBloom()"><span>Lichtgloed</span><span>✦</span></button>
     <button class="cb on" id="bAO" onclick="toggleSSAO()"><span>Ambient Occlusion</span><span>◉</span></button>
     <button class="cb on" id="bLamp" onclick="toggleLamp()"><span>Lamp aan</span><span>💡</span></button>
-    <button class="cb on" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
+    <button class="cb" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
     <button class="cb" onclick="resetView()"><span>Reset camera</span><span>⊙</span></button>
   </div>
   <div class="ps">
@@ -582,7 +582,7 @@ try {
 
   bloomPass=new THREE.UnrealBloomPass(
     new THREE.Vector2(wrap.clientWidth,wrap.clientHeight),
-    0.9,   // strength
+    0.35,  // strength
     0.5,   // radius
     0.75   // threshold
   );
@@ -1327,7 +1327,7 @@ function fitCameraToGLB() {
 // STATE
 // ═══════════════════════════════════════════
 let curV=VARIANTS[0],selP="shade",selParts=new Set(["shade"]),busy=false;
-let spinning=true;
+let spinning=false;
 let camTh=Math.PI,camPh=.45,camR=6.5,panX=0,panY=0;
 
 // Init first variant instantly
@@ -1813,7 +1813,7 @@ function buildMatList(){
 function toggleBloom(){
   if(!bloomPass)return;
   bloomOn=!bloomOn;
-  bloomPass.strength=bloomOn?0.9:0;
+  bloomPass.strength=bloomOn?0.35:0;
   document.getElementById("bBl").classList.toggle("on",bloomOn);
 }
 
@@ -1956,7 +1956,7 @@ window.addEventListener("mousemove",e=>{
   if(isSh){panX-=dx*.006;panY+=dy*.006}
   else{camTh-=dx*.008;camPh=Math.max(.05,Math.min(Math.PI*.95,camPh+dy*.006))}
 });
-cvs.addEventListener("wheel",e=>{camR=Math.max(2,Math.min(16,camR+e.deltaY*.012))},{passive:true});
+cvs.addEventListener("wheel",e=>{e.preventDefault();camR=Math.max(2,Math.min(16,camR+e.deltaY*.012))},{passive:false});
 cvs.addEventListener("touchstart",e=>{lastT2=e.touches[0]},{passive:true});
 cvs.addEventListener("touchmove",e=>{
   if(!lastT2)return;
