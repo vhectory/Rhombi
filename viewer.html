@@ -55,10 +55,12 @@ canvas{display:block;border-radius:2px}
 .pb-member{padding-left:28px!important;font-size:9px;opacity:.85}
 .pb-member::before{content:"└ ";opacity:.4;margin-right:2px}
 .pb-member.collapsed{display:none}
-.vis-btn{background:none;border:none;padding:0 0 0 6px;cursor:pointer;opacity:.35;font-size:11px;color:var(--text-dim);transition:opacity .15s;flex-shrink:0}
+.vis-btn{background:none;border:none;padding:0 0 0 6px;cursor:pointer;opacity:.4;font-size:11px;color:var(--text-dim);transition:opacity .15s;flex-shrink:0}
+.vis-btn:hover{opacity:1!important}
+.pb:hover .vis-btn{opacity:.7}
 .vis-btn:hover{opacity:.8}
 .vis-btn.hidden-part{opacity:.6;color:#c07070}
-.grp-arrow{margin-right:4px;opacity:.5;font-size:8px;display:inline-block;transition:transform .15s}
+.grp-arrow{margin-right:4px;opacity:.5;font-size:8px;display:inline-block;transition:transform .15s;transform:rotate(-90deg)}
 .grp-arrow.open{transform:rotate(0deg)}
 .grp-arrow.closed{transform:rotate(-90deg)}
 .pb:hover{border-color:rgba(200,136,74,.3);color:var(--cream)}
@@ -530,7 +532,7 @@ R.outputEncoding=THREE.sRGBEncoding; R.toneMapping=THREE.ACESFilmicToneMapping; 
 R.physicallyCorrectLights=true;
 canvasFrame.appendChild(R.domElement);
 
-const SC=new THREE.Scene(); SC.background=new THREE.Color(0x12151A); SC.fog=new THREE.FogExp2(0x0E1116,.024);
+const SC=new THREE.Scene(); SC.fog=new THREE.FogExp2(0x0E1116,.018);
 const CAM=new THREE.PerspectiveCamera(40,1,.1,100);
 
 // ═══════════════════════════════════════════
@@ -538,28 +540,193 @@ const CAM=new THREE.PerspectiveCamera(40,1,.1,100);
 // ═══════════════════════════════════════════
 (function buildEnv(){
   try {
+    // ── Procedurele achtergrond: site-kleuren + zon/bladschaduwen ──
+    const W=1024, H=1024;
+    const bg=document.createElement("canvas"); bg.width=W; bg.height=H;
+    const bx=bg.getContext("2d");
+
+    // Basis gradient: donker (#12151A) linksonder → lichter (#2A3545) rechtsboven
+    const baseGrad = bx.createLinearGradient(0, H, W, 0);
+    baseGrad.addColorStop(0,   "#0a0d11"); // donkerste hoek
+    baseGrad.addColorStop(0.4, "#0e1116"); // --dark
+    baseGrad.addColorStop(0.75,"#12181f"); // subtiel blauwgrijs
+    baseGrad.addColorStop(1,   "#1a2230"); // lichtste hoek — nog steeds donker
+    bx.fillStyle=baseGrad; bx.fillRect(0,0,W,H);
+
+    // Radiaal licht: zacht centrum — feller naar rechtsboven (zon)
+    const sunGrad=bx.createRadialGradient(W*.68, H*.08, 0, W*.68, H*.08, W*.85);
+    sunGrad.addColorStop(0,   "rgba(30,55,80,0.18)");
+    sunGrad.addColorStop(0.3, "rgba(20,40,60,0.08)");
+    sunGrad.addColorStop(0.7, "rgba(10,20,35,0.04)");
+    sunGrad.addColorStop(1,   "rgba(0,0,0,0)");
+    bx.fillStyle=sunGrad; bx.fillRect(0,0,W,H);
+
+    // Vignette: donker naar buiten
+    const vigGrad=bx.createRadialGradient(W*.5,H*.45,W*.18,W*.5,H*.45,W*.78);
+    vigGrad.addColorStop(0,   "rgba(0,0,0,0)");
+    vigGrad.addColorStop(0.45,"rgba(0,0,0,0.25)");
+    vigGrad.addColorStop(1,   "rgba(0,0,0,0.72)");
+    bx.fillStyle=vigGrad; bx.fillRect(0,0,W,H);
+
+    // ── Schaduwstrepen (jaloezie/blad) — soft fade naar midden ──
+    // Diagonale transformatie: 16 graden, uitgaande van rechtsboven
+    const ANGLE = Math.PI/180 * 16;
+
+    // Horizontale fade: strepen verdwijnen richting midden
+    // Elke streep heeft opacity die afneemt naar x=center
+    function drawStripe(y, h, baseOp, type) {
+      bx.save();
+      // Roteer om rechtsboven punt
+      bx.translate(W, 0);
+      bx.rotate(ANGLE);
+
+      // Stripe gradient (zacht op edges)
+      const sg = bx.createLinearGradient(0, y-6, 0, y+h+6);
+      sg.addColorStop(0,   "rgba(0,0,0,0)");
+      sg.addColorStop(0.25, `rgba(0,0,0,${baseOp})`);
+      sg.addColorStop(0.75, `rgba(0,0,0,${baseOp})`);
+      sg.addColorStop(1,   "rgba(0,0,0,0)");
+      bx.fillStyle=sg;
+
+      // Horizontale fade: volle breedte rechts, verdwijnt naar links midden
+      // Via compositing masker
+      const fullW = W*2.2;
+      bx.fillRect(-fullW, y-6, fullW, h+12);
+      bx.restore();
+
+      // Horizontale fade overlay (de strepen gaan weg naar het midden)
+      bx.save();
+      const hFade = bx.createLinearGradient(0, 0, W, 0);
+      hFade.addColorStop(0,    "rgba(18,21,26,0)");   // links: niets
+      hFade.addColorStop(0.35, "rgba(18,21,26,0)");   // midden: nog niets
+      hFade.addColorStop(0.62, "rgba(18,21,26,0.0)"); // hier beginnen ze te vervagen
+      // (strepen zelf al getekend, hfade later niet nodig, compositing anders)
+      bx.restore();
+    }
+
+    // Schaduwstrepen met noise-onderbrekingen (bladeren)
+    const stripes=[
+      {y:30,  h:22, op:0.20},
+      {y:85,  h:14, op:0.15},
+      {y:130, h:32, op:0.23},
+      {y:195, h:11, op:0.13},
+      {y:235, h:38, op:0.26},
+      {y:318, h:16, op:0.17},
+      {y:370, h:28, op:0.21},
+      {y:430, h:12, op:0.14},
+      {y:468, h:40, op:0.24},
+      {y:558, h:18, op:0.18},
+      {y:618, h:26, op:0.20},
+      {y:685, h:14, op:0.14},
+      {y:730, h:36, op:0.22},
+    ];
+
+    stripes.forEach(s => {
+      bx.save();
+      bx.translate(W, 0);
+      bx.rotate(ANGLE);
+
+      // Basis stripe
+      const sg=bx.createLinearGradient(0,s.y-6,0,s.y+s.h+6);
+      sg.addColorStop(0,   "rgba(0,0,0,0)");
+      sg.addColorStop(0.12,`rgba(0,0,0,${s.op*0.85})`);
+      sg.addColorStop(0.5,`rgba(0,0,0,${s.op})`);
+      sg.addColorStop(0.88,`rgba(0,0,0,${s.op*0.85})`);
+      sg.addColorStop(1,   "rgba(0,0,0,0)");
+      bx.fillStyle=sg;
+      bx.fillRect(-W*2.5, s.y-6, W*3.5, s.h+12);
+
+      // Blad-noise: willekeurige gaten in de streep
+      bx.globalCompositeOperation="destination-out";
+      // Pseudo-random gaten (deterministic op basis van y)
+      let seed=s.y*137+s.h*31;
+      function rand(){seed=(seed*1664525+1013904223)&0xffffffff;return(seed>>>0)/0xffffffff;}
+      for(let i=0;i<6;i++){
+        const gx = -W*1.8 + rand()*W*2.8;
+        const gy = s.y + rand()*s.h*0.6;
+        const gr = 8+rand()*22;
+        const gg=bx.createRadialGradient(gx,gy,0,gx,gy,gr);
+        gg.addColorStop(0,`rgba(0,0,0,${0.3+rand()*0.5})`);
+        gg.addColorStop(1,"rgba(0,0,0,0)");
+        bx.fillStyle=gg; bx.beginPath(); bx.ellipse(gx,gy,gr,gr*(0.4+rand()*0.5),rand()*Math.PI,0,Math.PI*2); bx.fill();
+      }
+      // Langwerpige blad-gaten
+      for(let i=0;i<3;i++){
+        const gx=-W*1.5+rand()*W*2.5;
+        const gy=s.y-2+rand()*(s.h+4);
+        const rw=15+rand()*35, rh=3+rand()*8;
+        const rot=rand()*Math.PI;
+        const gg=bx.createRadialGradient(gx,gy,0,gx,gy,rw);
+        gg.addColorStop(0,`rgba(0,0,0,${0.4+rand()*0.4})`);
+        gg.addColorStop(1,"rgba(0,0,0,0)");
+        bx.fillStyle=gg; bx.beginPath(); bx.ellipse(gx,gy,rw,rh,rot,0,Math.PI*2); bx.fill();
+      }
+      bx.globalCompositeOperation="source-over";
+      bx.restore();
+    });
+
+    // Horizontale fade: strepen verdwijnen naar midden/links
+    const hFade=bx.createLinearGradient(0,0,W,0);
+    hFade.addColorStop(0,   "rgba(18,21,26,0.98)"); // links: bijna geen strepen
+    hFade.addColorStop(0.22,"rgba(18,21,26,0.82)");
+    hFade.addColorStop(0.42,"rgba(18,21,26,0.50)");
+    hFade.addColorStop(0.60,"rgba(18,21,26,0.18)");
+    hFade.addColorStop(0.78,"rgba(18,21,26,0)");    // rechts: volle strepen
+    bx.fillStyle=hFade; bx.fillRect(0,0,W,H);
+
+    // Lichtbanen (tussen strepen, warm goudtint)
+    bx.save();
+    bx.translate(W,0); bx.rotate(ANGLE);
+    const beams=[
+      {y:52,  h:28, op:0.035},
+      {y:103, h:20, op:0.028},
+      {y:165, h:26, op:0.038},
+      {y:260, h:22, op:0.032},
+      {y:338, h:28, op:0.040},
+      {y:400, h:18, op:0.030},
+      {y:448, h:22, op:0.035},
+      {y:510, h:44, op:0.042},
+      {y:600, h:25, op:0.030},
+    ];
+    beams.forEach(b=>{
+      const bg2=bx.createLinearGradient(0,b.y,0,b.y+b.h);
+      bg2.addColorStop(0,"rgba(0,0,0,0)");
+      bg2.addColorStop(0.5,`rgba(100,120,145,${b.op*0.6})`); // subtiel blauwgrijs
+      bg2.addColorStop(1,"rgba(0,0,0,0)");
+      bx.fillStyle=bg2; bx.fillRect(-W*2.5,b.y,W*3.5,b.h);
+    });
+    bx.restore();
+
+    // Finale vignette
+    const vig2=bx.createRadialGradient(W*.5,H*.5,W*.25,W*.5,H*.5,W*.72);
+    vig2.addColorStop(0,   "rgba(0,0,0,0)");
+    vig2.addColorStop(0.5, "rgba(0,0,0,0.20)");
+    vig2.addColorStop(1,   "rgba(0,0,0,0.55)");
+    bx.fillStyle=vig2; bx.fillRect(0,0,W,H);
+
+    const bgTex=new THREE.CanvasTexture(bg);
+    SC.background=bgTex;
+
+    // ── PMREM env: warm zon + koele hemel afgestemd op site-kleuren ──
     const pmrem=new THREE.PMREMGenerator(R);
     pmrem.compileCubemapShader();
-    // Bouw een mini-scene met gekleurde lichten als "studio omgeving"
     const envSC=new THREE.Scene();
-    const sph=new THREE.Mesh(
+    envSC.add(new THREE.Mesh(
       new THREE.SphereGeometry(50,32,16),
-      new THREE.MeshBasicMaterial({side:THREE.BackSide,color:0x0a0d12})
-    );
-    envSC.add(sph);
+      new THREE.MeshBasicMaterial({side:THREE.BackSide,color:0x0e1116})
+    ));
     const envLights=[
-      {pos:[12,10,6],   col:0xfff0d0, int:4},   // warm key
-      {pos:[-10,5,-8],  col:0xc8d8ff, int:2},   // koel fill
-      {pos:[0,15,0],    col:0xffe8c0, int:1.5},  // top
-      {pos:[0,-8,0],    col:0x502000, int:0.8},  // warm bounce
-      {pos:[-4,2,12],   col:0xffd080, int:1.2},  // rim
+      {pos:[10,12,5],  col:0xffe8a0, int:5.0},  // warme zon key
+      {pos:[-7,4,-5],  col:0x607888, int:1.8},   // koel (#606870 tint) fill
+      {pos:[0,18,0],   col:0xa8b0b8, int:1.0},   // hemel --text kleur
+      {pos:[0,-5,0],   col:0x2a1a08, int:0.5},   // vloer bounce
+      {pos:[-1,3,9],   col:0xc8884a, int:0.6},   // amber rim
     ];
     envLights.forEach(l=>{
       const pl=new THREE.PointLight(l.col,l.int,100);
       pl.position.set(...l.pos); envSC.add(pl);
     });
-    const envTex=pmrem.fromScene(envSC,0.04).texture;
-    SC.environment=envTex;
+    SC.environment=pmrem.fromScene(envSC,0.04).texture;
     pmrem.dispose();
   } catch(e){ console.warn("Env map mislukt:",e); }
 })();
@@ -613,14 +780,14 @@ window.addEventListener("resize",resize); resize();
 SC.add(new THREE.AmbientLight(0xfff5e0,.25));
 
 // Key light
-const kL=new THREE.DirectionalLight(0xfff0d8,1.1);
-kL.position.set(4,7,5); kL.castShadow=true;
+const kL=new THREE.DirectionalLight(0xffe8a0,1.8);
+kL.position.set(6,9,4); kL.castShadow=true;
 kL.shadow.mapSize.width=kL.shadow.mapSize.height=isMobile?1024:2048;
 kL.shadow.bias=-0.0005;
 SC.add(kL);
 
 // Cool fill (tegenovergestelde kant)
-const fL=new THREE.DirectionalLight(0xc0d0ff,.3); fL.position.set(-5,2,-3); SC.add(fL);
+const fL=new THREE.DirectionalLight(0x7ab8c8,.25); fL.position.set(-5,2,-3); SC.add(fL);
 
 // Rim light van achteren
 const rL=new THREE.DirectionalLight(0xffd080,.4); rL.position.set(0,-3,-6); SC.add(rL);
@@ -1080,19 +1247,24 @@ let exP=0,exT=0; // 0=closed 1=open
 
 // Explode offsets per part type — richting + afstand
 const GLB_EX_OFFSETS = {
-  kap:        [0,  1.8, 0],
-  peer:       [0,  1.2, 0],
-  fitting:    [0,  0.6, 0],
-  kader_a:    [0,  0.3, 0],
-  kader_l:    [-1.2, 0.1, 0],
-  kader_r:    [ 1.2, 0.1, 0],
-  kader:      [0,  0.2, 0],
-  vleugel_l:  [-0.8,-0.3, 0.6],
-  vleugel_r:  [ 0.8,-0.3, 0.6],
-  kern:       [0,  -0.3, 0],
-  ring:       [0,  -0.6, 0],
-  verbindingen:[0, -0.4, 0.5],
-  voet:       [0,  -1.8, 0],
+  // kern = center (0,0,0)
+  kern:       [ 0,    0,    0],
+  // omhoog
+  kap:        [ 0,    0.7,  0],
+  peer:       [ 0,    0.45, 0],
+  fitting:    [ 0,    0.25, 0],
+  // kader — licht omhoog + zijwaarts uiteen
+  kader_a:    [ 0,    0.15, 0],
+  kader_l:    [-0.5,  0.1,  0],
+  kader_r:    [ 0.5,  0.1,  0],
+  kader:      [ 0,    0.15, 0],
+  // verbindingen — iets naar buiten/voor
+  vleugel_l:  [-0.35,-0.1,  0.25],
+  vleugel_r:  [ 0.35,-0.1,  0.25],
+  ring:       [ 0,   -0.15, 0],
+  verbindingen:[ 0,  -0.15, 0.25],
+  // omlaag
+  voet:       [ 0,   -0.7,  0],
 };
 
 function applyExplode(){
@@ -1440,14 +1612,15 @@ function buildPList(){
     const visIcon = PART_VIS[grp.id] === false ? '○' : '●';
     const visCls  = PART_VIS[grp.id] === false ? ' hidden-part' : '';
     b.innerHTML  = `<span>${arrow}${grp.nm}${emIcon}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${grp.id}" style="background:${col}"></span><button class="vis-btn${visCls}" data-vis="${grp.id}" onclick="togglePartVis('${grp.id}',event)">${visIcon}</button></span>`;
-    b.onclick = () => {
+    b.onclick = (e) => {
+      if(e.target.classList.contains('vis-btn')||e.target.closest('.vis-btn')) return;
       if (grp.members) {
-        // Toggle members zichtbaar/verborgen
         const members = list.querySelectorAll('[data-group="'+grp.id+'"]');
         const arrow   = b.querySelector('.grp-arrow');
         const isOpen  = arrow && arrow.classList.contains('open');
         members.forEach(m => m.classList.toggle('collapsed', isOpen));
         if (arrow) { arrow.classList.toggle('open', !isOpen); arrow.classList.toggle('closed', isOpen); }
+        if(!e.ctrlKey && !e.metaKey) return; // pijl klik = alleen open/dicht, geen selectie
       }
       selPart(grp.id, e.ctrlKey||e.metaKey);
     };
@@ -1466,12 +1639,14 @@ function buildPList(){
         const mvisIcon = PART_VIS[mid] === false ? '○' : '●';
         const mvisCls  = PART_VIS[mid] === false ? ' hidden-part' : '';
         mb.innerHTML = `<span>${mnm}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${mid}" style="background:${mc}"></span><button class="vis-btn${mvisCls}" data-vis="${mid}" onclick="togglePartVis('${mid}',event)">${mvisIcon}</button></span>`;
-        mb.onclick = (e) => { e.stopPropagation(); selPart(mid, e.ctrlKey||e.metaKey); };
+        mb.onclick = (e) => { if(e.target.classList.contains('vis-btn')||e.target.closest('.vis-btn')) return; e.stopPropagation(); selPart(mid, e.ctrlKey||e.metaKey); };
         list.appendChild(mb);
       });
       // Zet pijl op open na bouwen
       const arrow = b.querySelector('.grp-arrow');
-      if (arrow) { arrow.classList.add('open'); }
+      if (arrow) { arrow.classList.add('closed'); }
+      // Members collapsed bij start
+      list.querySelectorAll('[data-group="'+grp.id+'"]').forEach(m => m.classList.add('collapsed'));
     }
   });
 
@@ -1494,7 +1669,7 @@ function buildColorGrid(){
   const g=document.getElementById("cgrid"); g.innerHTML="";
 
   // Peer (gloeilamp) — speciale UI: kleurtemperatuur + aan/uit
-  if(partInfo(selP).emissive){
+  if([...selParts].some(id => partInfo(id).emissive)){
     g.style.display="block";
     g.innerHTML=`
       <div style="display:flex;flex-direction:column;gap:8px;padding:4px 0">
@@ -1742,7 +1917,7 @@ function buildMatList(){
   el.innerHTML="";
 
   // Peer heeft geen PLA-preset — toon beschrijving
-  if(partInfo(selP).emissive){
+  if([...selParts].some(id => partInfo(id).emissive)){
     el.innerHTML=`<p style="font-family:Space Mono,monospace;font-size:9px;color:var(--text-dim);line-height:1.5;padding:4px 0">
       Doorzichtig glas.<br>Kleur = lichttemperatuur.<br>Aan/uit via knop hierboven.</p>`;
     return;
