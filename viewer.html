@@ -348,14 +348,9 @@ canvas{ touch-action:none }
     <button class="cb" id="bEx" onclick="toggleExplode()"><span>Exploded view</span><span>⬡</span></button>
     <button class="cb on" id="bBl" onclick="toggleBloom()"><span>Lichtgloed</span><span>✦</span></button>
     <button class="cb on" id="bAO" onclick="toggleSSAO()"><span>Ambient Occlusion</span><span>◉</span></button>
-    <button class="cb" id="bWf" onclick="toggleWireframe()"><span>Wireframe</span><span>⬟</span></button>
     <button class="cb on" id="bLamp" onclick="toggleLamp()"><span>Lamp aan</span><span>💡</span></button>
     <button class="cb on" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
     <button class="cb" onclick="resetView()"><span>Reset camera</span><span>⊙</span></button>
-    <div class="sr" style="margin-top:8px">
-      <span class="sk">Polygonen</span>
-      <span class="sv" id="polycount" style="font-family:Space Mono,monospace;font-size:10px;color:var(--amber)">—</span>
-    </div>
   </div>
   <div class="ps">
     <span class="pl">◆ Specificaties</span>
@@ -651,12 +646,6 @@ skyBounce.position.set(0,4,0); SC.add(skyBounce);
 // ═══════════════════════════════════════════
 // MATERIALS — single source of truth
 // ═══════════════════════════════════════════
-const M={
-  shade:new THREE.MeshStandardMaterial({color:new THREE.Color("#C8884A"),roughness:.72,metalness:.02,transparent:true,opacity:.82,side:THREE.DoubleSide,emissive:new THREE.Color("#4A2000"),emissiveIntensity:.9,envMapIntensity:.5}),
-  frame:new THREE.MeshStandardMaterial({color:new THREE.Color("#A86050"),roughness:.45,metalness:.55,envMapIntensity:1.6}),
-  arm:  new THREE.MeshStandardMaterial({color:new THREE.Color("#A86050"),roughness:.42,metalness:.55,envMapIntensity:1.6}),
-  base: new THREE.MeshStandardMaterial({color:new THREE.Color("#1A1814"),roughness:.75,metalness:.18,envMapIntensity:1.0}),
-};
 
 // ═══════════════════════════════════════════
 // PROCEDURELE TEXTUREN — canvas-based
@@ -982,132 +971,12 @@ const MAT_PRESETS=[
 
 
 
-function G(geo,mat,shadow=true){const m=new THREE.Mesh(geo,mat);if(shadow){m.castShadow=true;}return m}
-function box(w,h,d,mat){return G(new THREE.BoxGeometry(w,h,d),mat)}
-function cyl(rt,rb,h,s,mat,hs=1){return G(new THREE.CylinderGeometry(rt,rb,h,s,hs,false),mat)}
-function cylO(rt,rb,h,s,mat,hs=1){return G(new THREE.CylinderGeometry(rt,rb,h,s,hs,true),mat)}
-function tor(r,t,s,mat){return G(new THREE.TorusGeometry(r,t,isMobile?8:16,s),mat)}
-function disc(r,mat){return G(new THREE.CircleGeometry(r,isMobile?32:96),mat)}
 function sphere(r,mat){return G(new THREE.SphereGeometry(r,isMobile?16:32,isMobile?12:24),mat)}
 
 // Segmenten aanpassen op basis van device
 const SEG = isMobile ? 48 : 128;   // radiale segmenten voor kap
 const SEGH= isMobile ? 8  : 20;    // hoogte segmenten
 
-function mkShade(mat){
-  const g=new THREE.Group();
-
-  // Kap: lathe geometry voor organische vorm ipv simpele cilinder
-  // Rhombi-kenmerkend: licht bolvormige zijkant met gebogen rand
-  const pts=[];
-  const nr=isMobile?24:64; // radiale punten voor lathe profiel
-  for(let i=0;i<=nr;i++){
-    const t=i/nr;
-    const y=t*0.55 - 0.275;            // -0.275 → +0.275
-    // Profiel: licht boller naar boven, scherpe bovenrand
-    const r=1.0 + Math.sin(t*Math.PI)*0.045 - Math.pow(t,3)*0.02;
-    pts.push(new THREE.Vector2(r,y));
-  }
-  // Gesloten kap via LatheGeometry + aparte deksels
-  const lathe = new THREE.LatheGeometry(pts, SEG);
-  const shadeMain = new THREE.Mesh(lathe, mat);
-  shadeMain.castShadow=true;
-  g.add(shadeMain);
-
-  // Boven- en onderschijf voor gesloten kap
-  const ct=disc(pts[nr].x, mat);   ct.rotation.x=-Math.PI/2; ct.position.y= 0.275; g.add(ct);
-  const cb=disc(pts[0].x,  mat);   cb.rotation.x= Math.PI/2; cb.position.y=-0.275; g.add(cb);
-
-  // FDM-laaglijnen — karakteristiek voor 3D-print
-  const gm=new THREE.LineBasicMaterial({color:0x7A4820,transparent:true,opacity:.22});
-  const nLines = isMobile ? 4 : 10;
-  for(let i=0;i<nLines;i++){
-    const t_=i/(nLines-1);
-    const y_=t_*0.55 - 0.275;
-    const r_=1.0 + Math.sin(t_*Math.PI)*0.045 - Math.pow(t_,3)*0.02;
-    const pts2=[];
-    const ns=isMobile?64:192;
-    for(let j=0;j<=ns;j++){
-      const a=j/ns*Math.PI*2;
-      pts2.push(new THREE.Vector3(Math.cos(a)*r_*1.002, y_, Math.sin(a)*r_*1.002));
-    }
-    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts2),gm));
-  }
-  // Verticale laagmarkeringen
-  const nVert=isMobile?16:48;
-  for(let i=0;i<nVert;i++){
-    const a=i/nVert*Math.PI*2;
-    const vPts=pts.filter((_,idx)=>idx%2===0).map(p=>
-      new THREE.Vector3(Math.cos(a)*p.x*1.002, p.y, Math.sin(a)*p.x*1.002)
-    );
-    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(vPts),gm));
-  }
-  return g;
-}
-
-function mkFrame(mat){
-  const g=new THREE.Group();
-  // Hoekpalen: afgeronde rechthoekige balk via extrudeGeometry
-  const cornerPts=[];
-  const cr=0.008; // hoekradius
-  const hw=0.03;  // halve breedte
-  for(let i=0;i<=8;i++){
-    const a=-Math.PI/4 + i/8*Math.PI/2;
-    cornerPts.push(new THREE.Vector2(Math.cos(a)*(hw-cr)+cr*Math.sign(Math.cos(a)),
-                                      Math.sin(a)*(hw-cr)+cr*Math.sign(Math.sin(a))));
-  }
-  [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(([x,z])=>{
-    const b=box(.06,.62,.06,mat); b.position.set(x*1.06,0,z*1.06); g.add(b);
-  });
-  // Ring boven/onder met meer segmenten
-  for(const y of[-.31,.31]){
-    const r=tor(1.06,.028,isMobile?16:32,mat);
-    r.rotation.x=Math.PI/2; r.position.y=y; g.add(r);
-  }
-  return g;
-}
-
-function mkBaseRing(mat){
-  const s=new THREE.Shape();
-  s.moveTo(-.67,-.85);s.lineTo(.67,-.85);s.quadraticCurveTo(.85,-.85,.85,-.67);s.lineTo(.85,.67);s.quadraticCurveTo(.85,.85,.67,.85);s.lineTo(-.67,.85);s.quadraticCurveTo(-.85,.85,-.85,.67);s.lineTo(-.85,-.67);s.quadraticCurveTo(-.85,-.85,-.67,-.85);
-  const h=new THREE.Path();
-  h.moveTo(-.48,-.68);h.lineTo(.48,-.68);h.quadraticCurveTo(.68,-.68,.68,-.48);h.lineTo(.68,.48);h.quadraticCurveTo(.68,.68,.48,.68);h.lineTo(-.48,.68);h.quadraticCurveTo(-.68,.68,-.68,.48);h.lineTo(-.68,-.48);h.quadraticCurveTo(-.68,-.68,-.48,-.68);
-  s.holes.push(h);
-  const m=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:.1,bevelEnabled:true,bevelSize:.018,bevelThickness:.018,bevelSegments:2}),mat);
-  m.rotation.x=-Math.PI/2; m.position.y=.05; m.castShadow=true; m.receiveShadow=true; return m;
-}
-
-// Local builders — return {arm, base} groups
-const LOCAL={
-  tafel:(am,bm)=>{
-    const arm=new THREE.Group();[-.18,.18].forEach(x=>{const b=box(.055,2.4,.055,am);b.position.x=x;arm.add(b)});arm.position.set(0,-.6,0);
-    const base=new THREE.Group();base.add(mkBaseRing(bm));base.rotation.y=Math.PI/4;base.position.set(0,-1.85,0);
-    LP.position.set(0,.5,0); return{arm,base};
-  },
-  wand:(am,bm)=>{
-    const arm=new THREE.Group();
-    const hb=box(1.1,.055,.055,am);hb.position.set(.5,0,0);arm.add(hb);
-    const vb=box(.055,.55,.055,am);vb.position.set(0,.27,0);arm.add(vb);
-    arm.position.set(-.55,.3,0);
-    const base=new THREE.Group();const pl=box(.08,1.5,.45,bm);pl.position.set(-1.5,0,0);base.add(pl);
-    LP.position.set(1.5,0,.6); return{arm,base};
-  },
-  plafond:(am,bm)=>{
-    const arm=new THREE.Group();[-.12,.12].forEach(x=>{const b=box(.045,.8,.045,am);b.position.x=x;arm.add(b)});arm.position.set(0,.6,0);
-    const base=new THREE.Group();const rz=box(.5,.08,.5,bm);rz.position.set(0,1.1,0);base.add(rz);
-    LP.position.set(0,-.5,0); return{arm,base};
-  },
-  accent:(am,bm)=>{
-    const arm=new THREE.Group();arm.add(box(.06,1.3,.06,am));arm.position.set(0,-.45,0);
-    const base=new THREE.Group();const ov=cyl(.45,.5,.07,32,bm);ov.position.y=.035;base.add(ov);base.position.set(0,-1.15,0);
-    LP.position.set(0,.1,0); return{arm,base};
-  },
-  hang:(am,bm)=>{
-    const arm=new THREE.Group();const cord=box(.018,3,.018,am);cord.position.y=1.5;arm.add(cord);arm.position.set(0,.3,0);
-    const base=new THREE.Group();const cap=cyl(.22,.22,.12,24,bm);cap.position.y=.06;base.add(cap);base.position.set(0,2.1,0);
-    LP.position.set(0,-.2,0); return{arm,base};
-  },
-};
 
 // ═══════════════════════════════════════════
 // TWEEN SYSTEM — clean, independent per mesh
@@ -1153,107 +1022,61 @@ function updateTweens(dt){for(let i=tweens.length-1;i>=0;i--){tweens[i].update(d
 const LAMP=new THREE.Group(); SC.add(LAMP);
 
 // Shared meshes — permanent, only move/rotate
-const SH={shade:mkShade(M.shade), frame:mkFrame(M.frame)};
-LAMP.add(SH.shade,SH.frame);
 
-let LArm=null,LBase=null;
 
 function swapLocal(varId){
-  if(LArm){LAMP.remove(LArm);LArm=null}
-  if(LBase){LAMP.remove(LBase);LBase=null}
-
   const v = VARIANTS.find(v=>v.id===varId);
   window._rhombiCurrentVariant = v;
 
-  const glbFile = v && v.glb ? GLB_BASE + v.glb + '?v=' + Date.now() : null;
+  const glbFile = v && v.glb ? GLB_BASE + v.glb : null;
 
   if(glbFile){
-    SH.shade.visible = false;
-    SH.frame.visible = false;
-
     document.getElementById("transit").classList.add("show");
     document.querySelector(".ttext").textContent = "◆ Model laden...";
 
-    // Bewaar huidige group posities voor transitie
     const prevGroups = activeGLBGroups ? {...activeGLBGroups} : null;
 
     loadGLBParts(glbFile).then(groups => {
-      // Verwijder vorige GLB groups
       if(prevGroups) {
         Object.values(prevGroups).forEach(g => LAMP.remove(g));
       }
       activeGLBGroups = groups;
-
-      SH.shade.visible = false;
-      SH.frame.visible = false;
-
-      // Voeg alle groups toe aan LAMP
       Object.values(groups).forEach(g => LAMP.add(g));
 
-      // ── Transitie: gedeelde onderdelen tweenen vanuit vorige positie ──
-      // (kap, kader, etc. die in beide varianten bestaan)
       if(prevGroups){
         Object.keys(groups).forEach(partId => {
           if(prevGroups[partId]){
-            // Onderdeel bestond ook in vorige variant — spring niet maar tween
-            // (In GLB-modus zit alles op origin, dus geen positie-tween nodig.
-            //  Wél materiaal behouden: kleuren meenemen naar nieuw geladen part)
             const oldMat = MGLB[partId];
             if(oldMat) syncGLBPart(partId);
           }
         });
       }
 
-      // Parts array dynamisch opbouwen uit geladen mesh namen
       curV.parts = Object.keys(groups).map(id => partInfo(id));
       if(!curV.parts.find(p => p.id === selP)) selP = curV.parts[0].id;
 
-      // LArm/LBase voor explode-view
-      LArm  = groups.core || groups.arm || groups.wings || new THREE.Group();
-      LBase = groups.voet || groups.base || new THREE.Group();
-
       syncAllGLBParts();
-      buildPList(); updateSwActive(); buildColorGrid(); buildMatList(); updatePolycount();
-
-      // Auto-fit camera op het geladen model
-      fitCameraToGLB();
+      buildPList(); updateSwActive(); buildColorGrid(); buildMatList();       fitCameraToGLB();
 
       document.getElementById("transit").classList.remove("show");
       document.querySelector(".ttext").textContent = "◆ Onderdelen bewegen";
     }).catch(err => {
       console.error("[Rhombi] GLB laden mislukt:", err);
-      SH.shade.visible = false;
-      SH.frame.visible = false;
       document.getElementById("transit").classList.remove("show");
       document.querySelector(".ttext").textContent = "◆ Model niet beschikbaar";
     });
   } else {
-    // Geen GLB — procedureel model
+    // Geen GLB beschikbaar voor deze variant
     clearActiveGLB();
-    SH.shade.visible = true; SH.frame.visible = true;
-    const b = LOCAL[varId](M.arm, M.base);
-    LArm = b.arm; LBase = b.base; LAMP.add(LArm, LBase);
+    document.querySelector(".ttext").textContent = "◆ Model binnenkort beschikbaar";
   }
 }
 
 // Explode state — store rest positions per variant
-let exRestShade=new THREE.Vector3(),exRestFrame=new THREE.Vector3();
-let exRestArm=new THREE.Vector3(),exRestBase=new THREE.Vector3();
-let exOffShade=new THREE.Vector3(),exOffFrame=new THREE.Vector3();
-let exOffArm=new THREE.Vector3(),exOffBase=new THREE.Vector3();
+// Explode state (GLB modus)
 let exP=0,exT=0; // 0=closed 1=open
 
-function cacheEx(v){
-  // Store rest positions and offsets for current variant
-  exRestShade.copy(SH.shade.position);
-  exRestFrame.copy(SH.frame.position);
-  exRestArm.copy(LArm?LArm.position:new THREE.Vector3());
-  exRestBase.copy(LBase?LBase.position:new THREE.Vector3());
-  exOffShade.set(...v.ex.shade);
-  exOffFrame.set(...v.ex.frame);
-  exOffArm.set(...v.ex.arm);
-  exOffBase.set(...v.ex.base);
-}
+// cacheEx vervallen — alleen GLB
 
 // Explode offsets per part type — richting + afstand
 const GLB_EX_OFFSETS = {
@@ -1281,12 +1104,6 @@ function applyExplode(){
       const off = GLB_EX_OFFSETS[partId] || [0, 0, 0];
       grp.position.set(off[0]*t, off[1]*t, off[2]*t);
     });
-  } else {
-    // Procedureel model
-    SH.shade.position.copy(exRestShade).addScaledVector(exOffShade,t);
-    SH.frame.position.copy(exRestFrame).addScaledVector(exOffFrame,t);
-    if(LArm) LArm.position.copy(exRestArm).addScaledVector(exOffArm,t);
-    if(LBase)LBase.position.copy(exRestBase).addScaledVector(exOffBase,t);
   }
 }
 
@@ -1405,7 +1222,7 @@ function syncGLBPart(partId) {
   const src = getOrCreateMat(partId);
   activeGLBGroups[partId].traverse(o => {
     if (!o.isMesh) return;
-    o.material = wireframeOn ? WF_MAT : src;
+    o.material = src;
   });
 }
 
@@ -1430,7 +1247,7 @@ if (typeof THREE.GLTFLoader !== 'undefined') {
     console.warn('[Rhombi] DRACOLoader niet beschikbaar — Draco GLBs worden niet ondersteund');
   }
 }
-const GLB_BASE = 'https://cdn.jsdelivr.net/gh/vhectory/Rhombi@latest/glb/';
+const GLB_BASE = 'https://cdn.jsdelivr.net/gh/vhectory/Rhombi@master/glb/';
 let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na laden
 
 function clearActiveGLB() {
@@ -1509,14 +1326,12 @@ function fitCameraToGLB() {
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-let curV=VARIANTS[0],selP="shade",busy=false;
+let curV=VARIANTS[0],selP="shade",selParts=new Set(["shade"]),busy=false;
 let spinning=true;
 let camTh=Math.PI,camPh=.45,camR=6.5,panX=0,panY=0;
 
 // Init first variant instantly
-SH.shade.position.fromArray(VARIANTS[0].shade.p); SH.shade.rotation.fromArray(VARIANTS[0].shade.r);
-SH.frame.position.fromArray(VARIANTS[0].frame.p); SH.frame.rotation.fromArray(VARIANTS[0].frame.r);
-swapLocal("tafel"); cacheEx(VARIANTS[0]);
+swapLocal("tafel");
 
 // ═══════════════════════════════════════════
 // VARIANT SWITCH — KEY FUNCTION
@@ -1524,52 +1339,48 @@ swapLocal("tafel"); cacheEx(VARIANTS[0]);
 function switchVar(v){
   if(v.id===curV.id||busy||v.coming_soon)return;
   busy=true;
-  // Reset explode
   exP=0; exT=0;
   document.getElementById("bEx").classList.remove("on");
-  // Reset mesh positions to rest (tween will override for shared parts)
-  if(LArm) LArm.position.copy(exRestArm);
-  if(LBase)LBase.position.copy(exRestBase);
-  document.getElementById("transit").classList.add("show");
-  // Disable variant buttons
   document.querySelectorAll(".vbtn").forEach(b=>b.classList.add("busy"));
 
-  // Update text
   curV=v;
   document.getElementById("vtit").textContent=v.tit;
   document.getElementById("vsub").textContent=v.sub;
   buildSpecs(v); buildVBar();
 
-  // Remove local parts during flight
-  if(LArm){LAMP.remove(LArm);LArm=null}
-  if(LBase){LAMP.remove(LBase);LBase=null}
-  // Reset GLB shade/frame zichtbaarheid voor volgende variant
-  SH.shade.visible = true;
-  SH.frame.visible = true;
-  clearActiveGLB();
+  // Bewaar huidige GLB groups + posities voor tween
+  const prevGroups = activeGLBGroups ? {...activeGLBGroups} : null;
+  const prevPositions = {};
+  if(prevGroups){
+    Object.entries(prevGroups).forEach(([id, g]) => {
+      prevPositions[id] = g.position.clone();
+    });
+  }
 
-  // TWEEN shared parts with big visible arc
-  const ARC=2.5, DUR=1.2;
-  let done=0;
-  const onDone=()=>{
-    done++;
-    if(done<2)return;
-    // Both arrived — add new local parts
-    swapLocal(v.id);
-    cacheEx(v);
-    if(!v.parts.find(p=>p.id===selP))selP=v.parts[0].id;
-    buildPList(); updateSwActive();
-    busy=false;
-    document.getElementById("transit").classList.remove("show");
-    document.querySelectorAll(".vbtn").forEach(b=>b.classList.remove("busy"));
-    // NOW update camera to new angle
-    camTh=v.cam.th; camPh=v.cam.ph; camR=v.cam.r; panX=0; panY=0;
-    // Update poly counter
-    setTimeout(updatePolycount, 50);
-  };
+  // Laad nieuwe variant
+  swapLocal(v.id);
 
-  tween(SH.shade, v.shade.p, v.shade.r, DUR, ARC, onDone);
-  tween(SH.frame, v.frame.p, v.frame.r, DUR, ARC, onDone);
+  // Na laden: tween gedeelde onderdelen vanuit oude positie
+  // swapLocal is async — we wachten tot transit verdwijnt via MutationObserver
+  const transit = document.getElementById("transit");
+  const observer = new MutationObserver(() => {
+    if(!transit.classList.contains("show")){
+      observer.disconnect();
+      // Tween gedeelde onderdelen van oude naar nieuwe positie
+      if(prevGroups && activeGLBGroups){
+        Object.entries(activeGLBGroups).forEach(([id, grp]) => {
+          if(prevPositions[id]){
+            const toPos = grp.position.clone();
+            grp.position.copy(prevPositions[id]);
+            tween(grp, [toPos.x, toPos.y, toPos.z], [0,0,0], 1.0, 0.8, null);
+          }
+        });
+      }
+      busy=false;
+      document.querySelectorAll(".vbtn").forEach(b=>b.classList.remove("busy"));
+          }
+  });
+  observer.observe(transit, {attributes:true, attributeFilter:["class"]});
 }
 
 // ═══════════════════════════════════════════
@@ -1594,7 +1405,7 @@ function buildVBar(){
 }
 
 function _partColor(pid) {
-  const mat = activeGLBGroups ? getOrCreateMat(pid) : (M[pid]||M.shade);
+  const mat = getOrCreateMat(pid);
   return mat ? '#'+mat.color.getHexString() : '#888';
 }
 
@@ -1638,7 +1449,7 @@ function buildPList(){
         members.forEach(m => m.classList.toggle('collapsed', isOpen));
         if (arrow) { arrow.classList.toggle('open', !isOpen); arrow.classList.toggle('closed', isOpen); }
       }
-      selPart(grp.id);
+      selPart(grp.id, e.ctrlKey||e.metaKey);
     };
     list.appendChild(b);
 
@@ -1655,7 +1466,7 @@ function buildPList(){
         const mvisIcon = PART_VIS[mid] === false ? '○' : '●';
         const mvisCls  = PART_VIS[mid] === false ? ' hidden-part' : '';
         mb.innerHTML = `<span>${mnm}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${mid}" style="background:${mc}"></span><button class="vis-btn${mvisCls}" data-vis="${mid}" onclick="togglePartVis('${mid}',event)">${mvisIcon}</button></span>`;
-        mb.onclick = (e) => { e.stopPropagation(); selPart(mid); };
+        mb.onclick = (e) => { e.stopPropagation(); selPart(mid, e.ctrlKey||e.metaKey); };
         list.appendChild(mb);
       });
       // Zet pijl op open na bouwen
@@ -1674,7 +1485,7 @@ function buildPList(){
     const fvisIcon = PART_VIS[id] === false ? '○' : '●';
     const fvisCls  = PART_VIS[id] === false ? ' hidden-part' : '';
     b.innerHTML = `<span>${id}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${id}" style="background:${col}"></span><button class="vis-btn${fvisCls}" data-vis="${id}" onclick="togglePartVis('${id}',event)">${fvisIcon}</button></span>`;
-    b.onclick = () => selPart(id);
+    b.onclick = (e) => selPart(id, e.ctrlKey||e.metaKey);
     list.appendChild(b);
   });
 }
@@ -1746,7 +1557,7 @@ function buildSpecs(v){
 }
 
 function updateSwActive(){
-  const mat=activeGLBGroups?getOrCreateMat(selP):(M[selP]||M.shade); if(!mat)return;
+  const mat=getOrCreateMat(selP); if(!mat)return;
   const cur="#"+mat.color.getHexString().toLowerCase();
   document.querySelectorAll(".sw").forEach(sw=>sw.classList.toggle("on",sw.dataset.h.toLowerCase()===cur));
 }
@@ -1775,31 +1586,43 @@ function togglePartVis(id, e) {
   });
 }
 
-function selPart(id){
-  // Als member geselecteerd: update ook de groep-dot naar member kleur
+function selPart(id, multi=false){
+  if(multi){
+    // Ctrl+klik: toevoegen/verwijderen uit selectie
+    if(selParts.has(id)){
+      selParts.delete(id);
+      if(selParts.size === 0) selParts.add(id); // altijd minstens 1
+    } else {
+      selParts.add(id);
+    }
+    selP = id; // primary = laatste aangeklikte
+  } else {
+    selParts = new Set([id]);
+    selP = id;
+  }
   const pg = groupOf(id);
-  if(pg) {
+  if(pg){
     const d = document.getElementById("dot-"+pg.id);
     if(d) d.style.background = _partColor(id);
   }
-  selP=id;
-  document.querySelectorAll(".pb").forEach(b=>b.classList.toggle("on",b.dataset.id===id));
+  document.querySelectorAll(".pb[data-id]").forEach(b => {
+    b.classList.toggle("on", selParts.has(b.dataset.id));
+  });
   buildColorGrid();
   buildMatList();
 }
 
 function applyColor(hex){
-  const targets = getAffectedIds(selP);
-  targets.forEach(pid => {
-    const mat = activeGLBGroups ? getOrCreateMat(pid) : (M[pid]||M.shade);
+  // Alle geselecteerde onderdelen krijgen de kleur
+  const allTargets = new Set();
+  selParts.forEach(sid => getAffectedIds(sid).forEach(pid => allTargets.add(pid)));
+  allTargets.forEach(pid => {
+    const mat = getOrCreateMat(pid);
     if(!mat) return;
     mat.color.set(hex);
     if(activeGLBGroups) syncGLBPart(pid);
+    const d = document.getElementById("dot-"+pid); if(d) d.style.background=hex;
   });
-  // Update kleurbol — gebruik selP dot (groep of member)
-  const d = document.getElementById("dot-"+selP); if(d) d.style.background=hex;
-  // Update ook member dots als groep geselecteerd
-  targets.forEach(pid => { const d=document.getElementById("dot-"+pid); if(d) d.style.background=hex; });
   updateSwActive();
 }
 
@@ -1852,14 +1675,16 @@ function applyMatPreset(id, targets){
   // targets = array van part-ids, of "all"
   const parts = targets==="all"
     ? Object.keys(partMat)
-    : [targets||selP];
+    : targets === "selected"
+      ? [...selParts].flatMap(sid => getAffectedIds(sid))
+      : [targets||selP];
 
   const preset=MAT_PRESETS.find(p=>p.id===id); if(!preset)return;
 
   parts.forEach(pid=>{
     partMat[pid]=id;
     // Gebruik MGLB als GLB actief, anders M (procedureel)
-    const mat = activeGLBGroups ? getOrCreateMat(pid) : (M[pid] || null);
+    const mat = getOrCreateMat(pid);
     if(!mat) return;
     preset.apply(mat);
     // Transparantie + SSS aanpassen
@@ -1929,7 +1754,7 @@ function buildMatList(){
     const b=document.createElement("button");
     b.className="pb"+(p.id===curId?" on":"");
     b.innerHTML=`<span>${p.nm}<br><span style="font-size:9px;color:var(--text-dim);font-family:Space Mono,monospace">${p.desc}</span></span>`;
-    b.onclick=()=>applyMatPreset(p.id, selP);
+    b.onclick=()=>applyMatPreset(p.id, "selected");
     el.appendChild(b);
   });
 
@@ -1941,13 +1766,13 @@ function buildMatList(){
   b.innerHTML=`<span style="font-size:10px">↺ Alles → huidige instelling</span>`;
   b.onclick=()=>{
     const curId  = partMat[selP] || "pla-basic";
-    const curMat = activeGLBGroups ? getOrCreateMat(selP) : (M[selP]||M.arm);
+    const curMat = getOrCreateMat(selP);
     const curHex = "#" + curMat.color.getHexString();
     // Materiaaltype naar alle GLB onderdelen
     const allPids = activeGLBGroups ? Object.keys(activeGLBGroups) : Object.keys(_partMatData);
     allPids.forEach(pid => {
       partMat[pid] = curId;
-      const mat = activeGLBGroups ? getOrCreateMat(pid) : (M[pid]||null);
+      const mat = getOrCreateMat(pid);
       if(!mat) return;
       const preset = MAT_PRESETS.find(p=>p.id===curId);
       if(preset) preset.apply(mat);
@@ -2015,34 +1840,7 @@ function toggleSpin(){
 }
 
 // ── WIREFRAME ────────────────────────────────────────────────────────
-let wireframeOn=false;
-const WF_MAT=new THREE.MeshBasicMaterial({color:0xC8884A,wireframe:true,transparent:true,opacity:.55});
 
-function toggleWireframe(){
-  wireframeOn=!wireframeOn;
-  document.getElementById("bWf").classList.toggle("on",wireframeOn);
-  SC.traverse(obj=>{
-    if(obj.isMesh && obj.userData.glb){
-      obj.material=wireframeOn? WF_MAT : obj.userData.origMat;
-    }
-  });
-  // Procedurele meshes
-  Object.values(M).forEach(m=>{ if(m && m.isMaterial) m.wireframe=wireframeOn; });
-  // GLB meshes
-  if(activeGLBGroups){
-    Object.values(activeGLBGroups).forEach(g=>{
-      g.traverse(o=>{
-        if(!o.isMesh) return;
-        if(wireframeOn){
-          o.userData.origMat = o.material;
-          o.material = WF_MAT;
-        } else {
-          o.material = MGLB[o.userData.partId] || o.userData.origMat || WF_MAT;
-        }
-      });
-    });
-  }
-}
 
 // ── LAMP AAN/UIT ─────────────────────────────────────────────────────
 let lampOn = true;
@@ -2101,32 +1899,60 @@ function setLamp(on) {
 }
 
 // ── POLYCOUNT ────────────────────────────────────────────────────────
-function updatePolycount(){
-  let tris=0, verts=0;
-  SC.traverse(obj=>{
-    if(obj.isMesh && obj.geometry){
-      const g=obj.geometry;
-      if(g.index) tris+=g.index.count/3;
-      else if(g.attributes.position) tris+=g.attributes.position.count/3;
-      if(g.attributes.position) verts+=g.attributes.position.count;
-    }
-  });
-  const el=document.getElementById("polycount");
-  if(el) el.textContent=tris>0?`${Math.round(tris).toLocaleString("nl")} tris`:"—";
-}
 
 function resetView(){const c=curV.cam;camTh=c.th;camPh=c.ph;camR=c.r;panX=0;panY=0}
 
 // ═══════════════════════════════════════════
 // ORBIT
 // ═══════════════════════════════════════════
-let isDrag=false,isSh=false,pmx=0,pmy=0,lastT2=null;
+let isDrag=false,isSh=false,pmx=0,pmy=0,lastT2=null,mouseMovedPx=0;
 const cvs=R.domElement;
-cvs.addEventListener("mousedown",e=>{isDrag=true;isSh=e.shiftKey;pmx=e.clientX;pmy=e.clientY});
-window.addEventListener("mouseup",()=>isDrag=false);
+const _ray=new THREE.Raycaster();
+const _mouse=new THREE.Vector2();
+
+// Klik op onderdeel in viewport → selecteren
+cvs.addEventListener("click", e => {
+  if(mouseMovedPx > 4) return; // was een drag, geen klik
+  const rect = cvs.getBoundingClientRect();
+  _mouse.x =  ((e.clientX - rect.left)  / rect.width)  * 2 - 1;
+  _mouse.y = -((e.clientY - rect.top)   / rect.height) * 2 + 1;
+  _ray.setFromCamera(_mouse, CAM);
+  const meshes = [];
+  if(activeGLBGroups){
+    Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh) meshes.push(o); }));
+  }
+  const hits = _ray.intersectObjects(meshes, false);
+  if(hits.length > 0){
+    const hit = hits[0].object;
+    const partId = hit.userData.partId || hit.userData.glb;
+    if(partId) selPart(partId, e.ctrlKey||e.metaKey);
+  }
+});
+
+// Zichtbaarheid toggle: dubbelklik op onderdeel in viewport
+cvs.addEventListener("dblclick", e => {
+  const rect = cvs.getBoundingClientRect();
+  _mouse.x =  ((e.clientX - rect.left)  / rect.width)  * 2 - 1;
+  _mouse.y = -((e.clientY - rect.top)   / rect.height) * 2 + 1;
+  _ray.setFromCamera(_mouse, CAM);
+  const meshes = [];
+  if(activeGLBGroups){
+    Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh) meshes.push(o); }));
+  }
+  const hits = _ray.intersectObjects(meshes, false);
+  if(hits.length > 0){
+    const hit = hits[0].object;
+    const partId = hit.userData.partId || hit.userData.glb;
+    if(partId) togglePartVis(partId, {stopPropagation:()=>{}});
+  }
+});
+
+cvs.addEventListener("mousedown",e=>{isDrag=true;isSh=e.shiftKey;pmx=e.clientX;pmy=e.clientY;mouseMovedPx=0});
+window.addEventListener("mouseup",()=>{isDrag=false});
 window.addEventListener("mousemove",e=>{
   if(!isDrag)return;
   const dx=e.clientX-pmx,dy=e.clientY-pmy;pmx=e.clientX;pmy=e.clientY;
+  mouseMovedPx+=Math.abs(dx)+Math.abs(dy);
   if(isSh){panX-=dx*.006;panY+=dy*.006}
   else{camTh-=dx*.008;camPh=Math.max(.05,Math.min(Math.PI*.95,camPh+dy*.006))}
 });
@@ -2203,9 +2029,8 @@ function animate(ts){
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
-buildVBar(); buildPList(); buildColorGrid(); buildMatList(); buildSpecs(VARIANTS[0]); updateSwActive(); setTimeout(updatePolycount,100);
-// PLA-CF: direct zwarte kleur zetten als standaard
-M.shade.color.set(BAMBU_COLORS["pla-basic"][0].h);
+buildVBar(); buildPList(); buildColorGrid(); buildMatList(); buildSpecs(VARIANTS[0]); updateSwActive(); // PLA-CF: direct zwarte kleur zetten als standaard
+
 // Detect iframe embedding
 if(window.self!==window.top)document.body.classList.add('embedded');
 setTimeout(()=>{document.getElementById("loading").classList.add("gone");animate(0)},500);
