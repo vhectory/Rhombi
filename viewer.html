@@ -20,10 +20,10 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--amber:#C8884A;--cream:#EDE4D0;--dark:#12151A;--dark2:#181C23;--dark3:#1E232C;--text:#A8B0B8;--text-dim:#606870}
-html,body{width:100%;height:100%;overflow:hidden}
+html,body{width:100%;height:100%;overflow:hidden;margin:0}
 body{font-family:"Space Grotesk",sans-serif;background:var(--dark);color:var(--cream)}
-#c{position:fixed;inset:0;right:280px}
-canvas{width:100%!important;height:100%!important;display:block}
+#c{position:fixed;top:0;bottom:0;left:0;right:280px;display:flex;align-items:center;justify-content:center;padding:24px 24px 24px 24px}
+canvas{display:block;border-radius:2px}
 .bar{position:fixed;top:0;left:0;right:280px;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:linear-gradient(to bottom,rgba(18,21,26,.95),transparent);pointer-events:none}
 /* Hide topbar when embedded */
 .embedded .bar{display:none}
@@ -52,14 +52,23 @@ canvas{width:100%!important;height:100%!important;display:block}
 .pp{font-size:10px;color:var(--text-dim);font-family:"Space Mono",monospace;letter-spacing:.06em}
 .plist{display:flex;flex-direction:column;gap:3px}
 .pb{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;background:var(--dark3);border:1px solid transparent;color:var(--text);font-family:"Space Grotesk",sans-serif;font-size:12px;cursor:pointer;transition:all .16s;text-align:left;width:100%}
+.pb-member{padding-left:28px!important;font-size:9px;opacity:.85}
+.pb-member::before{content:"└ ";opacity:.4;margin-right:2px}
+.pb-member.collapsed{display:none}
+.vis-btn{background:none;border:none;padding:0 0 0 6px;cursor:pointer;opacity:.35;font-size:11px;color:var(--text-dim);transition:opacity .15s;flex-shrink:0}
+.vis-btn:hover{opacity:.8}
+.vis-btn.hidden-part{opacity:.6;color:#c07070}
+.grp-arrow{margin-right:4px;opacity:.5;font-size:8px;display:inline-block;transition:transform .15s}
+.grp-arrow.open{transform:rotate(0deg)}
+.grp-arrow.closed{transform:rotate(-90deg)}
 .pb:hover{border-color:rgba(200,136,74,.3);color:var(--cream)}
 .pb.on{border-color:var(--amber);color:var(--cream);background:rgba(200,136,74,.08)}
 .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;transition:background .3s}
 .sh{font-family:"Space Mono",monospace;font-size:7px;letter-spacing:.08em;color:var(--amber);opacity:.75;padding:1px 4px;border:1px solid rgba(200,136,74,.3);margin-left:5px}
 .cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-.sw{aspect-ratio:1;border-radius:2px;cursor:pointer;border:2px solid transparent;transition:all .16s;position:relative;overflow:visible}
-.sw:hover{transform:scale(1.1);border-color:rgba(255,255,255,.4)}
-.sw.on{border-color:#fff}
+.sw{aspect-ratio:1;cursor:pointer;border:1.5px solid transparent;transition:all .16s;position:relative;overflow:hidden;clip-path:polygon(6px 0%,100% 0%,100% 100%,0% 100%,0% 6px);border-radius:0 0 3px 0}
+.sw:hover{transform:scale(1.08);border-color:rgba(200,136,74,.5)}
+.sw.on{border-color:rgba(200,136,74,.9);box-shadow:inset 0 0 0 1px rgba(200,136,74,.9)}
 .swtip{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--dark2);color:var(--cream);font-family:"Space Mono",monospace;font-size:8px;padding:3px 6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:99}
 .sw:hover .swtip{opacity:1}
 .cb{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--dark3);border:1px solid rgba(255,255,255,.05);color:var(--text);font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:3px}
@@ -103,16 +112,49 @@ canvas{width:100%!important;height:100%!important;display:block}
 /* Voorkomt dat 3D drag conflicteert met browser pan/zoom */
 canvas{ touch-action:none }
 
+/* ── RHOMBI FRAME ── */
+#canvas-frame {
+  position: relative;
+  clip-path: polygon(32px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 32px);
+  border-radius: 0 0 22px 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+#canvas-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(200,136,74,.35);
+  clip-path: inherit;
+  border-radius: inherit;
+}
+#canvas-frame::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 32px; height: 32px;
+  border-top: 1px solid rgba(200,136,74,.35);
+  border-left: 1px solid rgba(200,136,74,.35);
+  pointer-events: none;
+  z-index: 10;
+  transform: rotate(0deg);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+
 @media(max-width:768px){
   /* Canvas = volledig scherm */
   #c{
     right:0 !important;
-    bottom:0 !important;
+    bottom: var(--mob-bar-h) !important;
     top:0 !important;
     left:0 !important;
-    /* Laat ruimte voor de bottom bar zodat canvas niet achter knoppen zit */
-    bottom: var(--mob-bar-h) !important;
+    padding:0 !important;
+    align-items:stretch !important;
   }
+  canvas{ width:100% !important; height:100% !important; border-radius:0 !important; }
   .bar{
     right:0 !important;
     padding-top: calc(12px + var(--sai-top));
@@ -270,7 +312,7 @@ canvas{ touch-action:none }
 
 <div id="loading"><div class="lr"></div><p class="lt">Configurator laden...</p></div>
 <div id="transit"><span class="ttext">◆ Onderdelen bewegen</span></div>
-<div id="c"></div>
+<div id="c"><div id="canvas-frame"></div></div>
 
 <div class="bar">
   <a href="index.html" class="logo">Rhombi</a>
@@ -397,7 +439,7 @@ const BAMBU_COLORS={
     {n:"Blauw",        h:"#1E3A80"},
     {n:"Paars",        h:"#602090"},
   ],
-  "pla-galaxy":[
+  "pla-nebula":[
     {n:"Paars",         h:"#6828A0"},
     {n:"Donkergroen",   h:"#1A5C40"},
     {n:"Marineblauw",   h:"#1E2D58"},
@@ -431,7 +473,8 @@ const VARIANTS=[
   // ── Gereed ───────────────────────────────────────────────────────
   {id:"tafel", icon:"▢", lbl:"Tafel",
    tit:"Rhombi Tafel", sub:"Tafellamp · E14 fitting",
-   glb:"rhombi-tafel.bin",
+   glb:"rhombi-tafel.glb",
+   excludeNodes:["voet_a"],  // alleen voet_t gebruiken
    shade:{p:[0,0,0], r:[0,0,0]},
    frame:{p:[0,0,0], r:[0,0,0]},
    specs:{"Type":"Tafellamp","Kap":"200×100mm","Fitting":"E14 · LED","Hoogte":"~40cm"},
@@ -443,8 +486,8 @@ const VARIANTS=[
   // ── Binnenkort ───────────────────────────────────────────────────
   {id:"accent", icon:"◈", lbl:"Accent",
    tit:"Rhombi Accent", sub:"Accentlamp · slanke sokkel",
-   coming_soon: true,
-   // glb:"Accent.glb",   // ← uncomment als bestand klaar is
+   glb:"rhombi-accent.glb",
+   excludeNodes:["voet_t"],  // alleen voet_a gebruiken
    shade:{p:[0,0.15,0], r:[0,0,0]},
    frame:{p:[0,0.15,0], r:[0,0,0]},
    specs:{"Type":"Accentlamp","Kap":"200×100mm","Fitting":"E14 · LED","Hoogte":"~28cm"},
@@ -481,6 +524,7 @@ const VARIANTS=[
 // THREE SETUP
 // ═══════════════════════════════════════════
 const wrap=document.getElementById("c");
+const canvasFrame=document.getElementById("canvas-frame");
 // Detecteer mobiel voor adaptieve kwaliteit
 const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
 const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-performance"});
@@ -489,7 +533,7 @@ R.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio,1.5) : Math.min(wind
 R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
 R.outputEncoding=THREE.sRGBEncoding; R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.15;
 R.physicallyCorrectLights=true;
-wrap.appendChild(R.domElement);
+canvasFrame.appendChild(R.domElement);
 
 const SC=new THREE.Scene(); SC.background=new THREE.Color(0x12151A); SC.fog=new THREE.FogExp2(0x0E1116,.024);
 const CAM=new THREE.PerspectiveCamera(40,1,.1,100);
@@ -554,9 +598,20 @@ try {
 }
 
 function resize(){
-  const w=wrap.clientWidth,h=wrap.clientHeight;
-  R.setSize(w,h); CAM.aspect=w/h; CAM.updateProjectionMatrix();
-  if(composer) composer.setSize(w,h);
+  // Available space inside #c (minus padding)
+  const pad = window.innerWidth > 768 ? 48 : 0;
+  const avW = wrap.clientWidth  - pad;
+  const avH = wrap.clientHeight - pad;
+  const s   = Math.min(avW, avH);
+  const cv  = R.domElement;
+  cv.style.width  = s + 'px';
+  cv.style.height = s + 'px';
+  canvasFrame.style.width  = s + 'px';
+  canvasFrame.style.height = s + 'px';
+  R.setSize(s, s, false);
+  CAM.aspect = 1;
+  CAM.updateProjectionMatrix();
+  if(composer) composer.setSize(s, s);
 }
 window.addEventListener("resize",resize); resize();
 
@@ -771,7 +826,7 @@ function texCFRough(){
   });
 }
 
-// ── PLA-GALAXY ────────────────────────────────
+// ── PLA-NEBULA ────────────────────────────────
 // Plastic met metallic vlokjes — fijne sparkles, elk met eigen richting
 
 // ── PLA-TRANSLUCENT ───────────────────────────
@@ -811,9 +866,9 @@ function texTransRough(){
   });
 }
 
-// ── PLA-GALAXY ────────────────────────────────
+// ── PLA-NEBULA ────────────────────────────────
 // Plastic met metallic vlokjes — sparkles elk met eigen richting
-function texGalaxyNormal(){
+function texNebulaNormal(){
   const rng=(()=>{let s=42;return()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};})();
   const sparks=[];
   for(let i=0;i<320;i++) sparks.push({x:rng()*512,y:rng()*512,r:rng()*2.5+0.8,a:rng()*Math.PI});
@@ -835,7 +890,7 @@ function texGalaxyNormal(){
     ctx.putImageData(id,0,0);
   });
 }
-function texGalaxyRough(){
+function texNebulaRough(){
   const rng=(()=>{let s=99;return()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};})();
   const sparks=[];
   for(let i=0;i<320;i++) sparks.push({x:rng()*512,y:rng()*512,r:rng()*2.5+0.8});
@@ -898,13 +953,13 @@ const MAT_PRESETS=[
     }
   },
   {
-    id:"pla-galaxy", nm:"PLA-Galaxy",
+    id:"pla-nebula", nm:"PLA-Nebula",
     desc:"Glitter · metallic sparkle",
     apply:(mat)=>{
       mat.roughness=.42; mat.metalness=.3; mat.transparent=false; mat.opacity=1;
-      mat.normalMap=getTex("gxn",texGalaxyNormal);
+      mat.normalMap=getTex("nbn",texNebulaNormal);
       mat.normalScale=new THREE.Vector2(1.0,1.0);
-      mat.roughnessMap=getTex("gxr",texGalaxyRough);
+      mat.roughnessMap=getTex("nbr",texNebulaRough);
       mat.envMapIntensity=2.2;
       mat.needsUpdate=true;
     }
@@ -1108,6 +1163,7 @@ function swapLocal(varId){
   if(LBase){LAMP.remove(LBase);LBase=null}
 
   const v = VARIANTS.find(v=>v.id===varId);
+  window._rhombiCurrentVariant = v;
 
   const glbFile = v && v.glb ? GLB_BASE + v.glb + '?v=' + Date.now() : null;
 
@@ -1159,6 +1215,9 @@ function swapLocal(varId){
       syncAllGLBParts();
       buildPList(); updateSwActive(); buildColorGrid(); buildMatList(); updatePolycount();
 
+      // Auto-fit camera op het geladen model
+      fitCameraToGLB();
+
       document.getElementById("transit").classList.remove("show");
       document.querySelector(".ttext").textContent = "◆ Onderdelen bewegen";
     }).catch(err => {
@@ -1196,12 +1255,39 @@ function cacheEx(v){
   exOffBase.set(...v.ex.base);
 }
 
+// Explode offsets per part type — richting + afstand
+const GLB_EX_OFFSETS = {
+  kap:        [0,  1.8, 0],
+  peer:       [0,  1.2, 0],
+  fitting:    [0,  0.6, 0],
+  kader_a:    [0,  0.3, 0],
+  kader_l:    [-1.2, 0.1, 0],
+  kader_r:    [ 1.2, 0.1, 0],
+  kader:      [0,  0.2, 0],
+  vleugel_l:  [-0.8,-0.3, 0.6],
+  vleugel_r:  [ 0.8,-0.3, 0.6],
+  kern:       [0,  -0.3, 0],
+  ring:       [0,  -0.6, 0],
+  verbindingen:[0, -0.4, 0.5],
+  voet:       [0,  -1.8, 0],
+};
+
 function applyExplode(){
-  const t=exP;
-  SH.shade.position.copy(exRestShade).addScaledVector(exOffShade,t);
-  SH.frame.position.copy(exRestFrame).addScaledVector(exOffFrame,t);
-  if(LArm) LArm.position.copy(exRestArm).addScaledVector(exOffArm,t);
-  if(LBase)LBase.position.copy(exRestBase).addScaledVector(exOffBase,t);
+  const t = exP;
+
+  if (activeGLBGroups) {
+    // GLB modus: verschuif elke group op basis van offset tabel
+    Object.entries(activeGLBGroups).forEach(([partId, grp]) => {
+      const off = GLB_EX_OFFSETS[partId] || [0, 0, 0];
+      grp.position.set(off[0]*t, off[1]*t, off[2]*t);
+    });
+  } else {
+    // Procedureel model
+    SH.shade.position.copy(exRestShade).addScaledVector(exOffShade,t);
+    SH.frame.position.copy(exRestFrame).addScaledVector(exOffFrame,t);
+    if(LArm) LArm.position.copy(exRestArm).addScaledVector(exOffArm,t);
+    if(LBase)LBase.position.copy(exRestBase).addScaledVector(exOffBase,t);
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -1213,19 +1299,67 @@ function applyExplode(){
 // ── Bekende onderdelen — display naam + materiaalkarakter ─────────────
 // Uitbreidbaar: voeg hier nieuwe toe als je een mooiere naam wil.
 // Alles wat NIET hier staat krijgt automatisch een standaard materiaal.
-const PART_HINTS = {
-  //  mesh naam   : { nm: weergavenaam, sh: shade-preset, emissive: licht }
-  kap:      { nm: "Lichtkap",  sh: true  },
-  kader:    { nm: "Kader",     sh: false },
-  voet:     { nm: "Voet",      sh: false },
-  core:     { nm: "Core",      sh: false },
-  wings:    { nm: "Wings",     sh: false },
-  fitting:  { nm: "Fitting",   sh: false },
-  peer:     { nm: "Lamp",      sh: false, emissive: true },
-};
+// ── Onderdeel structuur ──────────────────────────────────────────────
+// Elke entry is een standalone onderdeel of een groep met members.
+// Groepen kunnen als geheel geselecteerd worden (kleur gaat naar alle members)
+// of per member individueel.
+//
+// Uitbreiden: voeg een entry toe. Bij een nieuw GLB-mesh zonder entry hier
+// krijgt het automatisch een standaard naam en materiaal.
+const PART_GROUPS = [
+  { id: 'kap',          nm: 'Lichtkap',     sh: true  },
+  { id: 'voet',         nm: 'Voet',         aliases: ['voet_t','voet_a','voet_w'] },
+  { id: 'kader',        nm: 'Kader',
+    members: ['kader_l','kader_r','kader_a']           },
+  { id: 'verbindingen', nm: 'Verbindingen',
+    members: ['vleugel_l','vleugel_r','kern','ring']   },
+  { id: 'fitting',      nm: 'Fitting'                 },
+  { id: 'peer',         nm: 'Lamp',         emissive: true },
+];
+
+// Snelle lookup: mesh-id → group entry
+// Zowel group-ids als member-ids worden gevonden
+function _buildGroupIndex() {
+  const idx = {};
+  PART_GROUPS.forEach(g => {
+    idx[g.id] = g;
+    if (g.members)  g.members.forEach(m  => { idx[m]  = g; });
+    if (g.aliases)  g.aliases.forEach(a  => { idx[a]  = g; });
+  });
+  return idx;
+}
+const _GI = _buildGroupIndex();  // { 'kader_l' → {id:'kader',...}, 'kap' → {id:'kap',...} }
+
+// Geeft alle mesh-ids terug die beïnvloed worden als 'selId' geselecteerd is
+// - selecteer groep  → alle members
+// - selecteer member → alleen die member
+// - selecteer standalone → alleen zichzelf
+function getAffectedIds(selId) {
+  const entry = PART_GROUPS.find(g => g.id === selId);
+  if (entry && entry.members) return entry.members;  // groep geselecteerd
+  return [selId];                                    // member of standalone
+}
+
+// Geeft de groep terug waar een mesh-id bij hoort (of null)
+function groupOf(meshId) {
+  const g = _GI[meshId];
+  return (g && g.members) ? g : null;
+}
+
+// partInfo: display-info voor een id (groep of mesh)
+function partInfo(id) {
+  // Zoek eerst als groep-id
+  const grp = PART_GROUPS.find(g => g.id === id);
+  if (grp) return { id: grp.id, nm: grp.nm, sh: !!grp.sh, emissive: !!grp.emissive, isGroup: !!grp.members, members: grp.members||[] };
+  // Dan als member-id
+  const parentGrp = groupOf(id);
+  const nmRaw = id.replace(/_/g,' ').replace(/\w/g,c=>c.toUpperCase());
+  return { id, nm: nmRaw, sh: false, emissive: false, isGroup: false, members: [], parentGroup: parentGrp?.id };
+}
 
 // ── Materiaal per onderdeel — aangemaakt on-demand ────────────────────
 const MGLB = {};  // MGLB['kap'], MGLB['peer'], etc.
+const PART_VIS = {};  // PART_VIS['kap'] = true/false — zichtbaarheid per onderdeel
 
 function getOrCreateMat(partId) {
   if (MGLB[partId]) return MGLB[partId];
@@ -1239,41 +1373,32 @@ function getOrCreateMat(partId) {
     });
   } else if (partId === 'kap') {
     MGLB[partId] = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#C8884A'), roughness: 0.72, metalness: 0.02,
-      transparent: true, opacity: 0.82, side: THREE.DoubleSide,
-      emissive: new THREE.Color('#4A2000'), emissiveIntensity: 0.9,
-      envMapIntensity: 0.5,
+      color: new THREE.Color('#F5F3EE'), roughness: 0.88, metalness: 0.0,
+      transparent: true, opacity: 0.85, side: THREE.DoubleSide,
+      emissive: new THREE.Color('#201800'), emissiveIntensity: 0.4,
+      envMapIntensity: 0.4,
     });
   } else if (partId === 'fitting') {
     MGLB[partId] = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#C0A060'), roughness: 0.3, metalness: 0.7,
-      envMapIntensity: 2.0,
+      color: new THREE.Color('#E8E6E0'), roughness: 0.72, metalness: 0.0,
+      envMapIntensity: 0.5,
     });
   } else if (partId === 'voet') {
     MGLB[partId] = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#1A1814'), roughness: 0.75, metalness: 0.18,
+      color: new THREE.Color('#F0EEE8'), roughness: 0.92, metalness: 0.0,
       envMapIntensity: 1.0,
     });
   } else {
-    // Standaard voor elk nieuw onderdeel dat uit Blender komt
+    // Standaard: mat wit
     MGLB[partId] = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#A86050'), roughness: 0.45, metalness: 0.55,
-      envMapIntensity: 1.6,
+      color: new THREE.Color('#F0EEE8'), roughness: 0.92, metalness: 0.0,
+      envMapIntensity: 0.5,
     });
   }
   return MGLB[partId];
 }
 
-// Geeft de display-info voor een onderdeel (naam, sh, emissive)
-function partInfo(partId) {
-  const hint = PART_HINTS[partId];
-  return {
-    id:       partId,
-    nm:       hint ? hint.nm : partId.charAt(0).toUpperCase() + partId.slice(1),
-    sh:       hint ? !!hint.sh : false,
-    emissive: hint ? !!hint.emissive : false,
-  };
-}
+// partInfo → zie PART_GROUPS sectie hierboven
 
 function syncGLBPart(partId) {
   if (!activeGLBGroups || !activeGLBGroups[partId]) return;
@@ -1305,7 +1430,7 @@ if (typeof THREE.GLTFLoader !== 'undefined') {
     console.warn('[Rhombi] DRACOLoader niet beschikbaar — Draco GLBs worden niet ondersteund');
   }
 }
-const GLB_BASE = './glb/';
+const GLB_BASE = 'https://cdn.jsdelivr.net/gh/vhectory/Rhombi@latest/glb/';
 let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na laden
 
 function clearActiveGLB() {
@@ -1320,6 +1445,7 @@ function clearActiveGLB() {
 function loadGLBParts(url) {
   return new Promise((resolve, reject) => {
     if (!gltfLoader) { reject('GLTFLoader niet beschikbaar'); return; }
+    window._rhombiExcludeNodes = (window._rhombiCurrentVariant && window._rhombiCurrentVariant.excludeNodes) || [];
     fetch(url)
       .then(function(r) {
         if (!r.ok) throw new Error(r.status);
@@ -1329,10 +1455,16 @@ function loadGLBParts(url) {
         gltfLoader.parse(buffer, '',
           function(gltf) {
             var groups = {};
+            var excludeList = window._rhombiExcludeNodes || [];
             gltf.scene.traverse(function(obj) {
               if (!obj.isMesh) return;
-              var partId = obj.name;
-              if (!partId) return;
+              var rawId = obj.name;
+              if (!rawId) return;
+              // Skip nodes die uitgesloten zijn voor deze variant
+              if (excludeList.indexOf(rawId) !== -1) return;
+              // Alias → canonical id (bijv. voet_t / voet_a → voet)
+              var aliasEntry = _GI[rawId];
+              var partId = (aliasEntry && aliasEntry.id !== rawId) ? aliasEntry.id : rawId;
               if (!groups[partId]) {
                 groups[partId] = new THREE.Group();
                 groups[partId].name = 'glb_' + partId;
@@ -1358,12 +1490,28 @@ function loadGLBParts(url) {
 }
 
 
+// ── Camera auto-fit op geladen GLB ──────────────────────────────────
+function fitCameraToGLB() {
+  if (!activeGLBGroups) return;
+  const box = new THREE.Box3();
+  Object.values(activeGLBGroups).forEach(g => box.expandByObject(g));
+  if (box.isEmpty()) return;
+  const size   = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  // Zet camera op 2.2x de grootste dimensie, gecentreerd op model
+  camR  = maxDim * 2.2;
+  panX  = 0;
+  panY  = center.y;  // verticaal centreren
+  console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2));
+}
+
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
 let curV=VARIANTS[0],selP="shade",busy=false;
 let spinning=true;
-let camTh=0,camPh=.52,camR=6.5,panX=0,panY=0;
+let camTh=Math.PI,camPh=.45,camR=6.5,panX=0,panY=0;
 
 // Init first variant instantly
 SH.shade.position.fromArray(VARIANTS[0].shade.p); SH.shade.rotation.fromArray(VARIANTS[0].shade.r);
@@ -1445,16 +1593,89 @@ function buildVBar(){
   });
 }
 
+function _partColor(pid) {
+  const mat = activeGLBGroups ? getOrCreateMat(pid) : (M[pid]||M.shade);
+  return mat ? '#'+mat.color.getHexString() : '#888';
+}
+
+function _groupColor(grp) {
+  // Kleur van groep = kleur van eerste member die geladen is
+  if (!grp.members) return _partColor(grp.id);
+  const first = grp.members.find(m => activeGLBGroups ? !!activeGLBGroups[m] : !!M[m]);
+  return first ? _partColor(first) : _partColor(grp.id);
+}
+
 function buildPList(){
-  const list=document.getElementById("plist"); list.innerHTML="";
-  curV.parts.forEach(p=>{
-    const mat=activeGLBGroups?getOrCreateMat(p.id):(M[p.id]||M.shade);
-    const col="#"+mat.color.getHexString();
-    const b=document.createElement("button");
-    b.className="pb"+(p.id===selP?" on":""); b.dataset.id=p.id;
-    const emIcon = p.emissive ? '<span class="sh">💡</span>' : (p.sh ? '<span class="sh">◆</span>' : '');
-    b.innerHTML=`<span>${p.nm}${emIcon}</span><span class="dot" id="dot-${p.id}" style="background:${col}"></span>`;
-    b.onclick=()=>selPart(p.id); list.appendChild(b);
+  const list = document.getElementById("plist"); list.innerHTML = "";
+
+  // Welke mesh-ids zijn beschikbaar in het geladen model?
+  const available = activeGLBGroups ? Object.keys(activeGLBGroups) : Object.keys(M);
+
+  // Bouw lijst op basis van PART_GROUPS — alleen tonen wat er in het model zit
+  PART_GROUPS.forEach(grp => {
+    // Check of groep (of zijn members) aanwezig zijn
+    const hasGroup   = available.includes(grp.id);
+    const hasMembers = grp.members ? grp.members.some(m => available.includes(m)) : false;
+    if (!hasGroup && !hasMembers) return;
+
+    // ── Groep rij (of standalone) ────────────────────────────────────
+    const col = _groupColor(grp);
+    const b = document.createElement("button");
+    const isSelected = selP === grp.id;
+    b.className = "pb" + (isSelected ? " on" : "");
+    b.dataset.id = grp.id;
+    const emIcon = grp.emissive ? '<span class="sh">💡</span>' : (grp.sh ? '<span class="sh">◆</span>' : '');
+    const arrow  = grp.members ? '<span class="grp-arrow">▾</span>' : '';
+    const visIcon = PART_VIS[grp.id] === false ? '○' : '●';
+    const visCls  = PART_VIS[grp.id] === false ? ' hidden-part' : '';
+    b.innerHTML  = `<span>${arrow}${grp.nm}${emIcon}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${grp.id}" style="background:${col}"></span><button class="vis-btn${visCls}" data-vis="${grp.id}" onclick="togglePartVis('${grp.id}',event)">${visIcon}</button></span>`;
+    b.onclick = () => {
+      if (grp.members) {
+        // Toggle members zichtbaar/verborgen
+        const members = list.querySelectorAll('[data-group="'+grp.id+'"]');
+        const arrow   = b.querySelector('.grp-arrow');
+        const isOpen  = arrow && arrow.classList.contains('open');
+        members.forEach(m => m.classList.toggle('collapsed', isOpen));
+        if (arrow) { arrow.classList.toggle('open', !isOpen); arrow.classList.toggle('closed', isOpen); }
+      }
+      selPart(grp.id);
+    };
+    list.appendChild(b);
+
+    // ── Member rijen (ingesprongen) ───────────────────────────────────
+    if (grp.members) {
+      grp.members.forEach(mid => {
+        if (!available.includes(mid)) return;
+        const mc = _partColor(mid);
+        const mb = document.createElement("button");
+        mb.className = "pb pb-member" + (selP === mid ? " on" : "");
+        mb.dataset.id  = mid;
+        mb.dataset.group = grp.id;
+        const mnm = mid.replace(/_/g,' ').replace(/\b\w/g, ch => ch.toUpperCase());
+        const mvisIcon = PART_VIS[mid] === false ? '○' : '●';
+        const mvisCls  = PART_VIS[mid] === false ? ' hidden-part' : '';
+        mb.innerHTML = `<span>${mnm}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${mid}" style="background:${mc}"></span><button class="vis-btn${mvisCls}" data-vis="${mid}" onclick="togglePartVis('${mid}',event)">${mvisIcon}</button></span>`;
+        mb.onclick = (e) => { e.stopPropagation(); selPart(mid); };
+        list.appendChild(mb);
+      });
+      // Zet pijl op open na bouwen
+      const arrow = b.querySelector('.grp-arrow');
+      if (arrow) { arrow.classList.add('open'); }
+    }
+  });
+
+  // Meshes die niet in PART_GROUPS staan — als fallback tonen
+  available.forEach(id => {
+    if (_GI[id]) return; // al behandeld
+    const col = _partColor(id);
+    const b = document.createElement("button");
+    b.className = "pb" + (selP === id ? " on" : "");
+    b.dataset.id = id;
+    const fvisIcon = PART_VIS[id] === false ? '○' : '●';
+    const fvisCls  = PART_VIS[id] === false ? ' hidden-part' : '';
+    b.innerHTML = `<span>${id}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${id}" style="background:${col}"></span><button class="vis-btn${fvisCls}" data-vis="${id}" onclick="togglePartVis('${id}',event)">${fvisIcon}</button></span>`;
+    b.onclick = () => selPart(id);
+    list.appendChild(b);
   });
 }
 
@@ -1530,7 +1751,37 @@ function updateSwActive(){
   document.querySelectorAll(".sw").forEach(sw=>sw.classList.toggle("on",sw.dataset.h.toLowerCase()===cur));
 }
 
+function togglePartVis(id, e) {
+  e.stopPropagation();
+  // Toggle alle affected ids (groep → alle members)
+  const targets = getAffectedIds(id);
+  const allVisible = targets.every(pid => PART_VIS[pid] !== false);
+  targets.forEach(pid => {
+    PART_VIS[pid] = !allVisible;
+    if (activeGLBGroups && activeGLBGroups[pid]) {
+      activeGLBGroups[pid].visible = !allVisible;
+    }
+  });
+  // Update knoppen
+  const btn = document.querySelector('.vis-btn[data-vis="'+id+'"]');
+  if (btn) {
+    btn.textContent = allVisible ? '○' : '●';
+    btn.classList.toggle('hidden-part', allVisible);
+  }
+  // Update member buttons ook
+  targets.forEach(pid => {
+    const mb = document.querySelector('.vis-btn[data-vis="'+pid+'"]');
+    if (mb) { mb.textContent = allVisible ? '○' : '●'; mb.classList.toggle('hidden-part', allVisible); }
+  });
+}
+
 function selPart(id){
+  // Als member geselecteerd: update ook de groep-dot naar member kleur
+  const pg = groupOf(id);
+  if(pg) {
+    const d = document.getElementById("dot-"+pg.id);
+    if(d) d.style.background = _partColor(id);
+  }
   selP=id;
   document.querySelectorAll(".pb").forEach(b=>b.classList.toggle("on",b.dataset.id===id));
   buildColorGrid();
@@ -1538,34 +1789,63 @@ function selPart(id){
 }
 
 function applyColor(hex){
-  // Gebruik MGLB als we in GLB-modus zijn, anders M (procedureel)
-  const mat = activeGLBGroups ? getOrCreateMat(selP) : (M[selP]||M.shade);
-  if(!mat) return;
-  mat.color.set(hex);
+  const targets = getAffectedIds(selP);
+  targets.forEach(pid => {
+    const mat = activeGLBGroups ? getOrCreateMat(pid) : (M[pid]||M.shade);
+    if(!mat) return;
+    mat.color.set(hex);
+    if(activeGLBGroups) syncGLBPart(pid);
+  });
+  // Update kleurbol — gebruik selP dot (groep of member)
   const d = document.getElementById("dot-"+selP); if(d) d.style.background=hex;
+  // Update ook member dots als groep geselecteerd
+  targets.forEach(pid => { const d=document.getElementById("dot-"+pid); if(d) d.style.background=hex; });
   updateSwActive();
-  if(activeGLBGroups) syncGLBPart(selP);
 }
 
 // Per-onderdeel materiaal bijhouden
 // partMat: slaat het actieve materiaalpreset op per onderdeel.
 // Gebruikt een Proxy zodat nieuwe onderdelen automatisch 'pla-basic' krijgen.
 const _partMatData = {
-  shade:"pla-basic", frame:"pla-basic", arm:"pla-basic", base:"pla-basic",
+  // Procedureel model
+  shade:"pla-mat", frame:"pla-mat", arm:"pla-mat", base:"pla-mat",
+  // GLB onderdelen — standaard pla-mat wit
+  kap:"pla-mat", voet:"pla-mat", fitting:"pla-mat",
+  kader_l:"pla-mat", kader_r:"pla-mat", kader_a:"pla-mat", kader:"pla-mat",
+  vleugel_l:"pla-mat", vleugel_r:"pla-mat", kern:"pla-mat", ring:"pla-mat",
+  verbindingen:"pla-mat",
 };
 const partMat = new Proxy(_partMatData, {
   get(target, key){ return key in target ? target[key] : "pla-basic"; },
   set(target, key, val){ target[key] = val; return true; },
 });
 
-// Transparantie per materiaal × onderdeel
+// SSS-achtig effect per materiaaltype voor de kap
+// Kap is dun geprint — licht filtert erdoorheen, intensiteit verschilt per materiaal
+function kapLightProps(matId) {
+  // { opacity, emissiveIntensity, emissiveColor }
+  // opacity    = hoeveel licht erdoorheen komt (laag = meer licht)
+  // emissive   = warme gloed van binnenuit (SSS simulatie)
+  switch(matId) {
+    case 'pla-translucent':
+      return { transparent:true,  opacity:0.32, emissiveIntensity:0.9,  emissive:'#3A1800' };
+    case 'pla-basic':
+      return { transparent:true,  opacity:0.75, emissiveIntensity:0.55, emissive:'#2A1200' };
+    case 'pla-mat':
+      return { transparent:true,  opacity:0.68, emissiveIntensity:0.45, emissive:'#221000' };
+    case 'pla-nebula':
+      return { transparent:true,  opacity:0.78, emissiveIntensity:0.65, emissive:'#301A00' };
+    case 'pla-cf':
+      return { transparent:true,  opacity:0.88, emissiveIntensity:0.18, emissive:'#100800' };
+    default:
+      return { transparent:true,  opacity:0.75, emissiveIntensity:0.5,  emissive:'#2A1200' };
+  }
+}
+
+// Legacy wrapper (gebruikt in bestaande code)
 function shadeOpacity(matId){
-  // Kap is dun geprint — licht schijnt erdoorheen
-  if(matId==="pla-translucent") return{transparent:true, opacity:0.48};
-  if(matId==="pla-cf")    return{transparent:true, opacity:0.88};
-  if(matId==="pla-mat")   return{transparent:true, opacity:0.72};
-  if(matId==="pla-galaxy")return{transparent:false,opacity:1.0};
-  return                         {transparent:true, opacity:0.82};  // pla-basic standaard
+  const p = kapLightProps(matId);
+  return { transparent: p.transparent, opacity: p.opacity };
 }
 
 function applyMatPreset(id, targets){
@@ -1582,13 +1862,37 @@ function applyMatPreset(id, targets){
     const mat = activeGLBGroups ? getOrCreateMat(pid) : (M[pid] || null);
     if(!mat) return;
     preset.apply(mat);
-    // Kap/shade-preset: transparantie aanpassen
+    // Transparantie + SSS aanpassen
     const info = partInfo(pid);
-    if(info.sh || pid==="shade" || pid==="kap"){
-      const op=shadeOpacity(id);
-      mat.transparent=op.transparent;
-      mat.opacity=op.opacity;
-      mat.needsUpdate=true;
+    const isKap = info.sh || pid==="shade" || pid==="kap";
+    if(id === 'pla-translucent'){
+      // Translucent → alle onderdelen worden doorschijnend
+      if(isKap){
+        // Kap: meest doorlatend + warme SSS gloed
+        const kp = kapLightProps(id);
+        mat.transparent = true; mat.opacity = kp.opacity;
+        mat.emissive = new THREE.Color(kp.emissive);
+        mat.emissiveIntensity = kp.emissiveIntensity;
+      } else if(pid !== 'peer' && pid !== 'fitting'){
+        // Andere onderdelen: licht doorschijnend
+        mat.transparent = true; mat.opacity = 0.72;
+        mat.emissive = new THREE.Color('#000000');
+        mat.emissiveIntensity = 0;
+      }
+      mat.needsUpdate = true;
+    } else {
+      // Niet-translucent: kap SSS, rest ondoorzichtig
+      if(isKap){
+        const kp = kapLightProps(id);
+        mat.transparent        = kp.transparent;
+        mat.opacity            = kp.opacity;
+        mat.emissive           = new THREE.Color(kp.emissive);
+        mat.emissiveIntensity  = kp.emissiveIntensity;
+        mat.needsUpdate        = true;
+      } else if(pid !== 'peer'){
+        mat.transparent = false; mat.opacity = 1.0;
+        mat.needsUpdate = true;
+      }
     }
     // Kleur: zet naar eerste beschikbare kleur van dit materiaal als huidige niet bestaat
     const avail=BAMBU_COLORS[id]||[];
@@ -1636,16 +1940,45 @@ function buildMatList(){
   b.className="pb"; b.style="opacity:.85";
   b.innerHTML=`<span style="font-size:10px">↺ Alles → huidige instelling</span>`;
   b.onclick=()=>{
-    const curId=partMat[selP]||"pla-basic";
-    const curHex="#"+((M[selP]||M.arm).color.getHexString());
-    applyMatPreset(curId,"all");
-    // Kleur ook naar alle onderdelen
-    Object.keys(partMat).forEach(pid=>{
-      const mat=M[pid]; if(!mat)return;
+    const curId  = partMat[selP] || "pla-basic";
+    const curMat = activeGLBGroups ? getOrCreateMat(selP) : (M[selP]||M.arm);
+    const curHex = "#" + curMat.color.getHexString();
+    // Materiaaltype naar alle GLB onderdelen
+    const allPids = activeGLBGroups ? Object.keys(activeGLBGroups) : Object.keys(_partMatData);
+    allPids.forEach(pid => {
+      partMat[pid] = curId;
+      const mat = activeGLBGroups ? getOrCreateMat(pid) : (M[pid]||null);
+      if(!mat) return;
+      const preset = MAT_PRESETS.find(p=>p.id===curId);
+      if(preset) preset.apply(mat);
       mat.color.set(curHex);
-      const d=document.getElementById("dot-"+pid); if(d)d.style.background=curHex;
+      const info = partInfo(pid);
+      const isKap2 = info.sh || pid==="kap";
+      if(curId === 'pla-translucent'){
+        if(isKap2){
+          const kp = kapLightProps(curId);
+          mat.transparent = true; mat.opacity = kp.opacity;
+          mat.emissive = new THREE.Color(kp.emissive);
+          mat.emissiveIntensity = kp.emissiveIntensity;
+        } else if(pid !== 'peer' && pid !== 'fitting'){
+          mat.transparent = true; mat.opacity = 0.72;
+          mat.emissive = new THREE.Color('#000000'); mat.emissiveIntensity = 0;
+        }
+      } else {
+        if(isKap2){
+          const kp = kapLightProps(curId);
+          mat.transparent = kp.transparent; mat.opacity = kp.opacity;
+          mat.emissive = new THREE.Color(kp.emissive);
+          mat.emissiveIntensity = kp.emissiveIntensity;
+        } else if(pid !== 'peer'){
+          mat.transparent = false; mat.opacity = 1.0;
+        }
+      }
+      mat.needsUpdate = true;
+      const d = document.getElementById("dot-"+pid); if(d) d.style.background=curHex;
     });
-    buildColorGrid(); buildPList();
+    if(activeGLBGroups) syncAllGLBParts();
+    buildColorGrid(); buildPList(); buildMatList();
   };
   div.appendChild(b);
   el.appendChild(div);
@@ -1667,8 +2000,14 @@ function toggleSSAO(){
 }
 
 function toggleExplode(){
-  exT=exT===0?1:0;
-  document.getElementById("bEx").classList.toggle("on",exT===1);
+  exT = exT===0 ? 1 : 0;
+  document.getElementById("bEx").classList.toggle("on", exT===1);
+  // Uitzomen bij explode, inzoomen bij sluiten
+  if (exT===1) {
+    camR = camR * 1.8;  // uitzomen zodat alle onderdelen zichtbaar zijn
+  } else {
+    fitCameraToGLB();   // terugzoomen naar model
+  }
 }
 
 function toggleSpin(){
@@ -1789,7 +2128,7 @@ window.addEventListener("mousemove",e=>{
   if(!isDrag)return;
   const dx=e.clientX-pmx,dy=e.clientY-pmy;pmx=e.clientX;pmy=e.clientY;
   if(isSh){panX-=dx*.006;panY+=dy*.006}
-  else{camTh-=dx*.008;camPh=Math.max(.05,Math.min(Math.PI*.48,camPh+dy*.006))}
+  else{camTh-=dx*.008;camPh=Math.max(.05,Math.min(Math.PI*.95,camPh+dy*.006))}
 });
 cvs.addEventListener("wheel",e=>{camR=Math.max(2,Math.min(16,camR+e.deltaY*.012))},{passive:true});
 cvs.addEventListener("touchstart",e=>{lastT2=e.touches[0]},{passive:true});
@@ -1797,7 +2136,7 @@ cvs.addEventListener("touchmove",e=>{
   if(!lastT2)return;
   const t=e.touches[0];
   camTh-=(t.clientX-lastT2.clientX)*.011;
-  camPh=Math.max(.05,Math.min(Math.PI*.48,camPh+(t.clientY-lastT2.clientY)*.009));
+  camPh=Math.max(.05,Math.min(Math.PI*.95,camPh+(t.clientY-lastT2.clientY)*.009));
   lastT2=t;e.preventDefault();
 },{passive:false});
 
