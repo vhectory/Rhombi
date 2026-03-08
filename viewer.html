@@ -575,10 +575,8 @@ R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
     const mx = ((ev.clientX-rect.left)/rect.width)*2-1;
     const my = -((ev.clientY-rect.top)/rect.height)*2+1;
     _hRay.setFromCamera({x:mx,y:my}, CAM);
-    const meshes = [];
-    Object.values(activeGLBGroups).forEach(g => g.traverse(o => {
-      if(o.isMesh && o.visible && o.raycast !== (()=>{})) meshes.push(o);
-    }));
+    // Gebruik cache — geen traverse elke mousemove
+    const meshes = _clickableMeshes.filter(o => o.visible);
     const hits = _hRay.intersectObjects(meshes, false);
     cvs.style.cursor = hits.length ? 'pointer' : 'crosshair';
   });
@@ -875,24 +873,49 @@ const _outlineMat = new THREE.MeshBasicMaterial({
   color: 0xC8884A, side: THREE.BackSide, transparent: true, opacity: 0.55,
   depthWrite: false,
 });
-const _outlineMeshes = []; // actieve outline meshes
+const _outlineMeshes = []; // actieve outline meshes (direct in LAMP, niet als child)
+let _clickableMeshes = []; // gecached na GLB laden — nooit opnieuw traverseren in hover
 
 function updateSelectionOutline() {
-  // Verwijder oude outlines
+  // Verwijder oude outlines uit scene
   _outlineMeshes.forEach(m => { m.parent && m.parent.remove(m); });
   _outlineMeshes.length = 0;
   if(!activeGLBGroups) return;
   selParts.forEach(pid => {
     const grp = activeGLBGroups[pid];
     if(!grp) return;
-    grp.traverse(o => {
-      if(!o.isMesh) return;
+    // Gebruik gecachede mesh lijst — geen traverse hier
+    _clickableMeshes.forEach(o => {
+      if(!grp.getObjectById(o.id) && o !== grp) return; // niet van dit part
       const outMesh = new THREE.Mesh(o.geometry, _outlineMat.clone());
-      outMesh.scale.setScalar(1.025);
+      // Kopieer world matrix van het originele mesh
+      o.updateWorldMatrix(true, false);
+      outMesh.applyMatrix4(o.matrixWorld);
+      outMesh.scale.multiplyScalar(1.025);
       outMesh.renderOrder = -1;
-      outMesh.raycast = () => {}; // niet klikbaar
-      o.add(outMesh);
+      outMesh.userData.isOutline = true;
+      LAMP.add(outMesh); // direct in LAMP, NIET als child van o
       _outlineMeshes.push(outMesh);
+    });
+  });
+}
+
+// Update outline posities elke frame (model kan draaien/bewegen)
+function tickOutlines() {
+  if(_outlineMeshes.length === 0) return;
+  let ci = 0;
+  selParts.forEach(pid => {
+    const grp = activeGLBGroups && activeGLBGroups[pid];
+    if(!grp) return;
+    _clickableMeshes.forEach(o => {
+      if(!grp.getObjectById(o.id)) return;
+      const m = _outlineMeshes[ci++];
+      if(!m) return;
+      o.updateWorldMatrix(true, false);
+      m.matrix.copy(o.matrixWorld);
+      m.matrix.scale(new THREE.Vector3(1.025, 1.025, 1.025));
+      m.matrixAutoUpdate = false;
+      m.matrixWorldNeedsUpdate = true;
     });
   });
 }
@@ -1341,11 +1364,17 @@ function swapLocal(varId){
       }
       syncAllGLBParts();
       buildPList(); updateSwActive(); buildColorGrid(); buildMatList();       fitCameraToGLB();
+      // Cache klikbare meshes — eenmalig, geen traverse meer in hover/render
+      _clickableMeshes = [];
+      Object.values(activeGLBGroups).forEach(g => {
+        g.traverse(o => { if(o.isMesh) _clickableMeshes.push(o); });
+      });
       updateShadowPlane();
       updateSelectionOutline();
       // kapGlow in het midden van de kap positioneren
       if(activeGLBGroups && activeGLBGroups['kap']) {
-        const kb = new THREE.Box3().setFromObject(activeGLBGroups['kap']);
+        const kb = new THREE.Box3();
+        activeGLBGroups['kap'].traverse(o => { if(o.isMesh && !o.userData.isOutline) kb.expandByObject(o); });
         const kc = kb.getCenter(new THREE.Vector3());
         kapGlow.position.copy(kc);
         kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.2);
@@ -1581,7 +1610,7 @@ function syncGLBPart(partId) {
   if (!activeGLBGroups || !activeGLBGroups[partId]) return;
   const src = getOrCreateMat(partId);
   activeGLBGroups[partId].traverse(o => {
-    if (!o.isMesh) return;
+    if (!o.isMesh || o.userData.isOutline) return;
     o.material = src;
   });
 }
@@ -1674,7 +1703,7 @@ function loadGLBParts(url) {
 function fitCameraToGLB() {
   if (!activeGLBGroups) return;
   const box = new THREE.Box3();
-  Object.entries(activeGLBGroups).forEach(([pid,g]) => { if(PART_VIS[pid]!==false) box.expandByObject(g); });
+  Object.entries(activeGLBGroups).forEach(([pid,g]) => { if(PART_VIS[pid]!==false) { g.traverse(o => { if(!o.userData.isOutline) box.expandByObject(o); }); } });
   if (box.isEmpty()) return;
   const size   = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
@@ -2417,10 +2446,7 @@ cvs.addEventListener("click", e => {
   _mouse.x =  ((e.clientX - rect.left)  / rect.width)  * 2 - 1;
   _mouse.y = -((e.clientY - rect.top)   / rect.height) * 2 + 1;
   _ray.setFromCamera(_mouse, CAM);
-  const meshes = [];
-  if(activeGLBGroups){
-    Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh && o.visible && PART_VIS[o.userData.partId]!==false) meshes.push(o); }));
-  }
+  const meshes = activeGLBGroups ? _clickableMeshes.filter(o => o.visible && PART_VIS[o.userData.partId]!==false) : [];
   const hits = _ray.intersectObjects(meshes, false);
   if(hits.length > 0){
     const hit = hits[0].object;
@@ -2435,10 +2461,7 @@ cvs.addEventListener("dblclick", e => {
   _mouse.x =  ((e.clientX - rect.left)  / rect.width)  * 2 - 1;
   _mouse.y = -((e.clientY - rect.top)   / rect.height) * 2 + 1;
   _ray.setFromCamera(_mouse, CAM);
-  const meshes = [];
-  if(activeGLBGroups){
-    Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh) meshes.push(o); }));
-  }
+  const meshes = activeGLBGroups ? [..._clickableMeshes] : [];
   const hits = _ray.intersectObjects(meshes, false);
   if(hits.length > 0){
     const hit = hits[0].object;
@@ -2562,6 +2585,7 @@ function animate(ts){
   bounceDown.position.set(LP.position.x, LP.position.y-1.2, LP.position.z);
   bounceSide.position.set(LP.position.x+sinThR*0.9, LP.position.y-0.2, LP.position.z+cosThR*0.7);
 
+  tickOutlines();
   if(composer) composer.render(); else R.render(SC,CAM);
 }
 
