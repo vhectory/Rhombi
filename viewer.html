@@ -657,147 +657,133 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
 
     // Radiaal licht: zacht centrum — feller naar rechtsboven (zon)
     const sunGrad=bx.createRadialGradient(W*.68, H*.08, 0, W*.68, H*.08, W*.85);
-    sunGrad.addColorStop(0,   "rgba(30,55,80,0.18)");
-    sunGrad.addColorStop(0.3, "rgba(20,40,60,0.08)");
-    sunGrad.addColorStop(0.7, "rgba(10,20,35,0.04)");
+    sunGrad.addColorStop(0,   "rgba(40,70,105,0.45)");
+    sunGrad.addColorStop(0.3, "rgba(25,50,75,0.20)");
+    sunGrad.addColorStop(0.7, "rgba(12,25,40,0.08)");
     sunGrad.addColorStop(1,   "rgba(0,0,0,0)");
     bx.fillStyle=sunGrad; bx.fillRect(0,0,W,H);
 
 
 
-    // ── Schaduwstrepen (jaloezie/blad) — soft fade naar midden ──
-    // Diagonale transformatie: 16 graden, uitgaande van rechtsboven
-    const ANGLE = Math.PI/180 * 16;
+    // ── Licht van rechtsboven, strepen lopen naar linksonder ──
+    // Rotatiepunt = rechterbovenhoek, hoek -16° (strepen gaan schuin af)
+    const ANGLE = -Math.PI/180 * 16;
 
-    // Horizontale fade: strepen verdwijnen richting midden
-    // Elke streep heeft opacity die afneemt naar x=center
-    function drawStripe(y, h, baseOp, type) {
-      bx.save();
-      // Roteer om rechtsboven punt
-      bx.translate(W, 0);
-      bx.rotate(ANGLE);
+    // Radiaal licht: zacht gloed vanuit rechterbovenhoek
+    const sunG = bx.createRadialGradient(W, 0, 0, W, 0, W*1.1);
+    sunG.addColorStop(0,   'rgba(38,55,78,0.22)');
+    sunG.addColorStop(0.25,'rgba(22,35,52,0.10)');
+    sunG.addColorStop(0.55,'rgba(12,18,28,0.03)');
+    sunG.addColorStop(1,   'rgba(0,0,0,0)');
+    bx.fillStyle=sunG; bx.fillRect(0,0,W,H);
 
-      // Stripe gradient (zacht op edges)
-      const sg = bx.createLinearGradient(0, y-6, 0, y+h+6);
-      sg.addColorStop(0,   "rgba(0,0,0,0)");
-      sg.addColorStop(0.25, `rgba(0,0,0,${baseOp})`);
-      sg.addColorStop(0.75, `rgba(0,0,0,${baseOp})`);
-      sg.addColorStop(1,   "rgba(0,0,0,0)");
-      bx.fillStyle=sg;
-
-      // Horizontale fade: volle breedte rechts, verdwijnt naar links midden
-      // Via compositing masker
-      const fullW = W*2.2;
-      bx.fillRect(-fullW, y-6, fullW, h+12);
-      bx.restore();
-
-      // Horizontale fade overlay (de strepen gaan weg naar het midden)
-      bx.save();
-      const hFade = bx.createLinearGradient(0, 0, W, 0);
-      hFade.addColorStop(0,    "rgba(18,21,26,0)");   // links: niets
-      hFade.addColorStop(0.35, "rgba(18,21,26,0)");   // midden: nog niets
-      hFade.addColorStop(0.62, "rgba(18,21,26,0.0)"); // hier beginnen ze te vervagen
-      // (strepen zelf al getekend, hfade later niet nodig, compositing anders)
-      bx.restore();
-    }
-
-    // Schaduwstrepen met noise-onderbrekingen (bladeren)
     const stripes=[
-      {y:30,  h:22, op:0.20},
-      {y:85,  h:14, op:0.15},
-      {y:130, h:32, op:0.23},
-      {y:195, h:11, op:0.13},
-      {y:235, h:38, op:0.26},
-      {y:318, h:16, op:0.17},
-      {y:370, h:28, op:0.21},
-      {y:430, h:12, op:0.14},
-      {y:468, h:40, op:0.24},
-      {y:558, h:18, op:0.18},
-      {y:618, h:26, op:0.20},
-      {y:685, h:14, op:0.14},
-      {y:730, h:36, op:0.22},
+      {y:25,  h:18, op:0.081},
+      {y:70,  h:12, op:0.059},
+      {y:110, h:28, op:0.095},
+      {y:170, h:10, op:0.054},
+      {y:210, h:34, op:0.108},
+      {y:285, h:14, op:0.072},
+      {y:335, h:24, op:0.086},
+      {y:390, h:10, op:0.059},
+      {y:428, h:36, op:0.099},
+      {y:510, h:16, op:0.077},
+      {y:568, h:22, op:0.081},
+      {y:630, h:12, op:0.059},
+      {y:675, h:32, op:0.09},
     ];
 
     stripes.forEach(s => {
       bx.save();
-      bx.translate(W, 0);
-      bx.rotate(ANGLE);
-
-      // Basis stripe
-      const sg=bx.createLinearGradient(0,s.y-6,0,s.y+s.h+6);
-      sg.addColorStop(0,   "rgba(0,0,0,0)");
-      sg.addColorStop(0.12,`rgba(0,0,0,${s.op*0.85})`);
-      sg.addColorStop(0.5,`rgba(0,0,0,${s.op})`);
-      sg.addColorStop(0.88,`rgba(0,0,0,${s.op*0.85})`);
-      sg.addColorStop(1,   "rgba(0,0,0,0)");
+      // Roteer vanuit rechterbovenhoek
+      bx.translate(W, 0); bx.rotate(ANGLE);
+      const sg=bx.createLinearGradient(0,s.y-5,0,s.y+s.h+5);
+      sg.addColorStop(0,   'rgba(0,0,0,0)');
+      sg.addColorStop(0.15,`rgba(0,0,0,${s.op*0.85})`);
+      sg.addColorStop(0.5, `rgba(0,0,0,${s.op})`);
+      sg.addColorStop(0.85,`rgba(0,0,0,${s.op*0.85})`);
+      sg.addColorStop(1,   'rgba(0,0,0,0)');
       bx.fillStyle=sg;
-      bx.fillRect(-W*2.5, s.y-6, W*3.5, s.h+12);
+      bx.fillRect(-W*3, s.y-5, W*5, s.h+10);
 
-      // Blad-noise: willekeurige gaten in de streep
-      bx.globalCompositeOperation="destination-out";
-      // Pseudo-random gaten (deterministic op basis van y)
+      // Bladnoise gaten
+      bx.globalCompositeOperation='destination-out';
       let seed=s.y*137+s.h*31;
       function rand(){seed=(seed*1664525+1013904223)&0xffffffff;return(seed>>>0)/0xffffffff;}
-      for(let i=0;i<6;i++){
-        const gx = -W*1.8 + rand()*W*2.8;
-        const gy = s.y + rand()*s.h*0.6;
-        const gr = 8+rand()*22;
+      for(let i=0;i<7;i++){
+        const gx=-W*2+rand()*W*4, gy=s.y+rand()*s.h*0.7, gr=6+rand()*20;
         const gg=bx.createRadialGradient(gx,gy,0,gx,gy,gr);
-        gg.addColorStop(0,`rgba(0,0,0,${0.3+rand()*0.5})`);
-        gg.addColorStop(1,"rgba(0,0,0,0)");
-        bx.fillStyle=gg; bx.beginPath(); bx.ellipse(gx,gy,gr,gr*(0.4+rand()*0.5),rand()*Math.PI,0,Math.PI*2); bx.fill();
+        gg.addColorStop(0,`rgba(0,0,0,${0.35+rand()*0.45})`);
+        gg.addColorStop(1,'rgba(0,0,0,0)');
+        bx.fillStyle=gg; bx.beginPath(); bx.ellipse(gx,gy,gr,gr*(0.3+rand()*0.6),rand()*Math.PI,0,Math.PI*2); bx.fill();
       }
-      // Langwerpige blad-gaten
-      for(let i=0;i<3;i++){
-        const gx=-W*1.5+rand()*W*2.5;
-        const gy=s.y-2+rand()*(s.h+4);
-        const rw=15+rand()*35, rh=3+rand()*8;
-        const rot=rand()*Math.PI;
+      for(let i=0;i<4;i++){
+        const gx=-W*1.5+rand()*W*3, gy=s.y-2+rand()*(s.h+4);
+        const rw=12+rand()*40, rh=2+rand()*7, rot=rand()*Math.PI;
         const gg=bx.createRadialGradient(gx,gy,0,gx,gy,rw);
         gg.addColorStop(0,`rgba(0,0,0,${0.4+rand()*0.4})`);
-        gg.addColorStop(1,"rgba(0,0,0,0)");
+        gg.addColorStop(1,'rgba(0,0,0,0)');
         bx.fillStyle=gg; bx.beginPath(); bx.ellipse(gx,gy,rw,rh,rot,0,Math.PI*2); bx.fill();
       }
-      bx.globalCompositeOperation="source-over";
+      bx.globalCompositeOperation='source-over';
       bx.restore();
     });
 
-    // Horizontale fade: strepen verdwijnen naar midden/links
-    const hFade=bx.createLinearGradient(0,0,W,0);
-    hFade.addColorStop(0,   "rgba(18,21,26,0.98)"); // links: bijna geen strepen
-    hFade.addColorStop(0.22,"rgba(18,21,26,0.82)");
-    hFade.addColorStop(0.42,"rgba(18,21,26,0.50)");
-    hFade.addColorStop(0.60,"rgba(18,21,26,0.18)");
-    hFade.addColorStop(0.78,"rgba(18,21,26,0)");    // rechts: volle strepen
-    bx.fillStyle=hFade; bx.fillRect(0,0,W,H);
-
-    // Lichtbanen (tussen strepen, warm goudtint)
-    bx.save();
-    bx.translate(W,0); bx.rotate(ANGLE);
+    // Lichtbanen (warm goudtint tussen strepen)
+    bx.save(); bx.translate(W,0); bx.rotate(ANGLE);
     const beams=[
-      {y:52,  h:28, op:0.035},
-      {y:103, h:20, op:0.028},
-      {y:165, h:26, op:0.038},
-      {y:260, h:22, op:0.032},
-      {y:338, h:28, op:0.040},
-      {y:400, h:18, op:0.030},
-      {y:448, h:22, op:0.035},
-      {y:510, h:44, op:0.042},
-      {y:600, h:25, op:0.030},
+      {y:48,h:22,op:0.013},{y:92,h:16,op:0.011},{y:142,h:20,op:0.014},
+      {y:246,h:18,op:0.013},{y:310,h:24,op:0.016},{y:368,h:14,op:0.012},
+      {y:412,h:18,op:0.013},{y:470,h:38,op:0.017},{y:544,h:20,op:0.012},
     ];
     beams.forEach(b=>{
       const bg2=bx.createLinearGradient(0,b.y,0,b.y+b.h);
-      bg2.addColorStop(0,"rgba(0,0,0,0)");
-      bg2.addColorStop(0.5,`rgba(100,120,145,${b.op*0.6})`); // subtiel blauwgrijs
-      bg2.addColorStop(1,"rgba(0,0,0,0)");
-      bx.fillStyle=bg2; bx.fillRect(-W*2.5,b.y,W*3.5,b.h);
+      bg2.addColorStop(0,'rgba(0,0,0,0)');
+      bg2.addColorStop(0.5,`rgba(110,125,150,${b.op})`);
+      bg2.addColorStop(1,'rgba(0,0,0,0)');
+      bx.fillStyle=bg2; bx.fillRect(-W*3,b.y,W*5,b.h);
     });
     bx.restore();
+
+    // Vervaging naar linkeronderhoek — strepen verdwijnen daar
+    const dFade=bx.createRadialGradient(0,H,0, 0,H, W*1.2);
+    dFade.addColorStop(0,   'rgba(13,15,18,0.70)');
+    dFade.addColorStop(0.35,'rgba(13,15,18,0.40)');
+    dFade.addColorStop(0.65,'rgba(13,15,18,0.08)');
+    dFade.addColorStop(1,   'rgba(13,15,18,0)');
+    bx.fillStyle=dFade; bx.fillRect(0,0,W,H);
 
 
 
     const bgTex=new THREE.CanvasTexture(bg);
-    SC.background=bgTex;
+    SC.background = null;
+    const bgSphere=new THREE.Mesh(
+      new THREE.SphereGeometry(22,48,32),
+      new THREE.MeshBasicMaterial({map:bgTex,side:THREE.BackSide,depthWrite:false})
+    );
+    bgSphere.renderOrder=-10;
+    SC.add(bgSphere);
+
+    // Occlusion vignette sphere — transparant, alleen donkere rand
+    (function(){
+      const sz=256, cv2=document.createElement('canvas');
+      cv2.width=cv2.height=sz;
+      const cx2=cv2.getContext('2d');
+      cx2.fillStyle='rgba(0,0,0,0)'; cx2.fillRect(0,0,sz,sz);
+      const gr=cx2.createRadialGradient(sz/2,sz/2,sz*0.25, sz/2,sz/2,sz/2);
+      gr.addColorStop(0,   'rgba(0,0,0,0)');
+      gr.addColorStop(0.65,'rgba(0,0,0,0.08)');
+      gr.addColorStop(0.85,'rgba(0,0,0,0.35)');
+      gr.addColorStop(1,   'rgba(0,0,0,0.70)');
+      cx2.fillStyle=gr; cx2.fillRect(0,0,sz,sz);
+      const occTex=new THREE.CanvasTexture(cv2);
+      const occSphere=new THREE.Mesh(
+        new THREE.SphereGeometry(20,32,24),
+        new THREE.MeshBasicMaterial({map:occTex, side:THREE.BackSide, transparent:true, depthWrite:false, opacity:1.0})
+      );
+      occSphere.renderOrder=-5;
+      SC.add(occSphere);
+    })();
 
     // ── PMREM env: warm zon + koele hemel afgestemd op site-kleuren ──
     const pmrem=new THREE.PMREMGenerator(R);
@@ -833,9 +819,9 @@ try {
 
   // SSAO — donkerder in hoekjes en spleten (Lumen-effect)
   ssaoPass=new THREE.SSAOPass(SC,CAM,wrap.clientWidth,wrap.clientHeight);
-  ssaoPass.kernelRadius=isMobile?0.28:0.55;
+  ssaoPass.kernelRadius=isMobile?0.06:0.10;
   ssaoPass.minDistance=0.001;
-  ssaoPass.maxDistance=isMobile?0.20:0.35;
+  ssaoPass.maxDistance=isMobile?0.05:0.08;
   ssaoPass.output=THREE.SSAOPass.OUTPUT.Default;
   composer.addPass(ssaoPass);
 
@@ -846,6 +832,63 @@ try {
     0.85   // threshold — hoger zodat witte mats niet bloomen
   );
   composer.addPass(bloomPass);
+
+  // Edge Occlusion pass — depth discontinuities → donkere rand op silhouet
+  const edgeOccShader = {
+    uniforms: {
+      tDiffuse: { value: null },
+      tDepth:   { value: null },
+      uRes:     { value: new THREE.Vector2(wrap.clientWidth, wrap.clientHeight) },
+      uStrength:{ value: 1.2 },
+      uNear:    { value: 0.1 },
+      uFar:     { value: 100.0 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+    `,
+    fragmentShader: `
+      uniform sampler2D tDiffuse;
+      uniform sampler2D tDepth;
+      uniform vec2 uRes;
+      uniform float uStrength;
+      uniform float uNear;
+      uniform float uFar;
+      varying vec2 vUv;
+
+      float linearDepth(float d) {
+        float z = d * 2.0 - 1.0;
+        return (2.0 * uNear * uFar) / (uFar + uNear - z*(uFar - uNear));
+      }
+
+      void main() {
+        vec4 color = texture2D(tDiffuse, vUv);
+        vec2 px = 1.0 / uRes;
+
+        float d0 = linearDepth(texture2D(tDepth, vUv).r);
+        float d1 = linearDepth(texture2D(tDepth, vUv + vec2( px.x, 0)).r);
+        float d2 = linearDepth(texture2D(tDepth, vUv + vec2(-px.x, 0)).r);
+        float d3 = linearDepth(texture2D(tDepth, vUv + vec2(0,  px.y)).r);
+        float d4 = linearDepth(texture2D(tDepth, vUv + vec2(0, -px.y)).r);
+
+        // Diepte-discontinuïteit detecteren
+        float maxDiff = max(max(abs(d0-d1), abs(d0-d2)), max(abs(d0-d3), abs(d0-d4)));
+        float edge = clamp(maxDiff * 0.18, 0.0, 1.0);
+        edge = pow(edge, 0.55) * uStrength;
+
+        // Donkere rand op silhouet (zachte inward occlusion)
+        color.rgb *= (1.0 - edge * 0.75);
+        gl_FragColor = color;
+      }
+    `
+  };
+
+  const edgeOccPass = new THREE.ShaderPass(edgeOccShader);
+  // Koppel depth buffer van SSAO pass
+  edgeOccPass.uniforms.tDepth.value = ssaoPass.beautyRenderTarget.depthTexture || null;
+  // Fallback: gebruik render target depth van composer
+  composer.addPass(edgeOccPass);
+  window._edgeOccPass = edgeOccPass;
 } catch(e){
   console.warn("Post-processing niet beschikbaar:",e);
   composer=null; bloomOn=false; ssaoOn=false;
@@ -866,6 +909,7 @@ function resize(){
   CAM.aspect = 1;
   CAM.updateProjectionMatrix();
   if(composer) composer.setSize(s, s);
+  if(window._edgeOccPass) window._edgeOccPass.uniforms.uRes.value.set(s,s);
 
   // Mobiel: vbar direct onder canvas plaatsen
   if(window.innerWidth <= 768) {
@@ -883,6 +927,7 @@ function resize(){
 window.addEventListener("resize",resize); resize();
 
 SC.add(new THREE.AmbientLight(0xfff5e0,.55));
+
 
 // Key light
 const kL=new THREE.DirectionalLight(0xfff0c8,1.1);
@@ -908,6 +953,10 @@ bounceDown.position.set(0,-0.8,0); SC.add(bounceDown);
 // Zacht warm licht dat "terugkaatst" van kaprand naar zijkanten
 const bounceSide=new THREE.PointLight(0xCC6020,0,3.5);
 bounceSide.position.set(0.8,0.1,0.6); SC.add(bounceSide);
+
+// Zacht frontlicht — volgt camera, geeft model diepte t.o.v. achtergrond
+const frontLight=new THREE.PointLight(0xE8EEF5, 0.45, 18);
+SC.add(frontLight);
 
 // Koel hemellicht van boven (simuleert indirect omgevingslicht)
 const skyBounce=new THREE.PointLight(0xD0E8FF,0.15,8);
@@ -1344,65 +1393,12 @@ function updateTweens(dt){for(let i=tweens.length-1;i>=0;i--){tweens[i].update(d
 const LAMP=new THREE.Group(); SC.add(LAMP);
 
 // Achtergrond — gradient canvas direct als SC.background
-function makeSceneBgTex() {
-  const w = 2, h = 256; // Smal — alleen verticale gradient nodig
-  const cv = document.createElement('canvas');
-  cv.width = w; cv.height = h;
-  const ctx = cv.getContext('2d');
-  // Top licht, onder donker — studio van boven verlicht
-  const gr = ctx.createLinearGradient(0, 0, 0, h);
-  gr.addColorStop(0,   '#1C2330');
-  gr.addColorStop(0.45,'#131820');
-  gr.addColorStop(1,   '#09090C');
-  ctx.fillStyle = gr;
-  ctx.fillRect(0,0,w,h);
-  return new THREE.CanvasTexture(cv);
-}
-SC.background = makeSceneBgTex();
-
-// Vloer AO blob — platte cirkel onder model
-function makeBlobTex() {
-  const sz = 256;
-  const cv = document.createElement('canvas');
-  cv.width = cv.height = sz;
-  const ctx = cv.getContext('2d');
-  const gr = ctx.createRadialGradient(sz/2,sz/2,0, sz/2,sz/2,sz/2);
-  gr.addColorStop(0,   'rgba(0,0,0,0.30)');
-  gr.addColorStop(0.4, 'rgba(0,0,0,0.08)');
-  gr.addColorStop(1,   'rgba(0,0,0,0)');
-  ctx.fillStyle = gr;
-  ctx.fillRect(0,0,sz,sz);
-  return new THREE.CanvasTexture(cv);
-}
 
 
-// Vloer blob — horizontaal onder model
-const _shadowPlane = new THREE.Mesh(
-  new THREE.PlaneGeometry(1,1),
-  new THREE.MeshBasicMaterial({ map: makeBlobTex(), transparent:true, depthWrite:false })
-);
-_shadowPlane.rotation.x = -Math.PI / 2;
-_shadowPlane.renderOrder = -1;
-_shadowPlane.visible = false;
-SC.add(_shadowPlane);
 
-function updateFloorPlane() {
-  if(!activeGLBGroups) return;
-  const box = new THREE.Box3();
-  Object.values(activeGLBGroups).forEach(g => {
-    g.traverse(o => { if(!o.userData.isOutline) box.expandByObject(o); });
-  });
-  if(box.isEmpty()) return;
-  const min = box.min;
-  const center = box.getCenter(new THREE.Vector3());
-  const fw = Math.max(
-    box.max.x - min.x,
-    box.max.z - min.z
-  );
-  _shadowPlane.position.set(center.x, min.y, center.z);
-  _shadowPlane.scale.set(fw * 1.6, fw * 1.6, 1);
-  _shadowPlane.visible = true;
-}
+
+
+
 
 
 // Shared meshes — permanent, only move/rotate
@@ -2693,6 +2689,7 @@ function animate(ts){
   const cy=camR*Math.cos(camPh)+panY;
   const cz=camR*Math.sin(camPh)*Math.cos(camTh);
   CAM.position.set(cx,cy,cz); CAM.lookAt(panX,panY,0);
+  frontLight.position.set(cx*0.85, cy*0.85, cz*0.85); // iets voor camera
 
   // Tweens — moves shared parts
   updateTweens(dt);
