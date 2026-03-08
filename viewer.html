@@ -392,6 +392,10 @@ canvas{ touch-action:none; cursor:crosshair }
     <p style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.08em;color:var(--text-dim);margin-top:8px;line-height:1.6">◆ gedeeld = vliegt naar nieuwe positie</p>
   </div>
   <div class="ps">
+    <div style="display:flex;gap:3px;margin-bottom:4px">
+      <button class="cb" id="bEx" onclick="toggleExplode()" style="flex:1;margin:0"><span>Exploded</span><span>⬡</span></button>
+      <button class="cb" onclick="resetView()" style="flex:1;margin:0"><span>Reset camera</span><span>⊙</span></button>
+    </div>
     <button class="cb on" id="bLampInline" onclick="toggleLamp()" style="width:100%;justify-content:space-between;margin-bottom:8px">
       <span id="bLampInlineLabel">● Lamp aan</span><span>💡</span>
     </button>
@@ -429,11 +433,9 @@ canvas{ touch-action:none; cursor:crosshair }
   </div>
   <div class="ps">
     <span class="pl">◆ Weergave</span>
-    <button class="cb" id="bEx" onclick="toggleExplode()"><span>Exploded view</span><span>⬡</span></button>
     <button class="cb on" id="bBl" onclick="toggleBloom()"><span>Lichtgloed</span><span>✦</span></button>
     <button class="cb on" id="bAO" onclick="toggleSSAO()"><span>Ambient Occlusion</span><span>◉</span></button>
     <button class="cb" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
-    <button class="cb" onclick="resetView()"><span>Reset camera</span><span>⊙</span></button>
     <button class="cb" onclick="saveConfig()"><span>Deel configuratie</span><span>⬡</span></button>
   </div>
   <div class="ps">
@@ -1341,29 +1343,65 @@ function updateTweens(dt){for(let i=tweens.length-1;i>=0;i--){tweens[i].update(d
 // ═══════════════════════════════════════════
 const LAMP=new THREE.Group(); SC.add(LAMP);
 
-// Vloer shadow plane — horizontaal, adaptief geschaald op model
-const _shadowMat = new THREE.ShadowMaterial({ opacity: 0.14, color: 0x000000 });
-const _shadowPlane = new THREE.Mesh(
-  new THREE.PlaneGeometry(1, 1),
-  _shadowMat
-);
+// Vloer AO blob — radiale gradient cirkel onder het model
+// Geen shadow maps nodig, werkt altijd, staat gegarandeerd horizontaal
+function makeBlobTex() {
+  const sz = 256;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = sz;
+  const ctx = cv.getContext('2d');
+  const gr = ctx.createRadialGradient(sz/2,sz/2,0, sz/2,sz/2,sz/2);
+  gr.addColorStop(0,   'rgba(0,0,0,0.55)');
+  gr.addColorStop(0.4, 'rgba(0,0,0,0.25)');
+  gr.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = gr;
+  ctx.fillRect(0,0,sz,sz);
+  const tex = new THREE.CanvasTexture(cv);
+  return tex;
+}
+const _blobMat = new THREE.MeshBasicMaterial({
+  map: makeBlobTex(),
+  transparent: true, depthWrite: false, opacity: 1.0,
+  blending: THREE.MultiplyBlending,
+});
+const _shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(1,1), _blobMat);
 _shadowPlane.rotation.x = -Math.PI / 2;
-_shadowPlane.receiveShadow = true;
+_shadowPlane.renderOrder = -1;
 _shadowPlane.visible = false;
 SC.add(_shadowPlane);
+
+// Wand AO blob — vertikaal achter het model
+const _wallBlobMat = new THREE.MeshBasicMaterial({
+  map: makeBlobTex(),
+  transparent: true, depthWrite: false, opacity: 0.7,
+  blending: THREE.MultiplyBlending,
+});
+const _wallPlane = new THREE.Mesh(new THREE.PlaneGeometry(1,1), _wallBlobMat);
+_wallPlane.renderOrder = -1;
+_wallPlane.visible = false;
+SC.add(_wallPlane);
 
 function updateFloorPlane() {
   if(!activeGLBGroups) return;
   const box = new THREE.Box3();
-  Object.values(activeGLBGroups).forEach(g => box.expandByObject(g));
+  Object.values(activeGLBGroups).forEach(g => {
+    g.traverse(o => { if(!o.userData.isOutline) box.expandByObject(o); });
+  });
   if(box.isEmpty()) return;
   const min = box.min, max = box.max;
   const center = box.getCenter(new THREE.Vector3());
   const fw = Math.max(max.x - min.x, max.z - min.z);
-  _shadowPlane.position.set(center.x, min.y - 0.002, center.z);
-  _shadowPlane.scale.set(fw * 2.2, fw * 2.2, 1);
-  _shadowMat.opacity = 0.14;
+  const fh = max.y - min.y;
+  // Vloer — horizontaal
+  _shadowPlane.position.set(center.x, min.y + 0.001, center.z);
+  _shadowPlane.scale.set(fw * 1.8, fw * 1.8, 1);
+  _shadowPlane.rotation.x = -Math.PI / 2;
   _shadowPlane.visible = true;
+  // Wand — vertikaal achter model (positieve Z = achterkant in Three.js default)
+  _wallPlane.position.set(center.x, center.y, max.z + 0.001);
+  _wallPlane.scale.set(fw * 2.0, fh * 2.0, 1);
+  _wallPlane.rotation.x = 0; // verticaal
+  _wallPlane.visible = true;
 }
 
 
