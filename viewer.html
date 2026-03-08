@@ -113,7 +113,7 @@ canvas{display:block;border-radius:2px}
 
 /* ── TOUCH-ACTION op canvas ── */
 /* Voorkomt dat 3D drag conflicteert met browser pan/zoom */
-canvas{ touch-action:none }
+canvas{ touch-action:none; cursor:crosshair }
 
 /* ── RHOMBI FRAME ── */
 #canvas-frame {
@@ -565,6 +565,25 @@ const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-per
 // Lagere pixelRatio op mobiel — 80k tris kost anders te veel
 R.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio,1.5) : Math.min(window.devicePixelRatio,2));
 R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
+// ── Hover cursor: pointer als over klikbaar part ────────────────────
+(function(){
+  const _hRay = new THREE.Raycaster();
+  const cvs = R.domElement;
+  cvs.addEventListener('mousemove', ev => {
+    if(!activeGLBGroups) return;
+    const rect = cvs.getBoundingClientRect();
+    const mx = ((ev.clientX-rect.left)/rect.width)*2-1;
+    const my = -((ev.clientY-rect.top)/rect.height)*2+1;
+    _hRay.setFromCamera({x:mx,y:my}, CAM);
+    const meshes = [];
+    Object.values(activeGLBGroups).forEach(g => g.traverse(o => {
+      if(o.isMesh && o.visible && o.raycast !== (()=>{})) meshes.push(o);
+    }));
+    const hits = _hRay.intersectObjects(meshes, false);
+    cvs.style.cursor = hits.length ? 'pointer' : 'crosshair';
+  });
+})();
+
 R.outputEncoding=THREE.sRGBEncoding; R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.15;
 R.physicallyCorrectLights=true;
 canvasFrame.appendChild(R.domElement);
@@ -850,6 +869,33 @@ skyBounce.position.set(0,4,0); SC.add(skyBounce);
 
 // Kap-glow: warm licht vlak in de kap dat de binnenkant verlicht (SSS simulatie)
 const kapGlow=new THREE.PointLight(0xFFAA44, 0, 1.8);
+
+// Outline materiaal voor geselecteerde onderdelen
+const _outlineMat = new THREE.MeshBasicMaterial({
+  color: 0xC8884A, side: THREE.BackSide, transparent: true, opacity: 0.55,
+  depthWrite: false,
+});
+const _outlineMeshes = []; // actieve outline meshes
+
+function updateSelectionOutline() {
+  // Verwijder oude outlines
+  _outlineMeshes.forEach(m => { m.parent && m.parent.remove(m); });
+  _outlineMeshes.length = 0;
+  if(!activeGLBGroups) return;
+  selParts.forEach(pid => {
+    const grp = activeGLBGroups[pid];
+    if(!grp) return;
+    grp.traverse(o => {
+      if(!o.isMesh) return;
+      const outMesh = new THREE.Mesh(o.geometry, _outlineMat.clone());
+      outMesh.scale.setScalar(1.025);
+      outMesh.renderOrder = -1;
+      outMesh.raycast = () => {}; // niet klikbaar
+      o.add(outMesh);
+      _outlineMeshes.push(outMesh);
+    });
+  });
+}
 kapGlow.position.set(0, 0.2, 0); // wordt bijgewerkt na GLB laden
 SC.add(kapGlow);
 
@@ -986,7 +1032,7 @@ function texCFNormal(){
                     rnd2(Math.floor((x+1)/5)+7, Math.floor(y/5)+3)*0.5) / 1.5;
         const nb = (rnd2(Math.floor(x/3), Math.floor((y+1)/3)) +
                     rnd2(Math.floor(x/5)+7, Math.floor((y+1)/5)+3)*0.5) / 1.5;
-        const str = 0.72;
+        const str = 0.35;
         const nx = (n - nr) * str;
         const ny = (n - nb) * str;
         d[i]   = Math.round((nx + 0.5) * 255);
@@ -1011,8 +1057,8 @@ function texCFRough(){
         const n1 = rnd2(Math.floor(x/3),   Math.floor(y/3));
         const n2 = rnd2(Math.floor(x/5)+7, Math.floor(y/5)+3) * 0.5;
         const n  = (n1 + n2) / 1.5;
-        // Korreltoppen glanzend (0.25), dalen mat (0.70)
-        const v  = 0.25 + n * 0.45;
+        // Heel kleine spreiding — nauwelijks zichtbaar kleurcontrast
+        const v  = 0.58 + n * 0.10;
         d[i]=d[i+1]=d[i+2]=Math.round(v*255); d[i+3]=255;
       }
     }
@@ -1140,8 +1186,8 @@ const MAT_PRESETS=[
     apply:(mat)=>{
       mat.roughness=.55; mat.metalness=.12; mat.transparent=false; mat.opacity=1;
       mat.normalMap=getTex("cfn3",texCFNormal);
-      mat.normalScale=new THREE.Vector2(1.8,1.8);
-      mat.roughnessMap=getTex("cfr3",texCFRough);
+      mat.normalScale=new THREE.Vector2(0.9,0.9);
+      mat.roughnessMap=getTex("cfr4",texCFRough);
       mat.envMapIntensity=0.8;
       mat.needsUpdate=true;
     }
@@ -1296,6 +1342,7 @@ function swapLocal(varId){
       syncAllGLBParts();
       buildPList(); updateSwActive(); buildColorGrid(); buildMatList();       fitCameraToGLB();
       updateShadowPlane();
+      updateSelectionOutline();
       // kapGlow in het midden van de kap positioneren
       if(activeGLBGroups && activeGLBGroups['kap']) {
         const kb = new THREE.Box3().setFromObject(activeGLBGroups['kap']);
@@ -1767,13 +1814,24 @@ function buildPList(){
     b.innerHTML  = `<span>${arrow}${grp.nm}${emIcon}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${grp.id}" style="background:${col}"></span><span class="vis-btn${visCls}" data-vis="${grp.id}" onclick="togglePartVis('${grp.id}',event)">${visIcon}</span></span>`;
     b.onclick = (e) => {
       if(e.target.classList.contains('vis-btn')||e.target.closest('.vis-btn')) return;
-      if (hasLoadedMembers) {
+      // Pijl klik = alleen open/sluit, geen selectie
+      if(e.target.classList.contains('grp-arrow')) {
+        if(hasLoadedMembers) {
+          const members = list.querySelectorAll('[data-group="'+grp.id+'"]');
+          const arrowEl = b.querySelector('.grp-arrow');
+          const isOpen  = arrowEl && arrowEl.classList.contains('open');
+          members.forEach(m => m.classList.toggle('collapsed', isOpen));
+          if(arrowEl){ arrowEl.classList.toggle('open',!isOpen); arrowEl.classList.toggle('closed',isOpen); }
+        }
+        return;
+      }
+      // Naam klik = selecteer + open members
+      if(hasLoadedMembers) {
         const members = list.querySelectorAll('[data-group="'+grp.id+'"]');
-        const arrow   = b.querySelector('.grp-arrow');
-        const isOpen  = arrow && arrow.classList.contains('open');
-        members.forEach(m => m.classList.toggle('collapsed', isOpen));
-        if (arrow) { arrow.classList.toggle('open', !isOpen); arrow.classList.toggle('closed', isOpen); }
-        if(!e.ctrlKey && !e.metaKey) return;
+        const arrowEl = b.querySelector('.grp-arrow');
+        // Altijd openen bij selectie
+        members.forEach(m => m.classList.remove('collapsed'));
+        if(arrowEl){ arrowEl.classList.add('open'); arrowEl.classList.remove('closed'); }
       }
       selPart(grp.id, e.ctrlKey||e.metaKey);
     };
@@ -1948,6 +2006,7 @@ function selPart(id, multi=false){
   });
   buildColorGrid();
   buildMatList();
+  updateSelectionOutline();
 }
 
 function copyColorToSelection() {
@@ -2173,29 +2232,39 @@ function buildMatList(){
 
 
 function takeScreenshot() {
-  // Render via composer zodat bloom + SSAO ook in screenshot zitten
-  if(composer) composer.render(); else R.render(SC, CAM);
+  // Verberg outlines tijdelijk
+  _outlineMeshes.forEach(m => { m.visible = false; });
 
-  // Combineer 3D canvas + achtergrond op een off-screen canvas
-  const src = R.domElement;
-  const out = document.createElement('canvas');
-  out.width  = src.width;
-  out.height = src.height;
-  const ctx = out.getContext('2d');
+  // Render direct naar canvas (preserveDrawingBuffer=true)
+  if(composer) {
+    // composer rendert naar render target — daarna kopiëren naar canvas
+    composer.render();
+    // Lees pixels uit de WebGL canvas (werkt dankzij preserveDrawingBuffer)
+  } else {
+    R.render(SC, CAM);
+  }
 
-  // Teken de Three.js canvas (bevat achtergrond + model + bloom)
-  ctx.drawImage(src, 0, 0);
-
-  // Download
-  out.toBlob(blob => {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.download = 'rhombi-' + curV.id + '-' + Date.now() + '.png';
-    link.href = url;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-    showToast('Screenshot opgeslagen ✓');
-  }, 'image/png');
+  // Kleine timeout zodat frame flushed is
+  setTimeout(() => {
+    _outlineMeshes.forEach(m => { m.visible = true; });
+    try {
+      const dataURL = R.domElement.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'rhombi-' + curV.id + '-' + Date.now() + '.png';
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Screenshot opgeslagen ✓');
+    } catch(e) {
+      // Fallback: open in nieuw tabblad
+      const w = window.open();
+      if(w) {
+        w.document.write('<img src="'+R.domElement.toDataURL()+'">');
+        showToast('Screenshot geopend in nieuw tabblad');
+      }
+    }
+  }, 50);
 }
 
 function toggleBloom(){
