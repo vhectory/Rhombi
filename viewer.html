@@ -1343,43 +1343,48 @@ function updateTweens(dt){for(let i=tweens.length-1;i>=0;i--){tweens[i].update(d
 // ═══════════════════════════════════════════
 const LAMP=new THREE.Group(); SC.add(LAMP);
 
-// Vloer AO blob — radiale gradient cirkel onder het model
-// Geen shadow maps nodig, werkt altijd, staat gegarandeerd horizontaal
+// Achtergrond — gradient canvas direct als SC.background
+function makeSceneBgTex() {
+  const w = 2, h = 256; // Smal — alleen verticale gradient nodig
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  const ctx = cv.getContext('2d');
+  // Top licht, onder donker — studio van boven verlicht
+  const gr = ctx.createLinearGradient(0, 0, 0, h);
+  gr.addColorStop(0,   '#1C2330');
+  gr.addColorStop(0.45,'#131820');
+  gr.addColorStop(1,   '#09090C');
+  ctx.fillStyle = gr;
+  ctx.fillRect(0,0,w,h);
+  return new THREE.CanvasTexture(cv);
+}
+SC.background = makeSceneBgTex();
+
+// Vloer AO blob — platte cirkel onder model
 function makeBlobTex() {
   const sz = 256;
   const cv = document.createElement('canvas');
   cv.width = cv.height = sz;
   const ctx = cv.getContext('2d');
   const gr = ctx.createRadialGradient(sz/2,sz/2,0, sz/2,sz/2,sz/2);
-  gr.addColorStop(0,   'rgba(0,0,0,0.55)');
-  gr.addColorStop(0.4, 'rgba(0,0,0,0.25)');
+  gr.addColorStop(0,   'rgba(0,0,0,0.30)');
+  gr.addColorStop(0.4, 'rgba(0,0,0,0.08)');
   gr.addColorStop(1,   'rgba(0,0,0,0)');
   ctx.fillStyle = gr;
   ctx.fillRect(0,0,sz,sz);
-  const tex = new THREE.CanvasTexture(cv);
-  return tex;
+  return new THREE.CanvasTexture(cv);
 }
-const _blobMat = new THREE.MeshBasicMaterial({
-  map: makeBlobTex(),
-  transparent: true, depthWrite: false, opacity: 1.0,
-  blending: THREE.MultiplyBlending,
-});
-const _shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(1,1), _blobMat);
+
+
+// Vloer blob — horizontaal onder model
+const _shadowPlane = new THREE.Mesh(
+  new THREE.PlaneGeometry(1,1),
+  new THREE.MeshBasicMaterial({ map: makeBlobTex(), transparent:true, depthWrite:false })
+);
 _shadowPlane.rotation.x = -Math.PI / 2;
 _shadowPlane.renderOrder = -1;
 _shadowPlane.visible = false;
 SC.add(_shadowPlane);
-
-// Wand AO blob — vertikaal achter het model
-const _wallBlobMat = new THREE.MeshBasicMaterial({
-  map: makeBlobTex(),
-  transparent: true, depthWrite: false, opacity: 0.7,
-  blending: THREE.MultiplyBlending,
-});
-const _wallPlane = new THREE.Mesh(new THREE.PlaneGeometry(1,1), _wallBlobMat);
-_wallPlane.renderOrder = -1;
-_wallPlane.visible = false;
-SC.add(_wallPlane);
 
 function updateFloorPlane() {
   if(!activeGLBGroups) return;
@@ -1388,20 +1393,15 @@ function updateFloorPlane() {
     g.traverse(o => { if(!o.userData.isOutline) box.expandByObject(o); });
   });
   if(box.isEmpty()) return;
-  const min = box.min, max = box.max;
+  const min = box.min;
   const center = box.getCenter(new THREE.Vector3());
-  const fw = Math.max(max.x - min.x, max.z - min.z);
-  const fh = max.y - min.y;
-  // Vloer — horizontaal
-  _shadowPlane.position.set(center.x, min.y + 0.001, center.z);
-  _shadowPlane.scale.set(fw * 1.8, fw * 1.8, 1);
-  _shadowPlane.rotation.x = -Math.PI / 2;
+  const fw = Math.max(
+    box.max.x - min.x,
+    box.max.z - min.z
+  );
+  _shadowPlane.position.set(center.x, min.y, center.z);
+  _shadowPlane.scale.set(fw * 1.6, fw * 1.6, 1);
   _shadowPlane.visible = true;
-  // Wand — vertikaal achter model (positieve Z = achterkant in Three.js default)
-  _wallPlane.position.set(center.x, center.y, max.z + 0.001);
-  _wallPlane.scale.set(fw * 2.0, fh * 2.0, 1);
-  _wallPlane.rotation.x = 0; // verticaal
-  _wallPlane.visible = true;
 }
 
 
