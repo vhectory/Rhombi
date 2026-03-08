@@ -45,13 +45,13 @@ canvas{display:block;border-radius:2px}
 .vl{font-size:8px;letter-spacing:.14em;text-transform:uppercase}
 .panel{position:fixed;right:0;top:0;bottom:0;width:280px;background:rgba(20,24,30,.97);backdrop-filter:blur(16px);border-left:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;overflow-y:auto;z-index:30}
 .panel::-webkit-scrollbar{width:2px}.panel::-webkit-scrollbar-thumb{background:rgba(200,136,74,.2)}
-.ps{padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+.ps{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
 .ps:last-child{border-bottom:none}
-.pl{font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;display:block}
+.pl{font-family:"Space Mono",monospace;font-size:8px;letter-spacing:.20em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;display:block}
 .pt{font-size:18px;font-weight:300;line-height:1.2;margin-bottom:2px}
 .pp{font-size:10px;color:var(--text-dim);font-family:"Space Mono",monospace;letter-spacing:.06em}
 .plist{display:flex;flex-direction:column;gap:3px}
-.pb{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;background:var(--dark3);border:1px solid transparent;color:var(--text);font-family:"Space Grotesk",sans-serif;font-size:12px;cursor:pointer;transition:all .16s;text-align:left;width:100%}
+.pb{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--dark3);border:1px solid transparent;color:var(--text);font-family:"Space Grotesk",sans-serif;font-size:12px;cursor:pointer;transition:all .16s;text-align:left;width:100%}
 .pb-member{padding-left:28px!important;font-size:9px;opacity:.85}
 .pb-member::before{content:"└ ";opacity:.4;margin-right:2px}
 .pb-member.collapsed{display:none}
@@ -74,7 +74,7 @@ canvas{display:block;border-radius:2px}
 .swtip{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--dark2);color:var(--cream);font-family:"Space Mono",monospace;font-size:8px;padding:3px 6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:99}
 .sw:hover .swtip{opacity:1}
 .swtip.show{opacity:1!important}
-.cb{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--dark3);border:1px solid rgba(255,255,255,.05);color:var(--text);font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:3px}
+.cb{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--dark3);border:1px solid rgba(255,255,255,.05);color:var(--text);font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:3px}
 .cb:hover{border-color:rgba(200,136,74,.3);color:var(--cream)}
 .cb.on{background:rgba(200,136,74,.1);border-color:var(--amber);color:var(--amber)}
 .sr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
@@ -157,6 +157,25 @@ canvas{ touch-action:none; cursor:crosshair }
   color: var(--amber);
   background: rgba(22,26,32,.95);
 }
+/* Edge / silhouette subtiele donkere rand */
+#canvas-frame canvas {
+  filter: none;
+}
+
+/* Subtiele vignette + depth cue via CSS — geen extra render pass */
+#edge-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(ellipse at center,
+    transparent 45%,
+    rgba(8,10,14,0.18) 75%,
+    rgba(8,10,14,0.38) 100%
+  );
+  mix-blend-mode: multiply;
+}
+
 #canvas-frame::after {
   content: '';
   position: absolute;
@@ -342,7 +361,7 @@ canvas{ touch-action:none; cursor:crosshair }
 
 <div id="loading"><div class="lr"></div><p class="lt">Configurator laden...</p></div>
 <div id="transit"><span class="ttext">◆ Onderdelen bewegen</span></div>
-<div id="c"><div id="canvas-frame"><button id="screenshot-btn" onclick="takeScreenshot()" title="Screenshot (P)">
+<div id="c"><div id="canvas-frame"><div id="edge-overlay"></div><button id="screenshot-btn" onclick="takeScreenshot()" title="Screenshot (P)">
   <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
     <rect x="0.5" y="2.5" width="15" height="11" stroke="currentColor" stroke-width="1"/>
     <path d="M5 2.5 L6 0.5 L10 0.5 L11 2.5" stroke="currentColor" stroke-width="1" fill="none"/>
@@ -373,19 +392,45 @@ canvas{ touch-action:none; cursor:crosshair }
     <p style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.08em;color:var(--text-dim);margin-top:8px;line-height:1.6">◆ gedeeld = vliegt naar nieuwe positie</p>
   </div>
   <div class="ps">
+    <button class="cb on" id="bLampInline" onclick="toggleLamp()" style="width:100%;justify-content:space-between;margin-bottom:8px">
+      <span id="bLampInlineLabel">● Lamp aan</span><span>💡</span>
+    </button>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+      <div style="display:flex;gap:3px;flex:1" id="ktemp-btns">
+        <button class="cb" onclick="setPeerColor('#FF7700')" title="2700K" style="flex:1;padding:5px 2px;flex-direction:column;gap:2px;margin:0">
+          <span style="display:block;width:12px;height:12px;border-radius:50%;background:#FF7700;margin:0 auto"></span>
+          <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">2700K</span>
+        </button>
+        <button class="cb" onclick="setPeerColor('#FFAA44')" title="3000K" style="flex:1;padding:5px 2px;flex-direction:column;gap:2px;margin:0">
+          <span style="display:block;width:12px;height:12px;border-radius:50%;background:#FFAA44;margin:0 auto"></span>
+          <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">3000K</span>
+        </button>
+        <button class="cb" onclick="setPeerColor('#FFF5CC')" title="4000K" style="flex:1;padding:5px 2px;flex-direction:column;gap:2px;margin:0">
+          <span style="display:block;width:12px;height:12px;border-radius:50%;background:#FFF5CC;margin:0 auto"></span>
+          <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">4000K</span>
+        </button>
+        <button class="cb" onclick="setPeerColor('#E8F0FF')" title="6500K" style="flex:1;padding:5px 2px;flex-direction:column;gap:2px;margin:0">
+          <span style="display:block;width:12px;height:12px;border-radius:50%;background:#E8F0FF;margin:0 auto"></span>
+          <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">6500K</span>
+        </button>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:52px">
+        <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--amber)" id="peerIntVal">20%</span>
+        <input type="range" min="0" max="100" value="20" id="peerIntSlider"
+          oninput="setPeerIntensity(this.value/100)"
+          style="width:52px;accent-color:var(--amber);height:3px;cursor:pointer">
+      </div>
+    </div>
+    <span class="pl">◆ Materiaal</span>
+    <div class="plist" id="matlist" style="margin-bottom:10px"></div>
     <span class="pl">◆ Kleur</span>
     <div class="cgrid" id="cgrid"></div>
-  </div>
-  <div class="ps">
-    <span class="pl">◆ Materiaal</span>
-    <div class="plist" id="matlist"></div>
   </div>
   <div class="ps">
     <span class="pl">◆ Weergave</span>
     <button class="cb" id="bEx" onclick="toggleExplode()"><span>Exploded view</span><span>⬡</span></button>
     <button class="cb on" id="bBl" onclick="toggleBloom()"><span>Lichtgloed</span><span>✦</span></button>
     <button class="cb on" id="bAO" onclick="toggleSSAO()"><span>Ambient Occlusion</span><span>◉</span></button>
-    <button class="cb on" id="bLamp" onclick="toggleLamp()"><span>Lamp aan</span><span>💡</span></button>
     <button class="cb" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
     <button class="cb" onclick="resetView()"><span>Reset camera</span><span>⊙</span></button>
     <button class="cb" onclick="saveConfig()"><span>Deel configuratie</span><span>⬡</span></button>
@@ -850,11 +895,11 @@ const fL=new THREE.DirectionalLight(0x9ab8c8,.40); fL.position.set(-5,3,-3); SC.
 const rL=new THREE.DirectionalLight(0xffd080,.4); rL.position.set(0,-3,-6); SC.add(rL);
 
 // De gloeilamp
-const LP=new THREE.PointLight(0xffaa44,2,5); SC.add(LP);
+const LP=new THREE.PointLight(0xFFCC66,2,5); SC.add(LP);
 
 // ── FAKE BOUNCE LIGHTS (Lumen-stijl indirect licht) ──────────────────
 // Warm oranje licht dat "terugkaatst" van de kap naar beneden
-const bounceDown=new THREE.PointLight(0xFF8830,0,4);
+const bounceDown=new THREE.PointLight(0xFFAA44,0,4);
 bounceDown.position.set(0,-0.8,0); SC.add(bounceDown);
 
 // Zacht warm licht dat "terugkaatst" van kaprand naar zijkanten
@@ -1430,12 +1475,15 @@ function applyExplode(){
 const PART_GROUPS = [
   { id: 'kap',          nm: 'Lichtkap',     sh: true  },
   { id: 'voet',         nm: 'Voet',         aliases: ['voet_t','voet_a','voet_w'] },
-  { id: 'kader',        nm: 'Kader',
-    members: ['kader_l','kader_r','kader_a']           },
-  { id: 'verbindingen', nm: 'Verbindingen',
-    members: ['vleugel_l','vleugel_r','kern','ring']   },
-  { id: 'fitting',      nm: 'Fitting'                 },
-  { id: 'peer',         nm: 'Lamp',         emissive: true },
+  { id: 'kader_l',      nm: 'Kader Links'              },
+  { id: 'kader_r',      nm: 'Kader Rechts'             },
+  { id: 'kader_a',      nm: 'Kader Achter'             },
+  { id: 'kader',        nm: 'Kader'                    },
+  { id: 'vleugel_l',    nm: 'Vleugel Links'            },
+  { id: 'vleugel_r',    nm: 'Vleugel Rechts'           },
+  { id: 'kern',         nm: 'Kern'                     },
+  { id: 'ring',         nm: 'Ring'                     },
+  { id: 'fitting',      nm: 'Fitting'                  },
 ];
 
 // Snelle lookup: mesh-id → group entry
@@ -1543,6 +1591,32 @@ function applyBoxMapping(mat, scale=1.0) {
   mat.needsUpdate = true;
 }
 
+// ── Rim darkening — silhouet randen donkerder, geeft 3D diepte ──────
+// N·V klein = kijken we langs het oppervlak = rand = donkerder
+function applyRimDarkening(mat, strength=0.65) {
+  if(mat.userData._rimStrength === strength) return;
+  mat.userData._rimStrength = strength;
+
+  const prevOBC = mat.onBeforeCompile;
+  mat.onBeforeCompile = (shader) => {
+    if(prevOBC) prevOBC(shader);
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <output_fragment>',
+      `
+      // Rim darkening: randen zijn donkerder voor leesbaarheid
+      vec3 _viewDir = normalize(vViewPosition);
+      float _rim = 1.0 - abs(dot(normalize(normal), _viewDir));
+      float _rimFactor = pow(_rim, 2.2) * ${strength.toFixed(2)};
+      gl_FragColor.rgb *= (1.0 - _rimFactor * 0.55);
+
+      #include <output_fragment>
+      `
+    );
+    mat.userData.shader = shader;
+  };
+  mat.needsUpdate = true;
+}
+
 // ── Cavity / inverse occlusion ───────────────────────────────────────
 // dFdx/dFdy van de normaal geeft curvature — randen en hoeken lichten op
 // strength: hoe sterk het effect (0.0 = uit, 1.0 = vol)
@@ -1592,6 +1666,7 @@ function getOrCreateMat(partId) {
       envMapIntensity: 0.35,
     });
     applyCavityHighlight(MGLB[partId], 0.30);
+    applyRimDarkening(MGLB[partId], 0.45);
   } else if (partId === 'fitting') {
     MGLB[partId] = new THREE.MeshStandardMaterial({
       color: new THREE.Color('#E8E6E0'), roughness: 0.72, metalness: 0.0,
@@ -1609,7 +1684,10 @@ function getOrCreateMat(partId) {
       envMapIntensity: 0.5,
     });
   }
-  if(MGLB[partId] && partId !== "peer") applyCavityHighlight(MGLB[partId], partId === "kap" ? 0.30 : 0.52);
+  if(MGLB[partId] && partId !== "peer") {
+    applyCavityHighlight(MGLB[partId], partId === "kap" ? 0.30 : 0.52);
+    applyRimDarkening(MGLB[partId], partId === "kap" ? 0.45 : 0.65);
+  }
   return MGLB[partId];
 }
 
@@ -1925,48 +2003,45 @@ function buildPList(){
   });
 }
 
+function buildLampUI() {
+  return `<div style="display:flex;flex-direction:column;gap:8px;padding:2px 0">
+    <button class="cb${lampOn?' on':''}" id="bLampInline" onclick="toggleLamp()"
+      style="justify-content:center;font-size:11px;margin-bottom:2px">
+      <span>${lampOn ? '● Lamp aan' : '○ Lamp uit'}</span>
+    </button>
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Kleurtemperatuur</span>
+      </div>
+      <div style="display:flex;gap:4px">
+        ${[["2700K","#FF7700"],["3000K","#FFAA44"],["4000K","#FFF5CC"],["6500K","#E8F0FF"]].map(([k,col])=>`
+          <button class="cb" onclick="setPeerColor('${col}')" title="${k}"
+            style="flex:1;padding:6px 2px;flex-direction:column;gap:3px;margin:0">
+            <span style="display:block;width:14px;height:14px;border-radius:50%;background:${col};margin:0 auto"></span>
+            <span style="font-family:Space Mono,monospace;font-size:7px;color:var(--text-dim)">${k}</span>
+          </button>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Intensiteit</span>
+        <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--amber)" id="peerIntVal">${Math.round(peerIntensity*100)}%</span>
+      </div>
+      <input type="range" min="0" max="100" value="${Math.round(peerIntensity*100)}"
+        id="peerIntSlider" oninput="setPeerIntensity(this.value/100)"
+        style="width:100%;accent-color:var(--amber);height:3px;cursor:pointer">
+    </div>
+  </div>`;
+}
+
 function buildColorGrid(){
   const g=document.getElementById("cgrid"); g.innerHTML="";
 
-  // Peer (gloeilamp) — speciale UI: kleurtemperatuur + aan/uit
-  if([...selParts].some(id => partInfo(id).emissive)){
+  // Niets geselecteerd — toon lamp UI als standaard
+  if(!selP || selParts.size === 0) {
     g.style.display="block";
-    g.innerHTML=`
-      <div style="display:flex;flex-direction:column;gap:8px;padding:4px 0">
-        <div style="display:flex;align-items:center;gap:10px">
-          <button class="cb${lampOn?' on':''}" id="bLampInline" onclick="toggleLamp()"
-            style="flex:1;justify-content:center;font-size:11px">
-            <span>${lampOn?'● Lamp aan':'○ Lamp uit'}</span>
-          </button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Kleurtemperatuur</span>
-          <div style="display:flex;gap:6px">
-            ${[
-              {label:"Warm",  color:"#FF7700", k:"2700K"},
-              {label:"Neutraal", color:"#FFAA44", k:"3000K"},
-              {label:"Wit",   color:"#FFF5CC", k:"4000K"},
-              {label:"Koel",  color:"#E8F0FF", k:"6500K"},
-            ].map(t=>`
-              <button class="cb" onclick="setPeerColor('${t.color}')"
-                style="flex:1;flex-direction:column;gap:2px;padding:6px 4px;font-size:9px">
-                <span style="display:block;width:16px;height:16px;border-radius:50%;background:${t.color};margin:0 auto 2px"></span>
-                <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--text-dim)">${t.k}</span>
-              </button>`).join('')}
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Intensiteit</span>
-            <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--amber)" id="peerIntVal">${Math.round(peerIntensity*100)}%</span>
-          </div>
-          <input type="range" min="0" max="100" value="${Math.round(peerIntensity*100)}"
-            id="peerIntSlider"
-            oninput="setPeerIntensity(this.value/100)"
-            style="width:100%;accent-color:var(--amber);height:3px;cursor:pointer">
-        </div>
-      </div>`;
     g.style.gridTemplateColumns="1fr";
+    g.innerHTML = buildLampUI();
     return;
   }
 
@@ -2121,7 +2196,7 @@ function kapLightProps(matId) {
     case 'pla-nebula':
       return { transparent:true,  opacity:0.99, emissiveIntensity:0.85, emissive:'#3A2000' };
     case 'pla-cf':
-      return { transparent:true,  opacity:0.9992, emissiveIntensity:0.08, emissive:'#0A0400' };
+      return { transparent:false, opacity:1.0,    emissiveIntensity:0.06, emissive:'#0A0400' };
     default:
       return { transparent:true,  opacity:0.985, emissiveIntensity:0.85, emissive:'#3A1800' };
   }
@@ -2151,6 +2226,7 @@ function applyMatPreset(id, targets){
     preset.apply(mat);
     // Box mapping toepassen voor normale & roughness maps
     if(mat.normalMap || mat.roughnessMap) applyBoxMapping(mat, pid==="kap" ? 3.5 : 2.8);
+    if(pid !== "peer") { applyCavityHighlight(mat, pid==="kap" ? 0.30 : 0.52); applyRimDarkening(mat, pid==="kap" ? 0.45 : 0.65); }
     // Transparantie + SSS aanpassen
     const info = partInfo(pid);
     const isKap = info.sh || pid==="shade" || pid==="kap";
@@ -2209,13 +2285,6 @@ function applyMatPreset(id, targets){
 function buildMatList(){
   const el=document.getElementById("matlist"); if(!el)return;
   el.innerHTML="";
-
-  // Peer heeft geen PLA-preset — toon beschrijving
-  if([...selParts].some(id => partInfo(id).emissive)){
-    el.innerHTML=`<p style="font-family:Space Mono,monospace;font-size:9px;color:var(--text-dim);line-height:1.5;padding:4px 0">
-      Doorzichtig glas.<br>Kleur = lichttemperatuur.<br>Aan/uit via knop hierboven.</p>`;
-    return;
-  }
 
   const curId=partMat[selP]||"pla-basic";
 
@@ -2390,7 +2459,7 @@ function setPeerColor(hex){
   buildColorGrid();
 }
 
-let peerIntensity = 1.0; // 0..1
+let peerIntensity = 0.20; // start op 20%
 
 function setPeerIntensity(v){
   peerIntensity = Math.max(0, Math.min(1, v));
@@ -2418,29 +2487,42 @@ function updateKapGlow() {
   const kapMat = MGLB['kap'];
   if(!kapMat) return;
   const kp = kapLightProps(partMat['kap'] || 'pla-mat');
-  const t = lampOn ? peerIntensity : 0; // 0..1
+  const t = lampOn ? peerIntensity : 0;
 
-  // Opacity: lamp uit = dicht (0.97), lamp vol aan = licht open (0.82 voor basic/mat)
-  // Patroon wordt zichtbaar door de semi-transparante buitenwand
-  const opBase  = kp.opacity;             // lamp-uit waarde (0.96-0.97)
-  const opGlow  = Math.max(0.84, opBase - 0.12); // lamp vol aan
-  kapMat.opacity           = opBase - (opBase - opGlow) * t;
+  // CF is altijd opaque — geen opacity daling
+  const isCF = (partMat['kap'] || 'pla-mat') === 'pla-cf';
+  if(!isCF) {
+    const opBase = kp.opacity;
+    const opGlow = Math.max(0.84, opBase - 0.12);
+    kapMat.opacity = opBase - (opBase - opGlow) * t;
+    kapMat.transparent = kp.transparent;
+  } else {
+    kapMat.opacity = 1.0;
+    kapMat.transparent = false;
+  }
+
+  // Emissive = warme kap-tint gemengd met de werkelijke kapkleur
+  const kapColor = kapMat.color.clone();
+  // Mix: amber SSS gloed + echte kleur
+  const sssColor = new THREE.Color(kp.emissive);
+  sssColor.lerp(kapColor, 0.45); // 45% echte kleur, 55% warm amber
+  kapMat.emissive = sssColor;
   kapMat.emissiveIntensity = kp.emissiveIntensity * t;
-  kapMat.emissive          = new THREE.Color(kp.emissive);
   kapMat.needsUpdate = true;
+
+  // kapGlow kleur = kap kleur + warmte
+  const glowColor = kapColor.clone().lerp(new THREE.Color(0xFF8820), 0.55);
+  kapGlow.color.copy(glowColor);
 }
 
 function toggleLamp(){ setLamp(!lampOn); }
 
-// Overschrijf setLamp om ook bLampInline te updaten
 function setLamp(on) {
   lampOn = on;
-  // Hoofd lamp-knop (weergave-sectie)
   const btn = document.getElementById('bLamp');
   if(btn){ btn.classList.toggle('on',on); const s=btn.querySelectorAll('span'); if(s[0]) s[0].textContent=on?'Lamp aan':'Lamp uit'; }
-  // Inline knop in kleur-grid
   const btn2 = document.getElementById('bLampInline');
-  if(btn2){ btn2.classList.toggle('on',on); btn2.querySelector('span').textContent = on?'● Lamp aan':'○ Lamp uit'; }
+  if(btn2){ btn2.classList.toggle('on',on); const lbl=document.getElementById('bLampInlineLabel'); if(lbl) lbl.textContent=on?'● Lamp aan':'○ Lamp uit'; }
 
   const peerMat = MGLB['peer'];
   if(peerMat){
@@ -2675,6 +2757,10 @@ function showToast(msg) {
   t.textContent=msg; t.style.opacity='1';
   clearTimeout(t._to); t._to=setTimeout(()=>t.style.opacity='0', 2200);
 }
+
+// Init lamp op 20% warm
+setPeerIntensity(0.20);
+setLamp(true);
 
 // Laad config uit URL hash bij start
 if(location.hash) loadConfig(location.hash.slice(1)); // PLA-CF: direct zwarte kleur zetten als standaard
