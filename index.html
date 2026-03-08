@@ -739,7 +739,8 @@ footer {
 }
 @media (max-width: 700px) {
   .onderdeel-slide { grid-template-columns: 1fr; height: auto; }
-  .onderdeel-slide-img { width: 100%; height: 260px; }
+  .onderdeel-slide-img { width: 100%; height: 260px; min-height: 260px; flex-shrink: 0; display: block; }
+  .onderdeel-slide-img img { width: 100%; height: 100%; object-fit: contain; padding: 20px; display: block; }
 }
 .onderdeel-slide-num {
   font-family: var(--font-mono);
@@ -766,7 +767,6 @@ footer {
   margin-top: 12px;
 }
 .onderdelen-dl {
-  margin-left: auto;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: .12em;
@@ -867,7 +867,6 @@ footer {
 .stappen-dots {
   display: flex;
   gap: 8px;
-  flex: 1;
 }
 .stappen-dot {
   width: 20px; height: 2px;
@@ -1199,26 +1198,20 @@ nav.scrolled {
   max-width: 700px;
 }
 .hero-right {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 100px 40px 60px 20px;
+  position: relative;
   overflow: hidden;
-  max-height: 100vh;
+  padding: 0;
 }
 .hero-img-frame {
-  width: 100%;
-  height: 100%;
-  max-height: calc(100vh - 160px);
+  position: absolute;
+  inset: 0;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .hero-img-frame img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center center;
   display: block;
 }
 
@@ -1650,7 +1643,7 @@ input, textarea, select {
   <div class="hero-right" style="opacity:0;animation:fadeUp .9s .5s forwards">
     <div class="hero-img-frame rhombi-frame">
       <img decoding="async" id="heroImg" src="fotos/hero/20260206_172451.jpg" data-folder="hero" 
-           alt="Rhombi lamp in de sneeuw, Rotterdam"
+           alt=""
            loading="eager" fetchpriority="high"
            style="transition:opacity .4s" onload="this.style.opacity='1'" onerror="this.style.opacity='1'">
     </div>
@@ -2018,6 +2011,7 @@ input, textarea, select {
         <div class="stappen-dots" id="ondDots"></div>
         <span class="stappen-counter" id="ondCounter">1 / 8</span>
         <button class="stappen-btn" id="ondNext" aria-label="Volgend onderdeel">→</button>
+        <span style="flex:1"></span>
         <a href="Rhombi_handleiding.pdf" class="onderdelen-dl" data-i18n="dl-manual">PDF ↓</a>
       </div>
     </div>
