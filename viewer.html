@@ -55,7 +55,7 @@ canvas{display:block;border-radius:2px}
 .pb-member{padding-left:28px!important;font-size:9px;opacity:.85}
 .pb-member::before{content:"└ ";opacity:.4;margin-right:2px}
 .pb-member.collapsed{display:none}
-.vis-btn{background:none;border:none;padding:0 0 0 6px;cursor:pointer;opacity:.4;font-size:11px;color:var(--text-dim);transition:opacity .15s;flex-shrink:0}
+.vis-btn{padding:0 0 0 6px;cursor:pointer;opacity:.4;font-size:11px;color:var(--text-dim);transition:opacity .15s;flex-shrink:0;user-select:none}
 .vis-btn:hover{opacity:1!important}
 .pb:hover .vis-btn{opacity:.7}
 .vis-btn:hover{opacity:.8}
@@ -63,8 +63,8 @@ canvas{display:block;border-radius:2px}
 .grp-arrow{margin-right:4px;opacity:.5;font-size:8px;display:inline-block;transition:transform .15s;transform:rotate(-90deg)}
 .grp-arrow.open{transform:rotate(0deg)}
 .grp-arrow.closed{transform:rotate(-90deg)}
-.pb:hover{border-color:rgba(200,136,74,.3);color:var(--cream)}
-.pb.on{border-color:var(--amber);color:var(--cream);background:rgba(200,136,74,.08)}
+.pb:hover{border-color:rgba(200,136,74,.4);color:var(--cream);background:rgba(200,136,74,.05);cursor:pointer}
+.pb.on{border-color:var(--amber);color:var(--cream);background:rgba(200,136,74,.10);border-left:3px solid var(--amber);box-shadow:inset 2px 0 8px rgba(200,136,74,.08)}
 .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;transition:background .3s}
 .sh{font-family:"Space Mono",monospace;font-size:7px;letter-spacing:.08em;color:var(--amber);opacity:.75;padding:1px 4px;border:1px solid rgba(200,136,74,.3);margin-left:5px}
 .cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
@@ -73,6 +73,7 @@ canvas{display:block;border-radius:2px}
 .sw.on{border-color:rgba(200,136,74,.9);box-shadow:inset 0 0 0 1px rgba(200,136,74,.9)}
 .swtip{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--dark2);color:var(--cream);font-family:"Space Mono",monospace;font-size:8px;padding:3px 6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:99}
 .sw:hover .swtip{opacity:1}
+.swtip.show{opacity:1!important}
 .cb{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--dark3);border:1px solid rgba(255,255,255,.05);color:var(--text);font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:3px}
 .cb:hover{border-color:rgba(200,136,74,.3);color:var(--cream)}
 .cb.on{background:rgba(200,136,74,.1);border-color:var(--amber);color:var(--amber)}
@@ -128,9 +129,33 @@ canvas{ touch-action:none }
   inset: 0;
   z-index: 10;
   pointer-events: none;
-  box-shadow: inset 0 0 0 1px rgba(200,136,74,.35);
+  box-shadow: inset 0 0 0 1px rgba(200,136,74,.35), inset 0 0 120px 40px rgba(8,10,14,0.72);
   clip-path: inherit;
   border-radius: inherit;
+}
+#screenshot-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 15;
+  width: 34px;
+  height: 34px;
+  background: rgba(18,21,26,.82);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.08);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: all .18s;
+  clip-path: polygon(4px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 4px);
+}
+#screenshot-btn:hover {
+  border-color: rgba(200,136,74,.5);
+  color: var(--amber);
+  background: rgba(22,26,32,.95);
 }
 #canvas-frame::after {
   content: '';
@@ -184,12 +209,14 @@ canvas{ touch-action:none }
   }
   .vbar::-webkit-scrollbar{ display:none }
   .vbtn{
-    min-width: 68px;
-    padding: 10px 12px;
+    min-width: 72px;
+    padding: 14px 12px;
     flex-shrink: 0;
+    gap: 5px;
   }
   /* Grotere touch target */
-  .vi{ font-size:22px }
+  .vi{ font-size:24px }
+  .vl{ font-size:10px; letter-spacing:.12em }
 
   /* ── BOTTOM BAR — instellingen-knop + model-naam ── */
   .mob-bar-bottom{
@@ -314,7 +341,14 @@ canvas{ touch-action:none }
 
 <div id="loading"><div class="lr"></div><p class="lt">Configurator laden...</p></div>
 <div id="transit"><span class="ttext">◆ Onderdelen bewegen</span></div>
-<div id="c"><div id="canvas-frame"></div></div>
+<div id="c"><div id="canvas-frame"><button id="screenshot-btn" onclick="takeScreenshot()" title="Screenshot (P)">
+  <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+    <rect x="0.5" y="2.5" width="15" height="11" stroke="currentColor" stroke-width="1"/>
+    <path d="M5 2.5 L6 0.5 L10 0.5 L11 2.5" stroke="currentColor" stroke-width="1" fill="none"/>
+    <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1"/>
+    <rect x="12" y="4" width="2" height="1.5" fill="currentColor"/>
+  </svg>
+</button></div></div>
 
 <div class="bar">
   <a href="index.html" class="logo">Rhombi</a>
@@ -353,6 +387,7 @@ canvas{ touch-action:none }
     <button class="cb on" id="bLamp" onclick="toggleLamp()"><span>Lamp aan</span><span>💡</span></button>
     <button class="cb" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
     <button class="cb" onclick="resetView()"><span>Reset camera</span><span>⊙</span></button>
+    <button class="cb" onclick="saveConfig()"><span>Deel configuratie</span><span>⬡</span></button>
   </div>
   <div class="ps">
     <span class="pl">◆ Specificaties</span>
@@ -521,10 +556,11 @@ const VARIANTS=[
 // THREE SETUP
 // ═══════════════════════════════════════════
 const wrap=document.getElementById("c");
+// Vignette via CSS overlay — zie #canvasFrame::after
 const canvasFrame=document.getElementById("canvas-frame");
 // Detecteer mobiel voor adaptieve kwaliteit
 const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
-const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-performance"});
+const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-performance", preserveDrawingBuffer:true});
 // Lagere pixelRatio op mobiel — 80k tris kost anders te veel
 R.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio,1.5) : Math.min(window.devicePixelRatio,2));
 R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -561,12 +597,7 @@ const CAM=new THREE.PerspectiveCamera(40,1,.1,100);
     sunGrad.addColorStop(1,   "rgba(0,0,0,0)");
     bx.fillStyle=sunGrad; bx.fillRect(0,0,W,H);
 
-    // Vignette: donker naar buiten
-    const vigGrad=bx.createRadialGradient(W*.5,H*.45,W*.18,W*.5,H*.45,W*.78);
-    vigGrad.addColorStop(0,   "rgba(0,0,0,0)");
-    vigGrad.addColorStop(0.45,"rgba(0,0,0,0.25)");
-    vigGrad.addColorStop(1,   "rgba(0,0,0,0.72)");
-    bx.fillStyle=vigGrad; bx.fillRect(0,0,W,H);
+
 
     // ── Schaduwstrepen (jaloezie/blad) — soft fade naar midden ──
     // Diagonale transformatie: 16 graden, uitgaande van rechtsboven
@@ -697,12 +728,7 @@ const CAM=new THREE.PerspectiveCamera(40,1,.1,100);
     });
     bx.restore();
 
-    // Finale vignette
-    const vig2=bx.createRadialGradient(W*.5,H*.5,W*.25,W*.5,H*.5,W*.72);
-    vig2.addColorStop(0,   "rgba(0,0,0,0)");
-    vig2.addColorStop(0.5, "rgba(0,0,0,0.20)");
-    vig2.addColorStop(1,   "rgba(0,0,0,0.55)");
-    bx.fillStyle=vig2; bx.fillRect(0,0,W,H);
+
 
     const bgTex=new THREE.CanvasTexture(bg);
     SC.background=bgTex;
@@ -741,9 +767,9 @@ try {
 
   // SSAO — donkerder in hoekjes en spleten (Lumen-effect)
   ssaoPass=new THREE.SSAOPass(SC,CAM,wrap.clientWidth,wrap.clientHeight);
-  ssaoPass.kernelRadius=0.35;
-  ssaoPass.minDistance=0.002;
-  ssaoPass.maxDistance=0.25;
+  ssaoPass.kernelRadius=isMobile?0.28:0.55;
+  ssaoPass.minDistance=0.001;
+  ssaoPass.maxDistance=isMobile?0.20:0.35;
   ssaoPass.output=THREE.SSAOPass.OUTPUT.Default;
   composer.addPass(ssaoPass);
 
@@ -751,7 +777,7 @@ try {
     new THREE.Vector2(wrap.clientWidth,wrap.clientHeight),
     0.35,  // strength
     0.5,   // radius
-    0.75   // threshold
+    0.85   // threshold — hoger zodat witte mats niet bloomen
   );
   composer.addPass(bloomPass);
 } catch(e){
@@ -777,17 +803,17 @@ function resize(){
 }
 window.addEventListener("resize",resize); resize();
 
-SC.add(new THREE.AmbientLight(0xfff5e0,.25));
+SC.add(new THREE.AmbientLight(0xfff5e0,.55));
 
 // Key light
-const kL=new THREE.DirectionalLight(0xffe8a0,1.8);
-kL.position.set(6,9,4); kL.castShadow=true;
+const kL=new THREE.DirectionalLight(0xfff0c8,1.1);
+kL.position.set(5,8,5); kL.castShadow=true;
 kL.shadow.mapSize.width=kL.shadow.mapSize.height=isMobile?1024:2048;
 kL.shadow.bias=-0.0005;
 SC.add(kL);
 
 // Cool fill (tegenovergestelde kant)
-const fL=new THREE.DirectionalLight(0x7ab8c8,.25); fL.position.set(-5,2,-3); SC.add(fL);
+const fL=new THREE.DirectionalLight(0x9ab8c8,.40); fL.position.set(-5,3,-3); SC.add(fL);
 
 // Rim light van achteren
 const rL=new THREE.DirectionalLight(0xffd080,.4); rL.position.set(0,-3,-6); SC.add(rL);
@@ -1078,7 +1104,7 @@ const MAT_PRESETS=[
     apply:(mat)=>{
       mat.roughness=.48; mat.metalness=.0; mat.transparent=false; mat.opacity=1;
       mat.normalMap=getTex("pbn",texPLABasicNormal);
-      mat.normalScale=new THREE.Vector2(.55,.55);
+      mat.normalScale=new THREE.Vector2(.28,.28);
       mat.roughnessMap=getTex("pbr",texPLABasicRough);
       mat.envMapIntensity=.9;
       mat.needsUpdate=true;
@@ -1090,7 +1116,7 @@ const MAT_PRESETS=[
     apply:(mat)=>{
       mat.roughness=.88; mat.metalness=0; mat.transparent=false; mat.opacity=1;
       mat.normalMap=getTex("pmn",texPLAMatNormal);
-      mat.normalScale=new THREE.Vector2(.5,.5);
+      mat.normalScale=new THREE.Vector2(.25,.25);
       mat.roughnessMap=getTex("pmr",texPLAMatRough);
       mat.envMapIntensity=.15;
       mat.needsUpdate=true;
@@ -1102,7 +1128,7 @@ const MAT_PRESETS=[
     apply:(mat)=>{
       mat.roughness=.18; mat.metalness=.65; mat.transparent=false; mat.opacity=1;
       mat.normalMap=getTex("cfn",texCFNormal);
-      mat.normalScale=new THREE.Vector2(1.4,1.4);
+      mat.normalScale=new THREE.Vector2(.65,.65);
       mat.roughnessMap=getTex("cfr",texCFRough);
       mat.envMapIntensity=3.0;
       mat.needsUpdate=true;
@@ -1114,7 +1140,7 @@ const MAT_PRESETS=[
     apply:(mat)=>{
       mat.roughness=.42; mat.metalness=.3; mat.transparent=false; mat.opacity=1;
       mat.normalMap=getTex("nbn",texNebulaNormal);
-      mat.normalScale=new THREE.Vector2(1.0,1.0);
+      mat.normalScale=new THREE.Vector2(.50,.50);
       mat.roughnessMap=getTex("nbr",texNebulaRough);
       mat.envMapIntensity=2.2;
       mat.needsUpdate=true;
@@ -1188,6 +1214,45 @@ function updateTweens(dt){for(let i=tweens.length-1;i>=0;i--){tweens[i].update(d
 // ═══════════════════════════════════════════
 const LAMP=new THREE.Group(); SC.add(LAMP);
 
+// Shadow receiver — past zich aan op variant (vloer of muur)
+const _shadowMat = new THREE.ShadowMaterial({ opacity: 0.22, color: 0x000000 });
+const _shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), _shadowMat);
+_shadowPlane.receiveShadow = true;
+_shadowPlane.visible = false; // pas zichtbaar na GLB laden
+SC.add(_shadowPlane);
+
+function updateShadowPlane() {
+  if(!activeGLBGroups) return;
+  // Bereken model bbox
+  const box = new THREE.Box3();
+  Object.values(activeGLBGroups).forEach(g => box.expandByObject(g));
+  if(box.isEmpty()) return;
+  const min = box.min, max = box.max;
+  const center = box.getCenter(new THREE.Vector3());
+
+  const varId = window._rhombiCurrentVariant?.id || 'tafel';
+  if(varId === 'wand') {
+    // Verticaal vlak achter het model (muur)
+    _shadowPlane.rotation.set(0, 0, 0); // facing +Z
+    _shadowPlane.position.set(center.x, center.y, min.z - 0.02);
+    _shadowPlane.scale.set(
+      (max.x - min.x) * 2.5,
+      (max.y - min.y) * 2.0,
+      1
+    );
+  } else {
+    // Horizontaal vlak onder de voet
+    _shadowPlane.rotation.set(-Math.PI / 2, 0, 0);
+    _shadowPlane.position.set(center.x, min.y - 0.01, center.z);
+    _shadowPlane.scale.set(
+      (max.x - min.x) * 2.2,
+      (max.z - min.z) * 2.2,
+      1
+    );
+  }
+  _shadowPlane.visible = true;
+}
+
 // Shared meshes — permanent, only move/rotate
 
 
@@ -1222,8 +1287,16 @@ function swapLocal(varId){
       curV.parts = Object.keys(groups).map(id => partInfo(id));
       if(!curV.parts.find(p => p.id === selP)) selP = curV.parts[0].id;
 
+      // Pending kleuren toepassen (uit URL config)
+      if(window._pendingColors) {
+        Object.entries(window._pendingColors).forEach(([pid, hex]) => {
+          const mat = getOrCreateMat(pid); if(mat) mat.color.set(hex);
+        });
+        window._pendingColors = null;
+      }
       syncAllGLBParts();
       buildPList(); updateSwActive(); buildColorGrid(); buildMatList();       fitCameraToGLB();
+      updateShadowPlane();
 
       document.getElementById("transit").classList.remove("show");
       document.querySelector(".ttext").textContent = "◆ Onderdelen bewegen";
@@ -1350,6 +1423,67 @@ function partInfo(id) {
 const MGLB = {};  // MGLB['kap'], MGLB['peer'], etc.
 const PART_VIS = {};  // PART_VIS['kap'] = true/false — zichtbaarheid per onderdeel
 
+// Box mapping via object-space UVs — triplanar blend
+function applyBoxMapping(mat, scale=1.0) {
+  if(mat.userData._boxMappingScale === scale) return; // al geregistreerd met zelfde scale
+  mat.userData._boxMappingScale = scale;
+  mat.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      `#include <common>
+      varying vec3 vObjPos;
+      varying vec3 vObjNorm;`
+    ).replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>
+      vObjPos  = position * ${scale.toFixed(2)};
+      vObjNorm = normalize(normal);`
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      `#include <common>
+      varying vec3 vObjPos;
+      varying vec3 vObjNorm;
+      vec4 boxSample(sampler2D tex, vec3 pos, vec3 norm){
+        vec3 w = abs(norm);
+        w = pow(w, vec3(4.0));
+        w /= dot(w, vec3(1.0));
+        vec4 xP = texture2D(tex, pos.yz);
+        vec4 yP = texture2D(tex, pos.xz);
+        vec4 zP = texture2D(tex, pos.xy);
+        return xP*w.x + yP*w.y + zP*w.z;
+      }`
+    );
+    // Normal map channels
+    if(mat.normalMap) {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <normal_fragment_maps>',
+        `
+        #ifdef USE_NORMALMAP
+          vec3 mapN = boxSample(normalMap, vObjPos, vObjNorm).xyz * 2.0 - 1.0;
+          mapN.xy *= normalScale;
+          normal = perturbNormal2Arb(-vViewPosition, normal, mapN, faceDirection);
+        #endif
+        `
+      );
+    }
+    if(mat.roughnessMap) {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <roughnessmap_fragment>',
+        `
+        float roughnessFactor = roughness;
+        #ifdef USE_ROUGHNESSMAP
+          vec4 texelRoughness = boxSample(roughnessMap, vObjPos, vObjNorm);
+          roughnessFactor *= texelRoughness.g;
+        #endif
+        `
+      );
+    }
+    mat.userData.shader = shader;
+  };
+  mat.needsUpdate = true;
+}
+
 function getOrCreateMat(partId) {
   if (MGLB[partId]) return MGLB[partId];
 
@@ -1420,9 +1554,12 @@ if (typeof THREE.GLTFLoader !== 'undefined') {
   }
 }
 const GLB_BASE = 'https://cdn.jsdelivr.net/gh/vhectory/Rhombi@master/glb/';
+const _glbCache = new Map(); // url → ArrayBuffer cache
 let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na laden
 
 function clearActiveGLB() {
+  // Reset zichtbaarheid bij variant wissel
+  Object.keys(PART_VIS).forEach(k => delete PART_VIS[k]);
   if (!activeGLBGroups) return;
   Object.values(activeGLBGroups).forEach(g => {
     LAMP.remove(g);
@@ -1483,13 +1620,13 @@ function loadGLBParts(url) {
 function fitCameraToGLB() {
   if (!activeGLBGroups) return;
   const box = new THREE.Box3();
-  Object.values(activeGLBGroups).forEach(g => box.expandByObject(g));
+  Object.entries(activeGLBGroups).forEach(([pid,g]) => { if(PART_VIS[pid]!==false) box.expandByObject(g); });
   if (box.isEmpty()) return;
   const size   = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
   // Zet camera op 2.2x de grootste dimensie, gecentreerd op model
-  camR  = maxDim * 2.2;
+  camR  = maxDim * 1.6;
   panX  = 0;
   panY  = center.y;  // verticaal centreren
   console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2));
@@ -1498,7 +1635,7 @@ function fitCameraToGLB() {
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-let curV=VARIANTS[0],selP="shade",selParts=new Set(["shade"]),busy=false;
+let curV=VARIANTS[0],selP="kap",selParts=new Set(["kap"]),busy=false;
 let spinning=false;
 let camTh=Math.PI,camPh=.45,camR=6.5,panX=0,panY=0;
 
@@ -1550,9 +1687,16 @@ function switchVar(v){
       }
       busy=false;
       document.querySelectorAll(".vbtn").forEach(b=>b.classList.remove("busy"));
-          }
+      clearTimeout(_fallback);
+    }
   });
   observer.observe(transit, {attributes:true, attributeFilter:["class"]});
+  // Fallback: als GLB laad mislukt, altijd busy=false na 8s
+  const _fallback = setTimeout(()=>{
+    observer.disconnect();
+    busy=false;
+    document.querySelectorAll(".vbtn").forEach(b=>b.classList.remove("busy"));
+  }, 8000);
 }
 
 // ═══════════════════════════════════════════
@@ -1611,7 +1755,7 @@ function buildPList(){
     const arrow  = grp.members ? '<span class="grp-arrow">▾</span>' : '';
     const visIcon = PART_VIS[grp.id] === false ? '○' : '●';
     const visCls  = PART_VIS[grp.id] === false ? ' hidden-part' : '';
-    b.innerHTML  = `<span>${arrow}${grp.nm}${emIcon}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${grp.id}" style="background:${col}"></span><button class="vis-btn${visCls}" data-vis="${grp.id}" onclick="togglePartVis('${grp.id}',event)">${visIcon}</button></span>`;
+    b.innerHTML  = `<span>${arrow}${grp.nm}${emIcon}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${grp.id}" style="background:${col}"></span><span class="vis-btn${visCls}" data-vis="${grp.id}" onclick="togglePartVis('${grp.id}',event)">${visIcon}</span></span>`;
     b.onclick = (e) => {
       if(e.target.classList.contains('vis-btn')||e.target.closest('.vis-btn')) return;
       if (grp.members) {
@@ -1638,7 +1782,7 @@ function buildPList(){
         const mnm = mid.replace(/_/g,' ').replace(/\b\w/g, ch => ch.toUpperCase());
         const mvisIcon = PART_VIS[mid] === false ? '○' : '●';
         const mvisCls  = PART_VIS[mid] === false ? ' hidden-part' : '';
-        mb.innerHTML = `<span>${mnm}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${mid}" style="background:${mc}"></span><button class="vis-btn${mvisCls}" data-vis="${mid}" onclick="togglePartVis('${mid}',event)">${mvisIcon}</button></span>`;
+        mb.innerHTML = `<span>${mnm}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${mid}" style="background:${mc}"></span><span class="vis-btn${mvisCls}" data-vis="${mid}" onclick="togglePartVis('${mid}',event)">${mvisIcon}</span></span>`;
         mb.onclick = (e) => { if(e.target.classList.contains('vis-btn')||e.target.closest('.vis-btn')) return; e.stopPropagation(); selPart(mid, e.ctrlKey||e.metaKey); };
         list.appendChild(mb);
       });
@@ -1659,7 +1803,7 @@ function buildPList(){
     b.dataset.id = id;
     const fvisIcon = PART_VIS[id] === false ? '○' : '●';
     const fvisCls  = PART_VIS[id] === false ? ' hidden-part' : '';
-    b.innerHTML = `<span>${id}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${id}" style="background:${col}"></span><button class="vis-btn${fvisCls}" data-vis="${id}" onclick="togglePartVis('${id}',event)">${fvisIcon}</button></span>`;
+    b.innerHTML = `<span>${id}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${id}" style="background:${col}"></span><span class="vis-btn${fvisCls}" data-vis="${id}" onclick="togglePartVis('${id}',event)">${fvisIcon}</span></span>`;
     b.onclick = (e) => selPart(id, e.ctrlKey||e.metaKey);
     list.appendChild(b);
   });
@@ -1712,6 +1856,15 @@ function buildColorGrid(){
 
   g.style.display="";
   g.style.gridTemplateColumns="";
+
+  // Kopieer kleur van primaire selectie naar alle andere geselecteerde parts
+  if(selParts.size > 1) {
+    const copyBtn = document.createElement('div');
+    copyBtn.style.cssText = 'grid-column:1/-1;display:flex;justify-content:flex-end;margin-bottom:4px';
+    copyBtn.innerHTML = `<button class="cb" style="padding:4px 8px;font-size:8px;margin:0" onclick="copyColorToSelection()">Kopieer kleur naar selectie ↗</button>`;
+    g.appendChild(copyBtn);
+  }
+
   const matId=partMat[selP]||"pla-basic";
   const colors=BAMBU_COLORS[matId]||[];
   if(colors.length===0){
@@ -1787,6 +1940,22 @@ function selPart(id, multi=false){
   buildMatList();
 }
 
+function copyColorToSelection() {
+  // Kopieer kleur + materiaal van selP naar alle andere geselecteerde parts
+  const srcMat = getOrCreateMat(selP); if(!srcMat) return;
+  const srcHex = '#' + srcMat.color.getHexString();
+  const srcPreset = partMat[selP] || 'pla-basic';
+  selParts.forEach(pid => {
+    if(pid === selP) return;
+    applyMatPreset(srcPreset, [pid]);
+    const mat = getOrCreateMat(pid); if(!mat) return;
+    mat.color.set(srcHex);
+    if(activeGLBGroups) syncGLBPart(pid);
+  });
+  buildColorGrid(); updateSwActive();
+  showToast('Kleur gekopieerd naar ' + (selParts.size-1) + ' onderdelen');
+}
+
 function applyColor(hex){
   // Alle geselecteerde onderdelen krijgen de kleur
   const allTargets = new Set();
@@ -1828,9 +1997,9 @@ function kapLightProps(matId) {
     case 'pla-translucent':
       return { transparent:true,  opacity:0.32, emissiveIntensity:0.9,  emissive:'#3A1800' };
     case 'pla-basic':
-      return { transparent:true,  opacity:0.75, emissiveIntensity:0.55, emissive:'#2A1200' };
+      return { transparent:true,  opacity:0.88, emissiveIntensity:0.50, emissive:'#2A1200' };
     case 'pla-mat':
-      return { transparent:true,  opacity:0.68, emissiveIntensity:0.45, emissive:'#221000' };
+      return { transparent:true,  opacity:0.82, emissiveIntensity:0.40, emissive:'#221000' };
     case 'pla-nebula':
       return { transparent:true,  opacity:0.78, emissiveIntensity:0.65, emissive:'#301A00' };
     case 'pla-cf':
@@ -1862,6 +2031,8 @@ function applyMatPreset(id, targets){
     const mat = getOrCreateMat(pid);
     if(!mat) return;
     preset.apply(mat);
+    // Box mapping toepassen voor normale & roughness maps
+    if(mat.normalMap || mat.roughnessMap) applyBoxMapping(mat, 1.8);
     // Transparantie + SSS aanpassen
     const info = partInfo(pid);
     const isKap = info.sh || pid==="shade" || pid==="kap";
@@ -1985,6 +2156,32 @@ function buildMatList(){
 }
 
 
+function takeScreenshot() {
+  // Render via composer zodat bloom + SSAO ook in screenshot zitten
+  if(composer) composer.render(); else R.render(SC, CAM);
+
+  // Combineer 3D canvas + achtergrond op een off-screen canvas
+  const src = R.domElement;
+  const out = document.createElement('canvas');
+  out.width  = src.width;
+  out.height = src.height;
+  const ctx = out.getContext('2d');
+
+  // Teken de Three.js canvas (bevat achtergrond + model + bloom)
+  ctx.drawImage(src, 0, 0);
+
+  // Download
+  out.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'rhombi-' + curV.id + '-' + Date.now() + '.png';
+    link.href = url;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    showToast('Screenshot opgeslagen ✓');
+  }, 'image/png');
+}
+
 function toggleBloom(){
   if(!bloomPass)return;
   bloomOn=!bloomOn;
@@ -2004,7 +2201,7 @@ function toggleExplode(){
   document.getElementById("bEx").classList.toggle("on", exT===1);
   // Uitzomen bij explode, inzoomen bij sluiten
   if (exT===1) {
-    camR = camR * 1.8;  // uitzomen zodat alle onderdelen zichtbaar zijn
+    camR = camR * 1.25; // licht uitzomen bij explode
   } else {
     fitCameraToGLB();   // terugzoomen naar model
   }
@@ -2013,6 +2210,22 @@ function toggleExplode(){
 function toggleSpin(){
   spinning=!spinning; document.getElementById("bSp").classList.toggle("on",spinning);
 }
+
+// ── Toetsenbord shortcuts ─────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  switch(e.key) {
+    case 'e': case 'E': document.getElementById('bEx')?.click(); break;
+    case 'r': case 'R': resetView(); break;
+    case 'l': case 'L': toggleLamp(); break;
+    case 's': case 'S': toggleSpin(); break;
+    case 'p': case 'P': takeScreenshot(); break;
+    case 'c': case 'C': if(e.ctrlKey||e.metaKey) break; saveConfig(); break;
+    case '1': switchVar(VARIANTS[0]); break;
+    case '2': if(VARIANTS[1]&&!VARIANTS[1].coming_soon) switchVar(VARIANTS[1]); break;
+    case '3': if(VARIANTS[2]&&!VARIANTS[2].coming_soon) switchVar(VARIANTS[2]); break;
+  }
+});
 
 // ── WIREFRAME ────────────────────────────────────────────────────────
 
@@ -2051,12 +2264,14 @@ function setPeerIntensity(v){
 
 // setLamp bijwerken zodat ook de inline kleurtemperatuur-knop mee update
 const _setLampOrig = setLamp;
+function toggleLamp(){ setLamp(!lampOn); }
+
 // Overschrijf setLamp om ook bLampInline te updaten
 function setLamp(on) {
   lampOn = on;
   // Hoofd lamp-knop (weergave-sectie)
   const btn = document.getElementById('bLamp');
-  if(btn){ btn.classList.toggle('on',on); btn.querySelector('span').textContent = on?'Lamp aan':'Lamp uit'; }
+  if(btn){ btn.classList.toggle('on',on); const s=btn.querySelectorAll('span'); if(s[0]) s[0].textContent=on?'Lamp aan':'Lamp uit'; }
   // Inline knop in kleur-grid
   const btn2 = document.getElementById('bLampInline');
   if(btn2){ btn2.classList.toggle('on',on); btn2.querySelector('span').textContent = on?'● Lamp aan':'○ Lamp uit'; }
@@ -2094,7 +2309,7 @@ cvs.addEventListener("click", e => {
   _ray.setFromCamera(_mouse, CAM);
   const meshes = [];
   if(activeGLBGroups){
-    Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh) meshes.push(o); }));
+    Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh && o.visible && PART_VIS[o.userData.partId]!==false) meshes.push(o); }));
   }
   const hits = _ray.intersectObjects(meshes, false);
   if(hits.length > 0){
@@ -2133,6 +2348,21 @@ window.addEventListener("mousemove",e=>{
 });
 cvs.addEventListener("wheel",e=>{e.preventDefault();camR=Math.max(2,Math.min(16,camR+e.deltaY*.012))},{passive:false});
 cvs.addEventListener("touchstart",e=>{lastT2=e.touches[0]},{passive:true});
+
+// Touch tooltip voor kleurswatches op mobiel
+document.addEventListener('touchstart', e => {
+  const sw = e.target.closest('.sw');
+  // Verberg alle open tips eerst
+  document.querySelectorAll('.swtip.show').forEach(t => t.classList.remove('show'));
+  if(sw) {
+    e.preventDefault();
+    const tip = sw.querySelector('.swtip');
+    if(tip) {
+      tip.classList.add('show');
+      setTimeout(() => tip.classList.remove('show'), 1800);
+    }
+  }
+}, {passive:false});
 cvs.addEventListener("touchmove",e=>{
   if(!lastT2)return;
   const t=e.touches[0];
@@ -2204,7 +2434,53 @@ function animate(ts){
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
-buildVBar(); buildPList(); buildColorGrid(); buildMatList(); buildSpecs(VARIANTS[0]); updateSwActive(); // PLA-CF: direct zwarte kleur zetten als standaard
+buildVBar(); buildPList(); buildColorGrid(); buildMatList(); buildSpecs(VARIANTS[0]); updateSwActive();
+
+// ── Configuratie opslaan/laden via URL hash ──────────────────────────
+function saveConfig() {
+  const cfg = {
+    v: curV.id,
+    m: {..._partMatData},
+    c: {}
+  };
+  // Sla kleuren op per part
+  Object.keys(MGLB).forEach(pid => {
+    if(MGLB[pid]) cfg.c[pid] = '#' + MGLB[pid].color.getHexString();
+  });
+  const hash = btoa(JSON.stringify(cfg));
+  history.replaceState(null, '', '#' + hash);
+  // Kopieer naar klembord
+  navigator.clipboard?.writeText(window.location.href).then(()=>{
+    showToast('Link gekopieerd ✓');
+  });
+}
+
+function loadConfig(hash) {
+  try {
+    const cfg = JSON.parse(atob(hash));
+    // Materialen instellen
+    if(cfg.m) Object.entries(cfg.m).forEach(([pid, matId]) => {
+      partMat[pid] = matId;
+    });
+    // Kleuren instellen (na GLB laden)
+    window._pendingColors = cfg.c || {};
+    // Variant laden
+    const v = VARIANTS.find(v => v.id === cfg.v);
+    if(v && v.id !== curV.id) switchVar(v);
+  } catch(e) { console.warn('Config laden mislukt:', e); }
+}
+
+function showToast(msg) {
+  let t = document.getElementById('_toast');
+  if(!t){ t=document.createElement('div'); t.id='_toast';
+    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(200,136,74,.95);color:#12151A;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.15em;padding:8px 16px;z-index:999;pointer-events:none;transition:opacity .4s';
+    document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._to); t._to=setTimeout(()=>t.style.opacity='0', 2200);
+}
+
+// Laad config uit URL hash bij start
+if(location.hash) loadConfig(location.hash.slice(1)); // PLA-CF: direct zwarte kleur zetten als standaard
 
 // Detect iframe embedding
 if(window.self!==window.top)document.body.classList.add('embedded');
