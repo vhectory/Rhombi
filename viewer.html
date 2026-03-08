@@ -395,8 +395,8 @@ canvas{ touch-action:none; cursor:crosshair }
     <button class="cb on" id="bLampInline" onclick="toggleLamp()" style="width:100%;justify-content:space-between;margin-bottom:8px">
       <span id="bLampInlineLabel">● Lamp aan</span><span>💡</span>
     </button>
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-      <div style="display:flex;gap:3px;flex:1" id="ktemp-btns">
+    <div style="margin-bottom:8px">
+      <div style="display:flex;gap:3px;margin-bottom:6px" id="ktemp-btns">
         <button class="cb" onclick="setPeerColor('#FF7700')" title="2700K" style="flex:1;padding:5px 2px;flex-direction:column;gap:2px;margin:0">
           <span style="display:block;width:12px;height:12px;border-radius:50%;background:#FF7700;margin:0 auto"></span>
           <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">2700K</span>
@@ -414,12 +414,13 @@ canvas{ touch-action:none; cursor:crosshair }
           <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">6500K</span>
         </button>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:52px">
-        <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--amber)" id="peerIntVal">20%</span>
-        <input type="range" min="0" max="100" value="20" id="peerIntSlider"
-          oninput="setPeerIntensity(this.value/100)"
-          style="width:52px;accent-color:var(--amber);height:3px;cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-family:Space Mono,monospace;font-size:7px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Intensiteit</span>
+        <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--amber);min-width:28px;text-align:right" id="peerIntVal">20%</span>
       </div>
+      <input type="range" min="0" max="100" value="20" id="peerIntSlider"
+        oninput="setPeerIntensity(this.value/100)"
+        style="width:100%;accent-color:var(--amber);height:3px;cursor:pointer">
     </div>
     <span class="pl">◆ Materiaal</span>
     <div class="plist" id="matlist" style="margin-bottom:10px"></div>
@@ -1100,7 +1101,7 @@ function texCFNormal(){
                     rnd2(Math.floor((x+1)/5)+7, Math.floor(y/5)+3)*0.5) / 1.5;
         const nb = (rnd2(Math.floor(x/3), Math.floor((y+1)/3)) +
                     rnd2(Math.floor(x/5)+7, Math.floor((y+1)/5)+3)*0.5) / 1.5;
-        const str = 0.35;
+        const str = 0.12;
         const nx = (n - nr) * str;
         const ny = (n - nb) * str;
         d[i]   = Math.round((nx + 0.5) * 255);
@@ -1125,8 +1126,8 @@ function texCFRough(){
         const n1 = rnd2(Math.floor(x/3),   Math.floor(y/3));
         const n2 = rnd2(Math.floor(x/5)+7, Math.floor(y/5)+3) * 0.5;
         const n  = (n1 + n2) / 1.5;
-        // Heel kleine spreiding — nauwelijks zichtbaar kleurcontrast
-        const v  = 0.58 + n * 0.10;
+        // Mat CF: vrijwel uniform hoge roughness
+        const v  = 0.80 + n * 0.04;
         d[i]=d[i+1]=d[i+2]=Math.round(v*255); d[i+3]=255;
       }
     }
@@ -1252,11 +1253,11 @@ const MAT_PRESETS=[
     id:"pla-cf", nm:"PLA-CF",
     desc:"Koolstofvezel · geweven",
     apply:(mat)=>{
-      mat.roughness=.55; mat.metalness=.12; mat.transparent=false; mat.opacity=1;
+      mat.roughness=.82; mat.metalness=.0; mat.transparent=false; mat.opacity=1;
       mat.normalMap=getTex("cfn3",texCFNormal);
-      mat.normalScale=new THREE.Vector2(0.9,0.9);
+      mat.normalScale=new THREE.Vector2(0.18,0.18);
       mat.roughnessMap=getTex("cfr4",texCFRough);
-      mat.envMapIntensity=0.8;
+      mat.envMapIntensity=0.15;
       mat.needsUpdate=true;
     }
   },
@@ -1340,7 +1341,30 @@ function updateTweens(dt){for(let i=tweens.length-1;i>=0;i--){tweens[i].update(d
 // ═══════════════════════════════════════════
 const LAMP=new THREE.Group(); SC.add(LAMP);
 
-// Shadow plane verwijderd
+// Vloer shadow plane — horizontaal, adaptief geschaald op model
+const _shadowMat = new THREE.ShadowMaterial({ opacity: 0.14, color: 0x000000 });
+const _shadowPlane = new THREE.Mesh(
+  new THREE.PlaneGeometry(1, 1),
+  _shadowMat
+);
+_shadowPlane.rotation.x = -Math.PI / 2;
+_shadowPlane.receiveShadow = true;
+_shadowPlane.visible = false;
+SC.add(_shadowPlane);
+
+function updateFloorPlane() {
+  if(!activeGLBGroups) return;
+  const box = new THREE.Box3();
+  Object.values(activeGLBGroups).forEach(g => box.expandByObject(g));
+  if(box.isEmpty()) return;
+  const min = box.min, max = box.max;
+  const center = box.getCenter(new THREE.Vector3());
+  const fw = Math.max(max.x - min.x, max.z - min.z);
+  _shadowPlane.position.set(center.x, min.y - 0.002, center.z);
+  _shadowPlane.scale.set(fw * 2.2, fw * 2.2, 1);
+  _shadowMat.opacity = 0.14;
+  _shadowPlane.visible = true;
+}
 
 
 // Shared meshes — permanent, only move/rotate
@@ -1796,9 +1820,11 @@ function fitCameraToGLB() {
   const center = box.getCenter(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
   // Zet camera op 2.2x de grootste dimensie, gecentreerd op model
-  camR  = maxDim * 2.0;
+  camR  = maxDim * 2.2;
+  camTh = 0;          // voorkant
+  camPh = 0.42;       // lichte bovenaanzicht
   panX  = 0;
-  panY  = center.y;  // verticaal centreren
+  panY  = center.y;
   console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2));
 }
 
@@ -1807,7 +1833,7 @@ function fitCameraToGLB() {
 // ═══════════════════════════════════════════
 let curV=VARIANTS[0],selP="kap",selParts=new Set(["kap"]),busy=false;
 let spinning=false;
-let camTh=Math.PI,camPh=.45,camR=6.5,panX=0,panY=0;
+let camTh=0,camPh=.42,camR=6.5,panX=0,panY=0;
 
 // Init first variant instantly
 swapLocal("tafel");
@@ -1991,6 +2017,7 @@ function buildPList(){
   // Meshes die niet in PART_GROUPS staan — als fallback tonen
   available.forEach(id => {
     if (_GI[id]) return; // al behandeld
+    if (id === 'peer') return; // lamp — geen onderdeel
     const col = _partColor(id);
     const b = document.createElement("button");
     b.className = "pb" + (selP === id ? " on" : "");
@@ -2003,47 +2030,8 @@ function buildPList(){
   });
 }
 
-function buildLampUI() {
-  return `<div style="display:flex;flex-direction:column;gap:8px;padding:2px 0">
-    <button class="cb${lampOn?' on':''}" id="bLampInline" onclick="toggleLamp()"
-      style="justify-content:center;font-size:11px;margin-bottom:2px">
-      <span>${lampOn ? '● Lamp aan' : '○ Lamp uit'}</span>
-    </button>
-    <div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Kleurtemperatuur</span>
-      </div>
-      <div style="display:flex;gap:4px">
-        ${[["2700K","#FF7700"],["3000K","#FFAA44"],["4000K","#FFF5CC"],["6500K","#E8F0FF"]].map(([k,col])=>`
-          <button class="cb" onclick="setPeerColor('${col}')" title="${k}"
-            style="flex:1;padding:6px 2px;flex-direction:column;gap:3px;margin:0">
-            <span style="display:block;width:14px;height:14px;border-radius:50%;background:${col};margin:0 auto"></span>
-            <span style="font-family:Space Mono,monospace;font-size:7px;color:var(--text-dim)">${k}</span>
-          </button>`).join('')}
-      </div>
-    </div>
-    <div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Intensiteit</span>
-        <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--amber)" id="peerIntVal">${Math.round(peerIntensity*100)}%</span>
-      </div>
-      <input type="range" min="0" max="100" value="${Math.round(peerIntensity*100)}"
-        id="peerIntSlider" oninput="setPeerIntensity(this.value/100)"
-        style="width:100%;accent-color:var(--amber);height:3px;cursor:pointer">
-    </div>
-  </div>`;
-}
-
 function buildColorGrid(){
   const g=document.getElementById("cgrid"); g.innerHTML="";
-
-  // Niets geselecteerd — toon lamp UI als standaard
-  if(!selP || selParts.size === 0) {
-    g.style.display="block";
-    g.style.gridTemplateColumns="1fr";
-    g.innerHTML = buildLampUI();
-    return;
-  }
 
   g.style.display="";
   g.style.gridTemplateColumns="";
@@ -2194,7 +2182,7 @@ function kapLightProps(matId) {
     case 'pla-mat':
       return { transparent:true,  opacity:0.99, emissiveIntensity:0.65, emissive:'#2E1200' };
     case 'pla-nebula':
-      return { transparent:true,  opacity:0.99, emissiveIntensity:0.85, emissive:'#3A2000' };
+      return { transparent:true,  opacity:0.997, emissiveIntensity:0.75, emissive:'#3A2000' };
     case 'pla-cf':
       return { transparent:false, opacity:1.0,    emissiveIntensity:0.06, emissive:'#0A0400' };
     default:
@@ -2465,16 +2453,17 @@ function setPeerIntensity(v){
   peerIntensity = Math.max(0, Math.min(1, v));
   const el = document.getElementById('peerIntVal');
   if(el) el.textContent = Math.round(peerIntensity*100) + '%';
+
   const mat = MGLB['peer'];
   if(mat && lampOn){
     mat.emissiveIntensity = peerIntensity * 2.5;
     mat.opacity           = 0.35 + peerIntensity * 0.2;
     mat.needsUpdate = true;
   }
-  LP.intensity         = lampOn ? peerIntensity * 2.0 : 0;
-  bounceDown.intensity = lampOn ? peerIntensity * 1.0 : 0;
-  bounceSide.intensity = lampOn ? peerIntensity * 0.5 : 0;
-  kapGlow.intensity    = lampOn ? peerIntensity * 3.5 : 0;
+  LP.intensity         = lampOn ? peerIntensity * 1.0 : 0;
+  bounceDown.intensity = lampOn ? peerIntensity * 0.5 : 0;
+  bounceSide.intensity = lampOn ? peerIntensity * 0.25 : 0;
+  kapGlow.intensity    = lampOn ? peerIntensity * 1.8 : 0;
   kapGlow.distance     = 1.8;
   updateKapGlow();
 }
@@ -2530,12 +2519,12 @@ function setLamp(on) {
     peerMat.opacity           = on ? 0.55 : 0.88;
     peerMat.needsUpdate = true;
   }
-  kapGlow.intensity = on ? peerIntensity * 3.5 : 0.0;
+  kapGlow.intensity = on ? peerIntensity * 1.8 : 0.0;
   kapGlow.distance  = 1.8;
   updateKapGlow();
-  LP.intensity = on ? peerIntensity * 2.0 : 0.0;
-  bounceDown.intensity = on ? peerIntensity * 1.0 : 0.0;
-  bounceSide.intensity = on ? peerIntensity * 0.5 : 0.0;
+  LP.intensity = on ? peerIntensity * 1.0 : 0.0;
+  bounceDown.intensity = on ? peerIntensity * 0.5 : 0.0;
+  bounceSide.intensity = on ? peerIntensity * 0.25 : 0.0;
   kapGlow.intensity = on ? peerIntensity * 1.8 : 0.0;
   syncGLBPart('peer');
 }
