@@ -248,7 +248,7 @@ canvas{ touch-action:none; cursor:crosshair }
     bottom: auto;
     left: 0;
     right: 0;
-    z-index: 40;
+    z-index: 41;
     height: var(--mob-bar-h);
     align-items: flex-start;
     padding-top: 10px;
@@ -298,50 +298,60 @@ canvas{ touch-action:none; cursor:crosshair }
   }
   .mob-open-sheet:active{ background:rgba(200,136,74,.25) }
 
-  /* ── DROP-DOWN PANEL — onder viewer ── */
+  /* ── DROP-DOWN PANEL — klapt uit onder mob-bar ── */
   .panel{
     position: fixed;
     left: 0;
     right: 0;
-    top: 52vh;
+    top: calc(52vh + var(--mob-bar-h));
     bottom: 0;
     width: 100% !important;
     max-width: 100% !important;
     height: auto;
-    max-height: 48vh;
+    max-height: none;
     border-left: none;
-    border-top: 1px solid rgba(200,136,74,.18);
+    border-top: 1px solid rgba(200,136,74,.25);
     border-bottom: none;
     border-radius: 0;
-    transform: translateY(-100%) translateY(-52vh);
-    transition: transform .38s cubic-bezier(.32,.72,0,1);
-    box-shadow: 0 -4px 32px rgba(0,0,0,.5);
+    transform: translateY(-100%) translateY(calc(-1 * var(--mob-bar-h)));
+    transition: transform .40s cubic-bezier(.32,.72,0,1);
+    box-shadow: 0 8px 40px rgba(0,0,0,.7);
     padding-top: 0;
-    padding-bottom: calc(var(--sai-bottom) + 4px);
+    padding-bottom: calc(var(--sai-bottom) + 8px);
     overflow-y: auto;
+    z-index: 39;
   }
   .panel.open{
     transform: translateY(0);
   }
 
-  /* Sluit-balk bovenaan sheet */
   .sheet-handle{
     display:flex;
     justify-content:flex-end;
     align-items:center;
     padding:10px 16px 8px;
     flex-shrink:0;
-    cursor:pointer;
     border-bottom:1px solid rgba(255,255,255,.05);
   }
   .sheet-close{
-    font-size:18px;
     color:var(--text-dim);
-    line-height:1;
-    padding:4px 6px;
+    padding:6px 8px;
+    cursor:pointer;
     transition:color .15s;
+    font-family:Space Mono,monospace;
+    font-size:10px;
+    letter-spacing:.1em;
   }
-  .sheet-handle:active .sheet-close{ color:var(--cream); }
+  .sheet-close:active{ color:var(--cream); }
+  .sheet-close-bottom{
+    display:flex;
+    justify-content:center;
+    padding:12px 16px;
+    padding-bottom:calc(var(--sai-bottom) + 12px);
+    flex-shrink:0;
+    border-top:1px solid rgba(255,255,255,.05);
+    margin-top:4px;
+  }
 
   /* Overlay */
   .panel-overlay{
@@ -449,6 +459,11 @@ canvas{ touch-action:none; cursor:crosshair }
   <div class="ps">
     <span class="pl">◆ Specificaties</span>
     <div id="specs"></div>
+  </div>
+  <div class="sheet-close-bottom">
+    <button class="mob-open-sheet" onclick="closePanel()" style="width:100%;justify-content:center">
+      <span>&#x2715; SLUITEN</span>
+    </button>
   </div>
 </div>
 
@@ -1413,38 +1428,35 @@ const LAMP=new THREE.Group(); SC.add(LAMP);
 
 
 // ── Animatie helpers ────────────────────────────────────────────────────
-function _animateGroups(groups, fromT, toT, durationMs, onDone) {
-  const start = performance.now();
-  const ids = Object.keys(groups);
-  function tick(now) {
-    const t = Math.min((now - start) / durationMs, 1.0);
-    // Ease in-out cubic
-    const e = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
-    const cur = fromT + (toT - fromT) * e;
-    ids.forEach(partId => {
-      const off = GLB_EX_OFFSETS[partId] || [0,0,0];
-      groups[partId].position.set(off[0]*cur, off[1]*cur, off[2]*cur);
-    });
-    if(t < 1.0) requestAnimationFrame(tick);
-    else { if(onDone) onDone(); }
-  }
-  requestAnimationFrame(tick);
+// ── LAMP gebruikt één wrapper Group voor fade/scale transitie ──────────
+const _lampWrap = new THREE.Group();
+LAMP.add(_lampWrap);
+
+function _setAllOpacity(opacity) {
+  // Zet opacity op alle zichtbare meshes in de lamp wrapper
+  _lampWrap.traverse(o => {
+    if(!o.isMesh || o.userData.isOutline) return;
+    const mat = o.material;
+    if(!mat) return;
+    mat.transparent = true;
+    mat.opacity = opacity * (mat.userData._baseOp !== undefined ? mat.userData._baseOp : 1.0);
+  });
 }
 
-function _fadeGroups(groups, fromOp, toOp, durationMs, onDone) {
+function _cacheBaseOpacity() {
+  _lampWrap.traverse(o => {
+    if(!o.isMesh || o.userData.isOutline || !o.material) return;
+    if(o.material.userData._baseOp === undefined)
+      o.material.userData._baseOp = o.material.opacity ?? 1.0;
+  });
+}
+
+function _animate(durationMs, fromVal, toVal, onTick, onDone) {
   const start = performance.now();
   function tick(now) {
     const t = Math.min((now - start) / durationMs, 1.0);
     const e = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
-    const op = fromOp + (toOp - fromOp) * e;
-    Object.values(groups).forEach(grp => {
-      grp.traverse(o => {
-        if(o.isMesh && o.material && !o.userData.isOutline) {
-          o.material.transparent = true;
-          o.material.opacity = op * (o.material.userData._baseOpacity ?? 1.0);
-        }
-      });
-    });
+    onTick(fromVal + (toVal - fromVal) * e);
     if(t < 1.0) requestAnimationFrame(tick);
     else { if(onDone) onDone(); }
   }
@@ -1452,9 +1464,10 @@ function _fadeGroups(groups, fromOp, toOp, durationMs, onDone) {
 }
 
 function _finishLoad(groups, prevGroups) {
-  if(prevGroups) Object.values(prevGroups).forEach(g => LAMP.remove(g));
+  // Verwijder oude groepen uit wrapper
+  if(prevGroups) Object.values(prevGroups).forEach(g => _lampWrap.remove(g));
   activeGLBGroups = groups;
-  Object.values(groups).forEach(g => LAMP.add(g));
+  Object.values(groups).forEach(g => _lampWrap.add(g));
 
   curV.parts = Object.keys(groups).map(id => partInfo(id));
   if(!curV.parts.find(p => p.id === selP)) selP = curV.parts[0].id;
@@ -1489,29 +1502,23 @@ function swapLocal(varId){
 
   if(glbFile){
     const prevGroups = activeGLBGroups ? {...activeGLBGroups} : null;
-    const prevExP = exP;
 
-    // Stap 1: explodeer huidig model uit (0.55s)
-    // Dan laad nieuw model, start imploded, animeer naar rust
     const doLoad = () => {
       loadGLBParts(glbFile).then(groups => {
-        // Cache base opacity per mesh voor fade
-        Object.values(groups).forEach(grp => {
-          grp.traverse(o => {
-            if(o.isMesh && o.material && !o.userData.isOutline)
-              o.material.userData._baseOpacity = o.material.opacity ?? 1.0;
-          });
-        });
-
-        // Nieuw model: start exploded + onzichtbaar
         _finishLoad(groups, prevGroups);
-        exP = 1.2; applyExplode();
 
-        // Fade in + implodeer tegelijk (0.65s)
-        _fadeGroups(groups, 0, 1, 650, null);
-        _animateGroups(groups, 1.2, exT, 650, () => {
-          exP = exT;
-        });
+        // Cache base opacity na syncAllGLBParts (die stelt de echte opacities in)
+        _cacheBaseOpacity();
+
+        // Start onzichtbaar + klein
+        _setAllOpacity(0);
+        _lampWrap.scale.setScalar(0.82);
+
+        // Fade in + schaal naar 1 (500ms)
+        _animate(500, 0, 1,
+          v => { _setAllOpacity(v); _lampWrap.scale.setScalar(0.82 + v * 0.18); },
+          () => { _lampWrap.scale.setScalar(1); }
+        );
 
       }).catch(err => {
         console.error("[Rhombi] GLB laden mislukt:", err);
@@ -1519,9 +1526,11 @@ function swapLocal(varId){
     };
 
     if(prevGroups && Object.keys(prevGroups).length > 0) {
-      // Explodeer huidig model naar buiten + fade uit
-      _fadeGroups(prevGroups, 1, 0, 420, null);
-      _animateGroups(prevGroups, prevExP, 1.3, 420, doLoad);
+      // Fade out + klein schalen (320ms), dan nieuw model laden
+      _animate(320, 1, 0,
+        v => { _setAllOpacity(v); _lampWrap.scale.setScalar(0.82 + v * 0.18); },
+        doLoad
+      );
     } else {
       doLoad();
     }
@@ -1847,7 +1856,7 @@ function clearActiveGLB() {
   Object.keys(PART_VIS).forEach(k => delete PART_VIS[k]);
   if (!activeGLBGroups) return;
   Object.values(activeGLBGroups).forEach(g => {
-    LAMP.remove(g);
+    _lampWrap.remove(g);
     g.traverse(o => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
   });
   activeGLBGroups = null;
@@ -2867,6 +2876,8 @@ function togglePanel(){
   }
 }
 function closePanel(){
+  const lbl = document.getElementById('mobOptLabel');
+  if(lbl) lbl.textContent = '≡ OPTIES';
   document.getElementById("panel").classList.remove("open");
   document.getElementById("panelOverlay").classList.remove("show");
 }
