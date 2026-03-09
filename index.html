@@ -1290,6 +1290,54 @@ nav.scrolled {
   display: block;
 }
 
+
+/* ── CONTACT FORM ── */
+.contact-form {
+  max-width: 560px;
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.contact-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 2px;
+  color: var(--cream);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  padding: 12px 16px;
+  outline: none;
+  transition: border-color .2s;
+  box-sizing: border-box;
+  resize: vertical;
+}
+.contact-form input::placeholder,
+.contact-form textarea::placeholder { color: rgba(237,228,208,.35); }
+.contact-form input:focus,
+.contact-form textarea:focus { border-color: rgba(200,136,74,.5); }
+.contact-form-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.whatsapp-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .contact-form-row { grid-template-columns: 1fr; }
+}
+
 /* ── CAROUSEL HEIGHT LIMIT ── */
 .carousel-section {
   overflow: hidden;
@@ -1793,7 +1841,7 @@ input, textarea, select {
     <div>
       <p class="section-label reveal" data-i18n="conf-label">◆ 3D Configurator</p>
       <h2 class="section-title reveal" ><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
-      <p style="font-size:15px;line-height:1.7;color:var(--text);margin-top:16px;max-width:440px" data-i18n="conf-sub">Kies je variant, onderdeel en kleur. Gedeelde onderdelen vliegen mee naar de nieuwe positie.</p>
+      <p style="font-size:14px;line-height:1.7;color:var(--text-dim);margin-top:12px;letter-spacing:.01em" data-i18n="conf-sub">Kies variant, materiaal en kleur.</p>
     </div>
     <p style="font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;color:var(--text-dim);text-transform:uppercase" data-i18n="conf-types">Tafel · Wand · Plafond · Accent · Hang</p>
   </div>
@@ -2214,12 +2262,27 @@ input, textarea, select {
 
 <!-- 8. CONTACT -->
 <section class="cta" id="contact">
-  <h2 class="reveal" ><span data-i18n="cta-t1">Tussen product</span><br><em data-i18n="cta-t2">en autonoom object.</em></h2>
+  <h2 class="reveal"><span data-i18n="cta-t1">Tussen product</span><br><em data-i18n="cta-t2">en autonoom object.</em></h2>
   <p class="reveal" style="transition-delay:.15s" data-i18n="cta-sub">Rhombi is ontworpen voor interieur, expositie en designcontext. Neem contact op voor informatie, bestellingen of maatwerk.</p>
-  <div class="cta-btns reveal" style="transition-delay:.3s">
-    <a href="/cdn-cgi/l/email-protection#10797e767f5066787573647f623e7e7c" class="btn-primary" data-i18n="cta-btn1">Neem contact op</a>
-    <a href="#types" class="btn-ghost" data-i18n="cta-btn2">Bekijk varianten</a>
-  </div>
+
+  <!-- Contact formulier -->
+  <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field"
+    class="contact-form reveal" style="transition-delay:.25s">
+    <input type="hidden" name="form-name" value="contact">
+    <p style="display:none"><input name="bot-field"></p>
+    <div class="contact-form-row">
+      <input type="text" name="naam" placeholder="Naam" required>
+      <input type="email" name="email" placeholder="E-mailadres" required>
+    </div>
+    <textarea name="bericht" placeholder="Bericht" rows="4" required></textarea>
+    <div class="contact-form-footer">
+      <button type="submit" class="btn-primary" data-i18n="cta-btn1">Neem contact op</button>
+      <a href="/whatsapp" target="_blank" class="btn-ghost whatsapp-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.118 1.523 5.847L.057 23.882l6.198-1.438A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.376l-.36-.214-3.68.854.88-3.565-.234-.374A9.818 9.818 0 1112 21.818z"/></svg>
+        WhatsApp
+      </a>
+    </div>
+  </form>
 </section>
 
 <footer>
@@ -2621,7 +2684,7 @@ const TRANSLATIONS = {
     'conf-label': '◆ 3D Configurator',
     'conf-t1': 'Stel jouw',
     'conf-t2': 'Rhombi samen.',
-    'conf-sub': 'Kies je variant, onderdeel en kleur. Gedeelde onderdelen vliegen mee naar de nieuwe positie.',
+    'conf-sub': 'Kies variant, materiaal en kleur.',
     'conf-types': 'Tafel · Wand · Plafond · Accent · Hang',
     'types-label': '◆ Varianten',
     'types-t1': 'Meerdere vormen,',
@@ -2728,7 +2791,7 @@ const TRANSLATIONS = {
     'conf-label': '◆ 3D Configurator',
     'conf-t1': 'Configure your',
     'conf-t2': 'Rhombi.',
-    'conf-sub': 'Choose your variant, part and colour. Shared parts fly to their new position.',
+    'conf-sub': 'Choose variant, material and colour.',
     'conf-types': 'Table · Wall · Ceiling · Accent · Pendant',
     'types-label': '◆ Variants',
     'types-t1': 'Multiple forms,',
@@ -2834,7 +2897,7 @@ const TRANSLATIONS = {
     'conf-label': '◆ 3D Konfigurator',
     'conf-t1': 'Gestalte dein',
     'conf-t2': 'Rhombi.',
-    'conf-sub': 'Wähle Variante, Teil und Farbe. Gemeinsame Teile fliegen in die neue Position.',
+    'conf-sub': 'Variante, Material und Farbe wählen.',
     'conf-types': 'Tisch · Wand · Decke · Akzent · Hänge',
     'types-label': '◆ Varianten',
     'types-t1': 'Mehrere Formen,',

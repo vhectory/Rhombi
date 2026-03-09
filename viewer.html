@@ -194,14 +194,15 @@ canvas{ touch-action:none; cursor:crosshair }
   /* Canvas = volledig scherm */
   #c{
     right:0 !important;
-    bottom: var(--mob-bar-h) !important;
+    bottom: auto !important;
     top:0 !important;
     left:0 !important;
+    height: 52vh !important;
     padding:0 !important;
-    align-items:center !important;
-    justify-content:flex-start !important;
+    align-items:flex-start !important;
+    justify-content:center !important;
   }
-  canvas{ width:100% !important; height:100% !important; border-radius:0 !important; }
+  canvas{ width:100% !important; height:52vh !important; max-height:52vh !important; border-radius:0 !important; object-fit:cover }
   .bar{
     right:0 !important;
     padding-top: calc(12px + var(--sai-top));
@@ -215,7 +216,8 @@ canvas{ touch-action:none; cursor:crosshair }
   /* Variantenbar onderin — grote vingerzone */
   .vbar{
     right:0 !important;
-    bottom: auto;
+    bottom: auto !important;
+    top: calc(52vh - 56px) !important;
     left:0;
     padding-bottom: 4px;
     gap: 3px;
@@ -242,7 +244,8 @@ canvas{ touch-action:none; cursor:crosshair }
   .mob-bar-bottom{
     display: flex;
     position: fixed;
-    bottom: 0;
+    top: 52vh;
+    bottom: auto;
     left: 0;
     right: 0;
     z-index: 40;
@@ -251,7 +254,7 @@ canvas{ touch-action:none; cursor:crosshair }
     padding-top: 10px;
     padding-left:  calc(16px + var(--sai-left));
     padding-right: calc(16px + var(--sai-right));
-    padding-bottom: var(--sai-bottom);
+    padding-bottom: 0;
     background: rgba(18,21,26,.96);
     backdrop-filter: blur(16px);
     border-top: 1px solid rgba(255,255,255,.07);
@@ -295,45 +298,50 @@ canvas{ touch-action:none; cursor:crosshair }
   }
   .mob-open-sheet:active{ background:rgba(200,136,74,.25) }
 
-  /* ── BOTTOM SHEET PANEL ── */
+  /* ── DROP-DOWN PANEL — onder viewer ── */
   .panel{
-    /* Op mobiel: bottom sheet in plaats van side panel */
     position: fixed;
     left: 0;
     right: 0;
+    top: 52vh;
     bottom: 0;
-    top: auto;
     width: 100% !important;
     max-width: 100% !important;
-    height: 72vh;
-    max-height: calc(100vh - 80px);
+    height: auto;
+    max-height: 48vh;
     border-left: none;
     border-top: 1px solid rgba(200,136,74,.18);
+    border-bottom: none;
     border-radius: 0;
-    transform: translateY(100%);
+    transform: translateY(-100%) translateY(-52vh);
     transition: transform .38s cubic-bezier(.32,.72,0,1);
-    box-shadow: 0 -16px 48px rgba(0,0,0,.6);
-    /* Padding zodat scroll-content niet achter safe-area zit */
-    padding-bottom: calc(var(--sai-bottom) + 8px);
+    box-shadow: 0 -4px 32px rgba(0,0,0,.5);
+    padding-top: 0;
+    padding-bottom: calc(var(--sai-bottom) + 4px);
+    overflow-y: auto;
   }
   .panel.open{
     transform: translateY(0);
   }
 
-  /* Handle streepje bovenaan sheet */
+  /* Sluit-balk bovenaan sheet */
   .sheet-handle{
     display:flex;
-    justify-content:center;
-    padding:10px 0 4px;
+    justify-content:flex-end;
+    align-items:center;
+    padding:10px 16px 8px;
     flex-shrink:0;
     cursor:pointer;
+    border-bottom:1px solid rgba(255,255,255,.05);
   }
-  .sheet-handle::before{
-    content:'';
-    width:36px;height:4px;
-    background:rgba(255,255,255,.15);
-    border-radius:2px;
+  .sheet-close{
+    font-size:18px;
+    color:var(--text-dim);
+    line-height:1;
+    padding:4px 6px;
+    transition:color .15s;
   }
+  .sheet-handle:active .sheet-close{ color:var(--cream); }
 
   /* Overlay */
   .panel-overlay{
@@ -379,17 +387,12 @@ canvas{ touch-action:none; cursor:crosshair }
 
 <div class="panel" id="panel">
   <!-- Handle voor bottom sheet swipe (mobiel) -->
-  <div class="sheet-handle" onclick="closePanel()"></div>
+  <div class="sheet-handle" onclick="closePanel()"><span class="sheet-close">✕</span></div>
   <div class="ps">
     <span class="pl">◆ Model</span>
     <h2 class="pt" id="vtit">Rhombi Tafel</h2>
     <p class="pp" id="vsub">Tafellamp · E14 fitting</p>
 
-  </div>
-  <div class="ps">
-    <span class="pl">◆ Onderdeel</span>
-    <div class="plist" id="plist"></div>
-    <p style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.08em;color:var(--text-dim);margin-top:8px;line-height:1.6">◆ gedeeld = vliegt naar nieuwe positie</p>
   </div>
   <div class="ps">
     <div style="display:flex;gap:3px;margin-bottom:4px">
@@ -430,6 +433,11 @@ canvas{ touch-action:none; cursor:crosshair }
     <div class="plist" id="matlist" style="margin-bottom:10px"></div>
     <span class="pl">◆ Kleur</span>
     <div class="cgrid" id="cgrid"></div>
+  </div>
+  <div class="ps">
+    <span class="pl">◆ Onderdeel</span>
+    <div class="plist" id="plist"></div>
+    <p style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.08em;color:var(--text-dim);margin-top:8px;line-height:1.6">◆ gedeeld = vliegt naar nieuwe positie</p>
   </div>
   <div class="ps">
     <span class="pl">◆ Weergave</span>
@@ -649,10 +657,10 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
 
     // Basis gradient: donker (#12151A) linksonder → lichter (#2A3545) rechtsboven
     const baseGrad = bx.createLinearGradient(0, H, W, 0);
-    baseGrad.addColorStop(0,   "#0a0d11"); // donkerste hoek
-    baseGrad.addColorStop(0.4, "#0e1116"); // --dark
-    baseGrad.addColorStop(0.75,"#12181f"); // subtiel blauwgrijs
-    baseGrad.addColorStop(1,   "#1a2230"); // lichtste hoek — nog steeds donker
+    baseGrad.addColorStop(0,   "#141820"); // donkerste hoek
+    baseGrad.addColorStop(0.4, "#1a2230"); // --dark
+    baseGrad.addColorStop(0.75,"#20293a"); // subtiel blauwgrijs
+    baseGrad.addColorStop(1,   "#28364e"); // lichtste hoek
     bx.fillStyle=baseGrad; bx.fillRect(0,0,W,H);
 
     // Radiaal licht: zacht centrum — feller naar rechtsboven (zon)
@@ -1404,73 +1412,122 @@ const LAMP=new THREE.Group(); SC.add(LAMP);
 // Shared meshes — permanent, only move/rotate
 
 
+// ── Animatie helpers ────────────────────────────────────────────────────
+function _animateGroups(groups, fromT, toT, durationMs, onDone) {
+  const start = performance.now();
+  const ids = Object.keys(groups);
+  function tick(now) {
+    const t = Math.min((now - start) / durationMs, 1.0);
+    // Ease in-out cubic
+    const e = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+    const cur = fromT + (toT - fromT) * e;
+    ids.forEach(partId => {
+      const off = GLB_EX_OFFSETS[partId] || [0,0,0];
+      groups[partId].position.set(off[0]*cur, off[1]*cur, off[2]*cur);
+    });
+    if(t < 1.0) requestAnimationFrame(tick);
+    else { if(onDone) onDone(); }
+  }
+  requestAnimationFrame(tick);
+}
+
+function _fadeGroups(groups, fromOp, toOp, durationMs, onDone) {
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / durationMs, 1.0);
+    const e = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+    const op = fromOp + (toOp - fromOp) * e;
+    Object.values(groups).forEach(grp => {
+      grp.traverse(o => {
+        if(o.isMesh && o.material && !o.userData.isOutline) {
+          o.material.transparent = true;
+          o.material.opacity = op * (o.material.userData._baseOpacity ?? 1.0);
+        }
+      });
+    });
+    if(t < 1.0) requestAnimationFrame(tick);
+    else { if(onDone) onDone(); }
+  }
+  requestAnimationFrame(tick);
+}
+
+function _finishLoad(groups, prevGroups) {
+  if(prevGroups) Object.values(prevGroups).forEach(g => LAMP.remove(g));
+  activeGLBGroups = groups;
+  Object.values(groups).forEach(g => LAMP.add(g));
+
+  curV.parts = Object.keys(groups).map(id => partInfo(id));
+  if(!curV.parts.find(p => p.id === selP)) selP = curV.parts[0].id;
+
+  if(window._pendingColors) {
+    Object.entries(window._pendingColors).forEach(([pid, hex]) => {
+      const mat = getOrCreateMat(pid); if(mat) mat.color.set(hex);
+    });
+    window._pendingColors = null;
+  }
+  syncAllGLBParts();
+  buildPList(); updateSwActive(); buildColorGrid(); buildMatList(); fitCameraToGLB();
+  _clickableMeshes = [];
+  Object.values(activeGLBGroups).forEach(g => {
+    g.traverse(o => { if(o.isMesh) _clickableMeshes.push(o); });
+  });
+  updateSelectionOutline();
+  if(activeGLBGroups && activeGLBGroups['kap']) {
+    const kb = new THREE.Box3();
+    activeGLBGroups['kap'].traverse(o => { if(o.isMesh && !o.userData.isOutline) kb.expandByObject(o); });
+    const kc = kb.getCenter(new THREE.Vector3());
+    kapGlow.position.copy(kc);
+    kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.2);
+  }
+  updateKapGlow();
+}
+
 function swapLocal(varId){
   const v = VARIANTS.find(v=>v.id===varId);
   window._rhombiCurrentVariant = v;
-
   const glbFile = v && v.glb ? GLB_BASE + v.glb : null;
 
   if(glbFile){
-    document.getElementById("transit").classList.add("show");
-    document.querySelector(".ttext").textContent = "◆ Model laden...";
-
     const prevGroups = activeGLBGroups ? {...activeGLBGroups} : null;
+    const prevExP = exP;
 
-    loadGLBParts(glbFile).then(groups => {
-      if(prevGroups) {
-        Object.values(prevGroups).forEach(g => LAMP.remove(g));
-      }
-      activeGLBGroups = groups;
-      Object.values(groups).forEach(g => LAMP.add(g));
-
-      if(prevGroups){
-        Object.keys(groups).forEach(partId => {
-          if(prevGroups[partId]){
-            const oldMat = MGLB[partId];
-            if(oldMat) syncGLBPart(partId);
-          }
+    // Stap 1: explodeer huidig model uit (0.55s)
+    // Dan laad nieuw model, start imploded, animeer naar rust
+    const doLoad = () => {
+      loadGLBParts(glbFile).then(groups => {
+        // Cache base opacity per mesh voor fade
+        Object.values(groups).forEach(grp => {
+          grp.traverse(o => {
+            if(o.isMesh && o.material && !o.userData.isOutline)
+              o.material.userData._baseOpacity = o.material.opacity ?? 1.0;
+          });
         });
-      }
 
-      curV.parts = Object.keys(groups).map(id => partInfo(id));
-      if(!curV.parts.find(p => p.id === selP)) selP = curV.parts[0].id;
+        // Nieuw model: start exploded + onzichtbaar
+        _finishLoad(groups, prevGroups);
+        exP = 1.2; applyExplode();
 
-      // Pending kleuren toepassen (uit URL config)
-      if(window._pendingColors) {
-        Object.entries(window._pendingColors).forEach(([pid, hex]) => {
-          const mat = getOrCreateMat(pid); if(mat) mat.color.set(hex);
+        // Fade in + implodeer tegelijk (0.65s)
+        _fadeGroups(groups, 0, 1, 650, null);
+        _animateGroups(groups, 1.2, exT, 650, () => {
+          exP = exT;
         });
-        window._pendingColors = null;
-      }
-      syncAllGLBParts();
-      buildPList(); updateSwActive(); buildColorGrid(); buildMatList();       fitCameraToGLB();
-      // Cache klikbare meshes — eenmalig, geen traverse meer in hover/render
-      _clickableMeshes = [];
-      Object.values(activeGLBGroups).forEach(g => {
-        g.traverse(o => { if(o.isMesh) _clickableMeshes.push(o); });
+
+      }).catch(err => {
+        console.error("[Rhombi] GLB laden mislukt:", err);
       });
-      updateSelectionOutline();
-      // kapGlow in het midden van de kap positioneren
-      if(activeGLBGroups && activeGLBGroups['kap']) {
-        const kb = new THREE.Box3();
-        activeGLBGroups['kap'].traverse(o => { if(o.isMesh && !o.userData.isOutline) kb.expandByObject(o); });
-        const kc = kb.getCenter(new THREE.Vector3());
-        kapGlow.position.copy(kc);
-        kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.2);
-      }
-      updateKapGlow();
+    };
 
-      document.getElementById("transit").classList.remove("show");
-      document.querySelector(".ttext").textContent = "◆ Onderdelen bewegen";
-    }).catch(err => {
-      console.error("[Rhombi] GLB laden mislukt:", err);
-      document.getElementById("transit").classList.remove("show");
-      document.querySelector(".ttext").textContent = "◆ Model niet beschikbaar";
-    });
+    if(prevGroups && Object.keys(prevGroups).length > 0) {
+      // Explodeer huidig model naar buiten + fade uit
+      _fadeGroups(prevGroups, 1, 0, 420, null);
+      _animateGroups(prevGroups, prevExP, 1.3, 420, doLoad);
+    } else {
+      doLoad();
+    }
+
   } else {
-    // Geen GLB beschikbaar voor deze variant
     clearActiveGLB();
-    document.querySelector(".ttext").textContent = "◆ Model binnenkort beschikbaar";
   }
 }
 
@@ -2820,7 +2877,7 @@ function closePanel(){
   let startY = 0, startScroll = 0, dragging = false;
 
   panel.addEventListener("touchstart", e => {
-    // Alleen vanaf de handle of bovenste rand triggeren
+    // Triggeren vanaf bovenste rand (handle zit bovenin)
     const touch = e.touches[0];
     const rect  = panel.getBoundingClientRect();
     if(touch.clientY - rect.top < 48){
@@ -2833,9 +2890,9 @@ function closePanel(){
   panel.addEventListener("touchmove", e => {
     if(!dragging) return;
     const dy = e.touches[0].clientY - startY;
-    if(dy > 0 && startScroll === 0){
-      // Swipe naar beneden — sluit sheet
-      panel.style.transform = `translateY(${Math.min(dy, 300)}px)`;
+    // Swipe omhoog (dy < 0) sluit het panel — schuift terug omhoog weg
+    if(dy < 0){
+      panel.style.transform = `translateY(${dy}px)`;
       panel.style.transition = "none";
       e.preventDefault();
     }
@@ -2846,7 +2903,7 @@ function closePanel(){
     dragging = false;
     panel.style.transition = "";
     const dy = e.changedTouches[0].clientY - startY;
-    if(dy > 80){
+    if(dy < -60){
       panel.style.transform = "";
       closePanel();
     } else {
