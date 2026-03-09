@@ -1498,11 +1498,19 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   updateKapGlow();
 }
 
-let _swapSeq = 0; // elke swap krijgt een nieuw sequence nummer
+let _swapSeq = 0;
+let _swapPending = null;   // volgende variant klaarstaan
+let _swapRunning = false;  // animatie bezig
 
 function swapLocal(varId){
   const v = VARIANTS.find(v=>v.id===varId);
   if(!v) return;
+  if(_swapRunning) {
+    // Sla op als volgende — vervang eventueel eerder pending
+    _swapPending = varId;
+    return;
+  }
+  _swapRunning = true;
   window._rhombiCurrentVariant = v;
   const glbFile = v.glb ? GLB_BASE + v.glb : null;
 
@@ -1529,7 +1537,7 @@ function swapLocal(varId){
       _setAllOpacity(0);
 
       // Fade in + implodeer naar rust (450ms)
-      _animate(380, 0, 1,
+      _animate(650, 0, 1,
         t => {
           _setAllOpacity(t);
           const cur = 1.1 - t * 1.1;
@@ -1538,13 +1546,13 @@ function swapLocal(varId){
             grp.position.set(off[0]*cur, off[1]*cur, off[2]*cur);
           });
         },
-        () => { exP = exT; }
+        () => { exP = exT; _swapRunning = false; if(_swapPending){ const nxt=_swapPending; _swapPending=null; swapLocal(nxt); } }
       );
     };
 
     if(prevGroups && Object.keys(prevGroups).length > 0) {
       // Explodeer + fade out (300ms) — parallel met laden
-      _animate(220, 1, 0,
+      _animate(550, 1, 0,
         t => {
           _setAllOpacity(t);
           const cur = (1 - t) * 1.1;
@@ -1557,6 +1565,7 @@ function swapLocal(varId){
           // Wacht op load (vaak al klaar), dan toon
           loadPromise.then(doShow).catch(err => {
             console.error("[Rhombi] GLB laden mislukt:", err);
+            _swapRunning = false; if(_swapPending){ const nxt=_swapPending; _swapPending=null; swapLocal(nxt); }
           });
         }
       );
