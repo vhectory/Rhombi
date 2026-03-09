@@ -1495,17 +1495,16 @@ function _finishLoad(groups, prevGroups) {
   updateKapGlow();
 }
 
-let _swapBusy = false;
+let _swapSeq = 0; // elke swap krijgt een nieuw sequence nummer
 
 function swapLocal(varId){
   const v = VARIANTS.find(v=>v.id===varId);
   if(!v) return;
-  if(_swapBusy) { _swapBusy = false; } // reset bij dubbele klik
   window._rhombiCurrentVariant = v;
   const glbFile = v.glb ? GLB_BASE + v.glb : null;
 
   if(glbFile){
-    _swapBusy = true;
+    const mySeq = ++_swapSeq;
     updateSwActive(); // direct knop active tonen
 
     const prevGroups = activeGLBGroups ? {...activeGLBGroups} : null;
@@ -1514,6 +1513,7 @@ function swapLocal(varId){
     const loadPromise = loadGLBParts(glbFile);
 
     const doShow = (groups) => {
+      if(_swapSeq !== mySeq) return; // nieuwere swap gestart
       _finishLoad(groups, prevGroups);
       _cacheBaseOpacity();
 
@@ -1535,7 +1535,7 @@ function swapLocal(varId){
             grp.position.set(off[0]*cur, off[1]*cur, off[2]*cur);
           });
         },
-        () => { exP = exT; _swapBusy = false; }
+        () => { exP = exT; }
       );
     };
 
@@ -1554,14 +1554,12 @@ function swapLocal(varId){
           // Wacht op load (vaak al klaar), dan toon
           loadPromise.then(doShow).catch(err => {
             console.error("[Rhombi] GLB laden mislukt:", err);
-            _swapBusy = false;
           });
         }
       );
     } else {
       loadPromise.then(doShow).catch(err => {
         console.error("[Rhombi] GLB laden mislukt:", err);
-        _swapBusy = false;
       });
     }
 
@@ -2162,17 +2160,21 @@ function buildPList(){
 
 function buildColorGrid(){
   const g=document.getElementById("cgrid"); g.innerHTML="";
-
+  // Geen selectie? Gebruik eerste beschikbare part
+  if(!selP && activeGLBGroups) { selP = Object.keys(activeGLBGroups)[0]; selParts = new Set([selP]); }
+  if(!selP) return;
   g.style.display="";
   g.style.gridTemplateColumns="";
 
   // Kopieer kleur van primaire selectie naar alle andere geselecteerde parts
-  if(selParts.size > 1) {
-    const copyBtn = document.createElement('div');
-    copyBtn.style.cssText = 'grid-column:1/-1;display:flex;justify-content:flex-end;margin-bottom:4px';
-    copyBtn.innerHTML = `<button class="cb" style="padding:4px 8px;font-size:8px;margin:0" onclick="copyColorToSelection()">Kopieer kleur naar selectie ↗</button>`;
-    g.appendChild(copyBtn);
-  }
+  // Scope knoppen: kleur toepassen op geselecteerde part of alles
+  const scopeRow = document.createElement('div');
+  scopeRow.style.cssText = 'grid-column:1/-1;display:flex;gap:4px;margin-bottom:6px';
+  scopeRow.innerHTML = `
+    <button id="scopeSel" class="cb${window._colorScope!=='all'?' on':''}" style="flex:1;padding:5px 4px;font-size:8px;margin:0" onclick="setColorScope('sel')">Onderdeel</button>
+    <button id="scopeAll" class="cb${window._colorScope==='all'?' on':''}" style="flex:1;padding:5px 4px;font-size:8px;margin:0" onclick="setColorScope('all')">Alles</button>
+  `;
+  g.appendChild(scopeRow);
 
   const matId=partMat[selP]||"pla-basic";
   const colors=BAMBU_COLORS[matId]||[];
@@ -2266,10 +2268,20 @@ function copyColorToSelection() {
   showToast('Kleur gekopieerd naar ' + (selParts.size-1) + ' onderdelen');
 }
 
+
+function setColorScope(scope) {
+  window._colorScope = scope;
+  document.querySelectorAll('#scopeSel,#scopeAll').forEach(b => b.classList.remove('on'));
+  const btn = document.getElementById(scope === 'all' ? 'scopeAll' : 'scopeSel');
+  if(btn) btn.classList.add('on');
+}
 function applyColor(hex){
-  // Alle geselecteerde onderdelen krijgen de kleur
   const allTargets = new Set();
-  selParts.forEach(sid => getAffectedIds(sid).forEach(pid => allTargets.add(pid)));
+  if(window._colorScope === 'all' && activeGLBGroups) {
+    Object.keys(activeGLBGroups).forEach(pid => allTargets.add(pid));
+  } else {
+    selParts.forEach(sid => getAffectedIds(sid).forEach(pid => allTargets.add(pid)));
+  }
   allTargets.forEach(pid => {
     const mat = getOrCreateMat(pid);
     if(!mat) return;
