@@ -203,6 +203,7 @@ canvas{ touch-action:none; cursor:crosshair }
     justify-content:center !important;
   }
   canvas{ width:100% !important; height:52vh !important; max-height:52vh !important; border-radius:0 !important; object-fit:cover }
+  #c, #canvas-frame, #c canvas{ pointer-events:all !important; touch-action:none !important; z-index:5 }
   .bar{
     right:0 !important;
     padding-top: calc(12px + var(--sai-top));
@@ -356,9 +357,11 @@ canvas{ touch-action:none; cursor:crosshair }
   /* Overlay */
   .panel-overlay{
     display:none;
-    position:fixed;inset:0;z-index:29;
-    background:rgba(0,0,0,.55);
-    backdrop-filter:blur(3px);
+    position:fixed;
+    top: 52vh;
+    left:0;right:0;bottom:0;
+    z-index:29;
+    background:rgba(0,0,0,0);
   }
   .panel-overlay.show{display:block}
 
@@ -1463,7 +1466,7 @@ function _animate(durationMs, fromVal, toVal, onTick, onDone) {
   requestAnimationFrame(tick);
 }
 
-function _finishLoad(groups, prevGroups) {
+function _finishLoad(groups, prevGroups, skipCamera=false) {
   // Verwijder oude groepen uit wrapper
   if(prevGroups) Object.values(prevGroups).forEach(g => _lampWrap.remove(g));
   activeGLBGroups = groups;
@@ -1479,7 +1482,7 @@ function _finishLoad(groups, prevGroups) {
     window._pendingColors = null;
   }
   syncAllGLBParts();
-  buildPList(); updateSwActive(); buildColorGrid(); buildMatList(); fitCameraToGLB();
+  buildPList(); updateSwActive(); buildColorGrid(); buildMatList(); if(!skipCamera) fitCameraToGLB();
   _clickableMeshes = [];
   Object.values(activeGLBGroups).forEach(g => {
     g.traverse(o => { if(o.isMesh) _clickableMeshes.push(o); });
@@ -1514,7 +1517,7 @@ function swapLocal(varId){
 
     const doShow = (groups) => {
       if(_swapSeq !== mySeq) return; // nieuwere swap gestart
-      _finishLoad(groups, prevGroups);
+      _finishLoad(groups, prevGroups, !!prevGroups);
       _cacheBaseOpacity();
 
       // Start: exploded + onzichtbaar
@@ -1526,7 +1529,7 @@ function swapLocal(varId){
       _setAllOpacity(0);
 
       // Fade in + implodeer naar rust (450ms)
-      _animate(700, 0, 1,
+      _animate(380, 0, 1,
         t => {
           _setAllOpacity(t);
           const cur = 1.1 - t * 1.1;
@@ -1541,7 +1544,7 @@ function swapLocal(varId){
 
     if(prevGroups && Object.keys(prevGroups).length > 0) {
       // Explodeer + fade out (300ms) — parallel met laden
-      _animate(600, 1, 0,
+      _animate(220, 1, 0,
         t => {
           _setAllOpacity(t);
           const cur = (1 - t) * 1.1;
