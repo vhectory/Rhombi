@@ -313,7 +313,7 @@ canvas{ touch-action:none; cursor:crosshair }
     border-top: 1px solid rgba(200,136,74,.25);
     border-bottom: none;
     border-radius: 0;
-    transform: translateY(-100%) translateY(calc(-1 * var(--mob-bar-h)));
+    transform: translateY(100vh);
     transition: transform .40s cubic-bezier(.32,.72,0,1);
     box-shadow: 0 8px 40px rgba(0,0,0,.7);
     padding-top: 0;
@@ -1526,7 +1526,7 @@ function swapLocal(varId){
       _setAllOpacity(0);
 
       // Fade in + implodeer naar rust (450ms)
-      _animate(450, 0, 1,
+      _animate(700, 0, 1,
         t => {
           _setAllOpacity(t);
           const cur = 1.1 - t * 1.1;
@@ -1541,7 +1541,7 @@ function swapLocal(varId){
 
     if(prevGroups && Object.keys(prevGroups).length > 0) {
       // Explodeer + fade out (300ms) — parallel met laden
-      _animate(300, 1, 0,
+      _animate(600, 1, 0,
         t => {
           _setAllOpacity(t);
           const cur = (1 - t) * 1.1;
