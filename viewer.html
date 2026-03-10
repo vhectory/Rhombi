@@ -1499,61 +1499,53 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
 }
 
 let _swapSeq = 0;
-let _swapPending = null;   // volgende variant klaarstaan
-let _swapRunning = false;  // animatie bezig
 
 function swapLocal(varId){
   const v = VARIANTS.find(v=>v.id===varId);
   if(!v) return;
-  if(_swapRunning) {
-    // Sla op als volgende — vervang eventueel eerder pending
-    _swapPending = varId;
-    return;
-  }
-  _swapRunning = true;
+
+  // Altijd direct knop actief — nooit blokkeren
+  curV = v;
+  updateSwActive();
   window._rhombiCurrentVariant = v;
+
   const glbFile = v.glb ? GLB_BASE + v.glb : null;
+  const mySeq = ++_swapSeq; // nieuwe klik annuleert vorige laadbeurt
 
   if(glbFile){
-    const mySeq = ++_swapSeq;
-    updateSwActive(); // direct knop active tonen
-
     const prevGroups = activeGLBGroups ? {...activeGLBGroups} : null;
 
-    // Start meteen laden op achtergrond
+    // Laad parallel met out-animatie
     const loadPromise = loadGLBParts(glbFile);
 
     const doShow = (groups) => {
-      if(_swapSeq !== mySeq) return; // nieuwere swap gestart
+      if(_swapSeq !== mySeq) return; // nieuwere klik — weggooien
       _finishLoad(groups, prevGroups, !!prevGroups);
       _cacheBaseOpacity();
-
-      // Start: exploded + onzichtbaar
       exP = 1.1;
       Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
         const off = GLB_EX_OFFSETS[pid] || [0,0,0];
         grp.position.set(off[0]*1.1, off[1]*1.1, off[2]*1.1);
       });
       _setAllOpacity(0);
-
-      // Fade in + implodeer naar rust (450ms)
       _animate(650, 0, 1,
         t => {
+          if(_swapSeq !== mySeq) return;
           _setAllOpacity(t);
-          const cur = 1.1 - t * 1.1;
+          const cur = 1.1 * (1 - t);
           Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
             const off = GLB_EX_OFFSETS[pid] || [0,0,0];
             grp.position.set(off[0]*cur, off[1]*cur, off[2]*cur);
           });
         },
-        () => { exP = exT; _swapRunning = false; if(_swapPending){ const nxt=_swapPending; _swapPending=null; swapLocal(nxt); } }
+        () => { if(_swapSeq === mySeq) exP = exT; }
       );
     };
 
     if(prevGroups && Object.keys(prevGroups).length > 0) {
-      // Explodeer + fade out (300ms) — parallel met laden
-      _animate(550, 1, 0,
+      _animate(180, 1, 0,
         t => {
+          if(_swapSeq !== mySeq) return;
           _setAllOpacity(t);
           const cur = (1 - t) * 1.1;
           Object.entries(prevGroups).forEach(([pid, grp]) => {
@@ -1561,18 +1553,10 @@ function swapLocal(varId){
             grp.position.set(off[0]*cur, off[1]*cur, off[2]*cur);
           });
         },
-        () => {
-          // Wacht op load (vaak al klaar), dan toon
-          loadPromise.then(doShow).catch(err => {
-            console.error("[Rhombi] GLB laden mislukt:", err);
-            _swapRunning = false; if(_swapPending){ const nxt=_swapPending; _swapPending=null; swapLocal(nxt); }
-          });
-        }
+        () => { loadPromise.then(doShow).catch(e => console.error(e)); }
       );
     } else {
-      loadPromise.then(doShow).catch(err => {
-        console.error("[Rhombi] GLB laden mislukt:", err);
-      });
+      loadPromise.then(doShow).catch(e => console.error(e));
     }
 
   } else {
@@ -1906,13 +1890,9 @@ function loadGLBParts(url) {
   return new Promise((resolve, reject) => {
     if (!gltfLoader) { reject('GLTFLoader niet beschikbaar'); return; }
     window._rhombiExcludeNodes = (window._rhombiCurrentVariant && window._rhombiCurrentVariant.excludeNodes) || [];
-    fetch(url)
-      .then(function(r) {
-        if (!r.ok) throw new Error(r.status);
-        return r.arrayBuffer();
-      })
-      .then(function(buffer) {
-        gltfLoader.parse(buffer, '',
+
+    const parseBuffer = (buffer) => {
+      gltfLoader.parse(buffer, '',
           function(gltf) {
             var groups = {};
             var excludeList = window._rhombiExcludeNodes || [];
@@ -1946,9 +1926,32 @@ function loadGLBParts(url) {
         );
       })
       .catch(function(err) { reject(err); });
+    };
+
+    // Cache hit?
+    if (_glbCache.has(url)) {
+      parseBuffer(_glbCache.get(url).slice(0)); // slice = kopie zodat parse niet muteert
+      return;
+    }
+    fetch(url)
+      .then(r => { if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(buffer => { _glbCache.set(url, buffer); parseBuffer(buffer.slice(0)); })
+      .catch(err => reject(err));
   });
 }
 
+// ── Preload alle variant GLBs op de achtergrond ──────────────────────
+function preloadAllGLBs() {
+  VARIANTS.forEach(v => {
+    if(!v.glb) return;
+    const url = GLB_BASE + v.glb;
+    if(_glbCache.has(url)) return;
+    fetch(url)
+      .then(r => { if(r.ok) return r.arrayBuffer(); })
+      .then(buf => { if(buf) _glbCache.set(url, buf); console.log('[Rhombi] preloaded', v.id); })
+      .catch(() => {});
+  });
+}
 
 // ── Camera auto-fit op geladen GLB ──────────────────────────────────
 function fitCameraToGLB() {
@@ -1977,6 +1980,7 @@ let camTh=0,camPh=.42,camR=6.5,panX=0,panY=0;
 
 // Init first variant instantly
 swapLocal("tafel");
+setTimeout(preloadAllGLBs, 2000); // preload overige GLBs op achtergrond
 
 // ═══════════════════════════════════════════
 // VARIANT SWITCH — KEY FUNCTION
