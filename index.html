@@ -157,7 +157,7 @@ nav {
   background: rgba(12,14,18,.97);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  z-index: 99;
+  z-index: 490;
   border-bottom: 1px solid rgba(200,136,74,.15);
   padding: 0;
   max-height: calc(100vh - 36px);
@@ -1036,6 +1036,7 @@ footer {
 nav.scrolled {
   background: rgba(18,21,26,.98);
   box-shadow: 0 1px 0 rgba(255,255,255,.05);
+  top: var(--banner-h, 36px);
 }
 
 
@@ -1485,7 +1486,8 @@ input, textarea, select {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 300;
+  z-index: 500;
+  transition: transform .3s ease, opacity .3s ease;
 }
 .topbanner a {
   color: var(--dark);
@@ -2665,7 +2667,13 @@ window.addEventListener('resize', () => { if(typeof setOffset==='function' && tr
 
 // Nav scroll effect
 window.addEventListener('scroll', () => {
-  document.querySelector('nav').classList.toggle('scrolled', window.scrollY > 60);
+  const banner = document.querySelector('.topbanner');
+  const scrolled = window.scrollY > 60;
+  document.querySelector('nav').classList.toggle('scrolled', scrolled);
+  if (banner) {
+    banner.style.transform = scrolled ? 'translateY(-100%)' : 'translateY(0)';
+    banner.style.opacity = scrolled ? '0' : '1';
+  }
 });
 
 // Lightbox
@@ -3254,9 +3262,13 @@ loadRandomImages();
     const offset = banner.offsetHeight + nav.offsetHeight;
     document.documentElement.style.setProperty('--nav-offset', offset + 'px');
   }
-  document.addEventListener('DOMContentLoaded', setNavOffset);
-  window.addEventListener('resize', setNavOffset);
-  if (document.readyState !== 'loading') setNavOffset();
+  document.addEventListener('DOMContentLoaded', () => { setNavOffset(); setBannerH(); });
+  window.addEventListener('resize', () => { setNavOffset(); setBannerH(); });
+  if (document.readyState !== 'loading') { setNavOffset(); setBannerH(); }
+  function setBannerH() {
+    const b = document.querySelector('.topbanner');
+    if (b) document.documentElement.style.setProperty('--banner-h', b.offsetHeight + 'px');
+  }
 })();
 
 // ── Configurator popup ────────────────────────────────────

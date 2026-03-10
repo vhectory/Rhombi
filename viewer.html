@@ -304,12 +304,13 @@ canvas{ touch-action:none; cursor:crosshair }
     position: fixed;
     left: 0;
     right: 0;
-    top: calc(52vh + var(--mob-bar-h));
+    top: 52vh;
     bottom: 0;
     width: 100% !important;
     max-width: 100% !important;
     height: auto;
     max-height: none;
+    bottom: 0;
     border-left: none;
     border-top: 1px solid rgba(200,136,74,.25);
     border-bottom: none;
@@ -928,29 +929,47 @@ try {
 }
 
 function resize(){
-  // Available space inside #c (minus padding)
-  const pad = window.innerWidth > 768 ? 48 : 0;
-  const avW = wrap.clientWidth  - pad;
-  const avH = wrap.clientHeight - pad;
-  const s   = Math.min(avW, avH);
-  const cv  = R.domElement;
-  cv.style.width  = s + 'px';
-  cv.style.height = s + 'px';
-  canvasFrame.style.width  = s + 'px';
-  canvasFrame.style.height = s + 'px';
-  R.setSize(s, s, false);
-  CAM.aspect = 1;
+  const isMobLayout = window.innerWidth <= 768;
+  let w, h;
+  if(isMobLayout) {
+    // Mobiel: volledige breedte, hoogte = 52vh
+    w = window.innerWidth;
+    h = Math.round(window.innerHeight * 0.52);
+  } else {
+    const pad = 48;
+    const avW = wrap.clientWidth  - pad;
+    const avH = wrap.clientHeight - pad;
+    const s   = Math.min(avW, avH);
+    w = s; h = s;
+  }
+  const cv = R.domElement;
+  cv.style.width  = w + 'px';
+  cv.style.height = h + 'px';
+  canvasFrame.style.width  = w + 'px';
+  canvasFrame.style.height = h + 'px';
+  canvasFrame.style.position = isMobLayout ? 'relative' : '';
+  canvasFrame.style.transform = isMobLayout ? '' : '';
+  R.setSize(w, h, false);
+  CAM.aspect = w / h;
   CAM.updateProjectionMatrix();
-  if(composer) composer.setSize(s, s);
-  if(window._edgeOccPass) window._edgeOccPass.uniforms.uRes.value.set(s,s);
+  if(composer) composer.setSize(w, h);
+  if(window._edgeOccPass) window._edgeOccPass.uniforms.uRes.value.set(w, h);
 
-  // Mobiel: vbar direct onder canvas plaatsen
-  if(window.innerWidth <= 768) {
+  // Mobiel: vbar direct onder canvas
+  if(isMobLayout) {
     const vbar = document.querySelector('.vbar');
     if(vbar) {
-      const frame = canvasFrame.getBoundingClientRect();
-      vbar.style.top = Math.round(frame.bottom) + 'px';
+      vbar.style.top = h + 'px';
       vbar.style.bottom = 'auto';
+    }
+    // Zorg dat mob-bar ook direct aansluit
+    const mobBar = document.getElementById('mobBar');
+    if(mobBar) mobBar.style.top = h + 'px';
+    // Panel ook
+    const panel = document.getElementById('panel');
+    if(panel) {
+      panel.style.top = h + 'px';
+      panel.style.bottom = '0';
     }
   } else {
     const vbar = document.querySelector('.vbar');
