@@ -1482,6 +1482,20 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     window._pendingColors = null;
   }
   syncAllGLBParts();
+
+  // Centreer model verticaal — bbox midden op Y=0
+  const _cBox = new THREE.Box3();
+  Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh && !o.userData.isOutline) _cBox.expandByObject(o); }));
+  if(!_cBox.isEmpty()) {
+    const _cCenter = _cBox.getCenter(new THREE.Vector3());
+    // Verschuif alle groups zodat centrum op 0,0,0 zit
+    Object.values(activeGLBGroups).forEach(g => {
+      g.position.x -= _cCenter.x;
+      g.position.y -= _cCenter.y;
+      g.position.z -= _cCenter.z;
+    });
+  }
+
   buildPList(); updateSwActive(); buildColorGrid(); buildMatList(); if(!skipCamera) fitCameraToGLB();
   _clickableMeshes = [];
   Object.values(activeGLBGroups).forEach(g => {
