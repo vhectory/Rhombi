@@ -305,7 +305,7 @@ canvas{ touch-action:none; cursor:crosshair }
     left: 0;
     right: 0;
     top: calc(52vh + var(--mob-bar-h));
-    bottom: 0;
+    bottom: -30vh;
     width: 100% !important;
     max-width: 100% !important;
     height: auto;
@@ -601,7 +601,7 @@ const VARIANTS=[
   },
 
   // ── Binnenkort ───────────────────────────────────────────────────
-  {id:"accent", icon:"◈", lbl:"Accent",
+  {id:"accent", icon:"◈", lbl:"Accent", yOffset:-0.1,
    tit:"Rhombi Accent", sub:"Accentlamp · slanke sokkel",
    glb:"rhombi-accent.glb",
    excludeNodes:["voet_t"],  // alleen voet_a gebruiken
@@ -1531,14 +1531,24 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   });
   updateSelectionOutline();
 
-  // kapGlow + LP op positie peer NA centering
+  // kapGlow + LP op wereldpositie peer mesh NA centering
   const _peerGrp = activeGLBGroups && (activeGLBGroups['peer'] || activeGLBGroups['kap']);
   if(_peerGrp) {
     const kb = new THREE.Box3();
-    _peerGrp.traverse(o => { if(o.isMesh && !o.userData.isOutline) kb.expandByObject(o); });
-    const kc = kb.getCenter(new THREE.Vector3());
-    kapGlow.position.copy(kc);
-    kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
+    // expandByObject werkt met world matrix — forceert update eerst
+    _peerGrp.updateWorldMatrix(true, true);
+    _peerGrp.traverse(o => {
+      if(o.isMesh && !o.userData.isOutline) {
+        o.updateWorldMatrix(true, false);
+        kb.expandByObject(o);
+      }
+    });
+    if(!kb.isEmpty()) {
+      const kc = kb.getCenter(new THREE.Vector3());
+      kapGlow.position.copy(kc);
+      LP.position.copy(kc);
+      kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
+    }
   }
   updateKapGlow();
 }
