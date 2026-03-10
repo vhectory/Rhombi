@@ -2983,8 +2983,6 @@ function togglePanel(){
 function closePanel(){
   const lbl = document.getElementById('mobOptLabel');
   if(lbl) lbl.textContent = '≡ OPTIES';
-  setTimeout(notifyParentHeight, 400);
-  setTimeout(notifyParentHeight, 50);
   // Vertel parent iframe om kleiner te worden
   if(window.self !== window.top) {
     const compactH = Math.round(window.innerHeight * 0.52) + 64 + 20;
@@ -3054,48 +3052,6 @@ const _vsubEl = document.getElementById("vsub");
 if(_vtitEl) _mobObs.observe(_vtitEl, {childList:true, characterData:true, subtree:true});
 if(_vsubEl) _mobObs.observe(_vsubEl, {childList:true, characterData:true, subtree:true});
 syncMobBar();
-
-// ── iFrame hoogte communicatie naar parent pagina ──────────────────────
-function notifyParentHeight() {
-  if(window.self === window.top) return; // niet in iframe
-  const isMobLayout = window.innerWidth <= 768;
-  const panel = document.getElementById('panel');
-  const panelOpen = panel && panel.classList.contains('open');
-  
-  let h;
-  if(isMobLayout) {
-    const canvasH = Math.round(window.innerHeight * 0.52);
-    const mobBarH = document.getElementById('mobBar')?.offsetHeight || 64;
-    if(panelOpen) {
-      // Canvas + mobbar + panel inhoud
-      h = canvasH + mobBarH + (panel?.scrollHeight || 0);
-    } else {
-      // Alleen canvas + mobbar
-      h = canvasH + mobBarH;
-    }
-  } else {
-    h = window.innerHeight; // desktop: iframe volledige hoogte
-  }
-  
-  window.parent.postMessage({ type: 'rhombi-height', height: h }, '*');
-}
-
-// Stuur hoogte bij: load, resize, panel open/close
-window.addEventListener('resize', notifyParentHeight);
-setTimeout(notifyParentHeight, 500);
-
 </script>
-
-// ── iframe hoogte communiceren naar parent pagina ──────────────────
-function notifyParentHeight() {
-  if(window.self === window.top) return; // niet in iframe
-  const h = document.body.scrollHeight || document.documentElement.scrollHeight;
-  window.parent.postMessage({ type: 'rhombi-height', height: h }, '*');
-}
-
-// Stuur hoogte bij laden en bij panel open/sluiten
-window.addEventListener('load', notifyParentHeight);
-window.addEventListener('resize', notifyParentHeight);
-
 </body>
 </html>

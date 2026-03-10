@@ -501,7 +501,7 @@ nav {
 .configurator-frame-wrap {
   position: relative;
   width: 100%;
-  height: min(100vw, 92vh);
+  padding-bottom: min(100%, 90vh);
   border-top: 1px solid rgba(255,255,255,.05);
 }
 .configurator-frame {
@@ -514,8 +514,7 @@ nav {
 }
 @media (max-width: 768px) {
   .configurator-header { padding: 60px 24px 28px; flex-direction: column; align-items: flex-start; }
-  /* Mobiel: 52vh canvas + mob-bar + panel ruimte */
-  .configurator-frame-wrap { height: calc(52svh + 64px); }
+  .configurator-frame-wrap { padding-bottom: 100vw; }
 }
 
 /* ── FOOTER ── */
