@@ -2019,12 +2019,12 @@ function fitCameraToGLB() {
   const size   = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
-  // Zet camera op 2.2x de grootste dimensie, gecentreerd op model
-  camR  = maxDim * 2.2;
+  // Zet camera op 2.2x de grootste dimensie, minimum 2.5
+  camR  = Math.max(0.5, maxDim * 2.2);
   camTh = 0;          // voorkant
   camPh = 0.42;       // lichte bovenaanzicht
   panX  = 0;
-  panY  = center.y;
+  panY  = 0; // model is al gecentreerd
   console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2));
 }
 
