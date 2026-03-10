@@ -315,8 +315,9 @@ canvas{ touch-action:none; cursor:crosshair }
     border-top: 1px solid rgba(200,136,74,.25);
     border-bottom: none;
     border-radius: 0;
-    transform: translateY(-100%);
+    transform: translateY(-200vh);
     transition: transform .40s cubic-bezier(.32,.72,0,1);
+    visibility: hidden;
     box-shadow: 0 8px 40px rgba(0,0,0,.7);
     padding-top: 0;
     padding-bottom: calc(var(--sai-bottom) + 8px);
@@ -325,6 +326,7 @@ canvas{ touch-action:none; cursor:crosshair }
   }
   .panel.open{
     transform: translateY(0);
+    visibility: visible;
   }
 
   .sheet-handle{
