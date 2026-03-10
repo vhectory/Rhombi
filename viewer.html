@@ -39,7 +39,7 @@ canvas{display:block;border-radius:2px}
 .vbtn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 16px;min-width:78px;background:rgba(22,26,32,.92);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.07);color:var(--text-dim);cursor:pointer;transition:all .2s;font-family:"Space Mono",monospace}
 .vbtn:hover{border-color:rgba(200,136,74,.4);color:var(--cream)}
 .vbtn.on{border-color:var(--amber);color:var(--amber);background:rgba(200,136,74,.1)}
-.vbtn.busy{opacity:.4;pointer-events:none}
+.vbtn.busy{opacity:.7}
 .vbtn.soon{opacity:.4;cursor:not-allowed;filter:grayscale(.6)}
 .vi{font-size:18px;line-height:1}
 .vl{font-size:8px;letter-spacing:.14em;text-transform:uppercase}
@@ -1987,11 +1987,9 @@ setTimeout(preloadAllGLBs, 500); // preload overige GLBs snel op achtergrond
 // VARIANT SWITCH — KEY FUNCTION
 // ═══════════════════════════════════════════
 function switchVar(v){
-  if(v.id===curV.id||busy||v.coming_soon)return;
-  busy=true;
+  if(v.id===curV.id||v.coming_soon)return;
   exP=0; exT=0;
   document.getElementById("bEx").classList.remove("on");
-  document.querySelectorAll(".vbtn").forEach(b=>b.classList.add("busy"));
 
   curV=v;
   document.getElementById("vtit").textContent=v.tit;
@@ -2010,34 +2008,7 @@ function switchVar(v){
   // Laad nieuwe variant
   swapLocal(v.id);
 
-  // Na laden: tween gedeelde onderdelen vanuit oude positie
-  // swapLocal is async — we wachten tot transit verdwijnt via MutationObserver
-  const transit = document.getElementById("transit");
-  const observer = new MutationObserver(() => {
-    if(!transit.classList.contains("show")){
-      observer.disconnect();
-      // Tween gedeelde onderdelen van oude naar nieuwe positie
-      if(prevGroups && activeGLBGroups){
-        Object.entries(activeGLBGroups).forEach(([id, grp]) => {
-          if(prevPositions[id]){
-            const toPos = grp.position.clone();
-            grp.position.copy(prevPositions[id]);
-            tween(grp, [toPos.x, toPos.y, toPos.z], [0,0,0], 1.0, 0.8, null);
-          }
-        });
-      }
-      busy=false;
-      document.querySelectorAll(".vbtn").forEach(b=>b.classList.remove("busy"));
-      clearTimeout(_fallback);
-    }
-  });
-  observer.observe(transit, {attributes:true, attributeFilter:["class"]});
-  // Fallback: als GLB laad mislukt, altijd busy=false na 8s
-  const _fallback = setTimeout(()=>{
-    observer.disconnect();
-    busy=false;
-    document.querySelectorAll(".vbtn").forEach(b=>b.classList.remove("busy"));
-  }, 8000);
+
 }
 
 // ═══════════════════════════════════════════
@@ -2807,7 +2778,7 @@ function animate(ts){
   const dt=Math.min((ts-lastTS)/1000,.05); lastTS=ts;
 
   // Spin — paused during transition so user sees the movement clearly
-  if(spinning&&!isDrag&&!busy) camTh+=.003;
+  if(spinning&&!isDrag) camTh+=.003;
 
   // Camera
   const cx=camR*Math.sin(camPh)*Math.sin(camTh)+panX;
@@ -2820,7 +2791,7 @@ function animate(ts){
   updateTweens(dt);
 
   // Explode animation (only when idle)
-  if(!busy){
+  {
     if(Math.abs(exP-exT)>.001){
       exP+=(exT-exP)*5*dt;
       if(Math.abs(exP-exT)<.001)exP=exT;
