@@ -197,12 +197,13 @@ canvas{ touch-action:none; cursor:crosshair }
     bottom: auto !important;
     top:0 !important;
     left:0 !important;
-    height: 52vh !important;
+    height: 100vw !important;
     padding:0 !important;
     align-items:flex-start !important;
     justify-content:center !important;
+    overflow:hidden !important;
   }
-  canvas{ width:100% !important; height:52vh !important; max-height:52vh !important; border-radius:0 !important; object-fit:cover }
+  canvas{ width:100vw !important; height:100vw !important; border-radius:0 !important; display:block; }
   #c, #canvas-frame, #c canvas{ pointer-events:all !important; touch-action:none !important; z-index:5 }
   .bar{
     right:0 !important;
@@ -218,7 +219,7 @@ canvas{ touch-action:none; cursor:crosshair }
   .vbar{
     right:0 !important;
     bottom: auto !important;
-    top: calc(52vh - 56px) !important;
+    top: calc(100vw - 56px) !important;
     left:0;
     padding-bottom: 4px;
     gap: 3px;
@@ -245,7 +246,7 @@ canvas{ touch-action:none; cursor:crosshair }
   .mob-bar-bottom{
     display: flex;
     position: fixed;
-    top: 52vh;
+    top: 100vw;
     bottom: auto;
     left: 0;
     right: 0;
@@ -304,14 +305,11 @@ canvas{ touch-action:none; cursor:crosshair }
     position: fixed;
     left: 0;
     right: 0;
-    top: calc(52vh + var(--mob-bar-h));
+    top: calc(100vw + var(--mob-bar-h));
     bottom: auto;
     height: 65vh;
     width: 100% !important;
     max-width: 100% !important;
-    height: auto;
-    max-height: none;
-    bottom: 0;
     border-left: none;
     border-top: 1px solid rgba(200,136,74,.25);
     border-bottom: none;
@@ -362,7 +360,7 @@ canvas{ touch-action:none; cursor:crosshair }
   .panel-overlay{
     display:none;
     position:fixed;
-    top: 52vh;
+    top: 100vw;
     left:0;right:0;bottom:0;
     z-index:29;
     background:rgba(0,0,0,0);
@@ -602,7 +600,7 @@ const VARIANTS=[
   },
 
   // ── Binnenkort ───────────────────────────────────────────────────
-  {id:"accent", icon:"◈", lbl:"Accent", yOffset:-0.1,
+  {id:"accent", icon:"◈", lbl:"Accent", yOffset:-0.10,
    tit:"Rhombi Accent", sub:"Accentlamp · slanke sokkel",
    glb:"rhombi-accent.glb",
    excludeNodes:["voet_t"],  // alleen voet_a gebruiken
@@ -937,7 +935,7 @@ function resize(){
   if(isMobLayout) {
     // Mobiel: volledige breedte, hoogte = 52vh
     w = window.innerWidth;
-    h = Math.round(window.innerHeight * 0.52);
+    h = window.innerWidth; // vierkant = breedte
   } else {
     const pad = 48;
     const avW = wrap.clientWidth  - pad;
@@ -968,12 +966,14 @@ function resize(){
     // Zorg dat mob-bar ook direct aansluit
     const mobBar = document.getElementById('mobBar');
     if(mobBar) mobBar.style.top = h + 'px';
+    // vbar ook
+    const vbar2 = document.querySelector('.vbar');
+    if(vbar2) { vbar2.style.top = (h - 56) + 'px'; vbar2.style.bottom = 'auto'; }
     // Panel ook
     const panel = document.getElementById('panel');
     if(panel) {
       const mbH = document.getElementById('mobBar')?.offsetHeight || 64;
       panel.style.top = (h + mbH) + 'px';
-      panel.style.bottom = '0';
     }
   } else {
     const vbar = document.querySelector('.vbar');
@@ -1523,6 +1523,11 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
       g.position.y -= _cCenter.y;
       g.position.z -= _cCenter.z;
     });
+    // Variant yOffset NA centering (Y = omhoog in Three.js)
+    const _vOff = window._rhombiCurrentVariant;
+    if(_vOff && _vOff.yOffset) {
+      Object.values(activeGLBGroups).forEach(g => { g.position.y += _vOff.yOffset; });
+    }
   }
 
   buildPList(); updateSwActive(); buildColorGrid(); buildMatList(); if(!skipCamera) fitCameraToGLB();
@@ -1547,7 +1552,8 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     if(!kb.isEmpty()) {
       const kc = kb.getCenter(new THREE.Vector3());
       kapGlow.position.copy(kc);
-      LP.position.copy(kc);
+      LP.position.set(kc.x, kc.y, kc.z);
+      console.log('[Rhombi] lamp pos', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
       kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
     }
   }
