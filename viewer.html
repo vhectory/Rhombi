@@ -43,7 +43,7 @@ canvas{display:block;border-radius:2px}
 .vbtn.soon{opacity:.4;cursor:not-allowed;filter:grayscale(.6)}
 .vi{font-size:18px;line-height:1}
 .vl{font-size:8px;letter-spacing:.14em;text-transform:uppercase}
-.panel{position:fixed;right:0;top:0;bottom:0;width:30%;min-width:260px;background:rgba(20,24,30,.97);backdrop-filter:blur(16px);border-left:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;overflow-y:auto;z-index:30}
+.panel{position:fixed;right:0;top:24px;bottom:0;width:30%;min-width:260px;background:rgba(20,24,30,.97);backdrop-filter:blur(16px);border-left:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;overflow-y:auto;z-index:30;border-top:1px solid rgba(255,255,255,.05)}
 .panel::-webkit-scrollbar{width:2px}.panel::-webkit-scrollbar-thumb{background:rgba(200,136,74,.2)}
 .ps{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
 .ps:last-child{border-bottom:none}
@@ -2904,6 +2904,11 @@ function animate(ts){
 // INIT
 // ═══════════════════════════════════════════
 buildVBar(); buildPList(); buildColorGrid(); buildMatList(); buildSpecs(VARIANTS[0]); updateSwActive();
+// Stuur compacte hoogte naar parent bij laden
+if(window.self !== window.top) {
+  const compactH = Math.round(window.innerHeight * 0.52) + 64 + 20;
+  window.parent.postMessage({type:'rhombi-resize', height: compactH}, '*');
+}
 
 // ── Configuratie opslaan/laden via URL hash ──────────────────────────
 function saveConfig() {
@@ -2978,6 +2983,15 @@ function togglePanel(){
 function closePanel(){
   const lbl = document.getElementById('mobOptLabel');
   if(lbl) lbl.textContent = '≡ OPTIES';
+  setTimeout(notifyParentHeight, 400);
+  setTimeout(notifyParentHeight, 50);
+  // Vertel parent iframe om kleiner te worden
+  if(window.self !== window.top) {
+    const compactH = Math.round(window.innerHeight * 0.52) + 64 + 20;
+    window.parent.postMessage({type:'rhombi-resize', height: compactH}, '*');
+  }
+  // Verklein iframe terug
+  try { window.parent.postMessage({rhombi:'panel-closed', height: Math.round(window.innerHeight * 0.62)}, '*'); } catch(e){}
   document.getElementById("panel").classList.remove("open");
   document.getElementById("panelOverlay").classList.remove("show");
 }
@@ -3040,6 +3054,48 @@ const _vsubEl = document.getElementById("vsub");
 if(_vtitEl) _mobObs.observe(_vtitEl, {childList:true, characterData:true, subtree:true});
 if(_vsubEl) _mobObs.observe(_vsubEl, {childList:true, characterData:true, subtree:true});
 syncMobBar();
+
+// ── iFrame hoogte communicatie naar parent pagina ──────────────────────
+function notifyParentHeight() {
+  if(window.self === window.top) return; // niet in iframe
+  const isMobLayout = window.innerWidth <= 768;
+  const panel = document.getElementById('panel');
+  const panelOpen = panel && panel.classList.contains('open');
+  
+  let h;
+  if(isMobLayout) {
+    const canvasH = Math.round(window.innerHeight * 0.52);
+    const mobBarH = document.getElementById('mobBar')?.offsetHeight || 64;
+    if(panelOpen) {
+      // Canvas + mobbar + panel inhoud
+      h = canvasH + mobBarH + (panel?.scrollHeight || 0);
+    } else {
+      // Alleen canvas + mobbar
+      h = canvasH + mobBarH;
+    }
+  } else {
+    h = window.innerHeight; // desktop: iframe volledige hoogte
+  }
+  
+  window.parent.postMessage({ type: 'rhombi-height', height: h }, '*');
+}
+
+// Stuur hoogte bij: load, resize, panel open/close
+window.addEventListener('resize', notifyParentHeight);
+setTimeout(notifyParentHeight, 500);
+
 </script>
+
+// ── iframe hoogte communiceren naar parent pagina ──────────────────
+function notifyParentHeight() {
+  if(window.self === window.top) return; // niet in iframe
+  const h = document.body.scrollHeight || document.documentElement.scrollHeight;
+  window.parent.postMessage({ type: 'rhombi-height', height: h }, '*');
+}
+
+// Stuur hoogte bij laden en bij panel open/sluiten
+window.addEventListener('load', notifyParentHeight);
+window.addEventListener('resize', notifyParentHeight);
+
 </body>
 </html>
