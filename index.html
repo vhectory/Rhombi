@@ -1753,7 +1753,8 @@ input, textarea, select {
 
 <!-- MOBILE MENU -->
 <div class="topbanner" data-i18n="topbanner">
-  ◆ Exclusief bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Galerie T</a>, Middelburg &nbsp;·&nbsp; Studio: 17 juni + elke 1e zondag · 13:00–17:00 · Turfkaai 25
+  ◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>
+  Opening studio: zondag 17 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25
 </div>
 
 <div class="mobile-menu" id="mobileMenu">
@@ -2703,7 +2704,7 @@ document.querySelectorAll('.rhombi-frame').forEach(frame => {
 // ── i18n ──────────────────────────────────────────────────────
 const TRANSLATIONS = {
   nl: {
-    'topbanner': '◆ Exclusief bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Galerie T</a>, Middelburg &nbsp;·&nbsp; Studio open: 17 juni + elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25',
+    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Opening studio: zondag 17 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25',
     'type-hint': "Tik voor foto's",
     'type-tafel-label': '◆ Tafellamp',
     'type-hang-label': '◆ Hang',
@@ -2810,7 +2811,7 @@ const TRANSLATIONS = {
 
   },
   en: {
-    'topbanner': '◆ Exclusively available at <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(255,255,255,.3)">Galerie T</a>, Middelburg<br>Studio opening: Sunday 17 June (Kunst &amp; Cultuurroute) · Every 1st Sunday of the month · 13:00–17:00 · Turfkaai 25',
+    'topbanner': '◆ Exclusively available at <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studio opening: Sunday 17 June (Kunst &amp; Cultuurroute) · Every 1st Sunday of the month · 13:00–17:00 · Turfkaai 25',
     'type-hint': 'Tap for photos',
     'type-tafel-label': '◆ Table lamp',
     'type-hang-label': '◆ Pendant',
@@ -2917,7 +2918,7 @@ const TRANSLATIONS = {
 
   },
   de: {
-    'topbanner': '◆ Exklusiv erhältlich bei <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(255,255,255,.3)">Galerie T</a>, Middelburg<br>Studioöffnung: Sonntag 17. Juni (Kunst &amp; Cultuurroute) · Jeden 1. Sonntag im Monat · 13:00–17:00 · Turfkaai 25',
+    'topbanner': '◆ Exklusiv erhältlich bei <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studioöffnung: Sonntag 17. Juni (Kunst &amp; Cultuurroute) · Jeden 1. Sonntag im Monat · 13:00–17:00 · Turfkaai 25',
     'type-hint': 'Tippen für Fotos',
     'type-tafel-label': '◆ Tischleuchte',
     'type-hang-label': '◆ Hänge',
@@ -3039,10 +3040,7 @@ function setLang(lang) {
     // Skip if element has child elements with data-i18n (they handle themselves)
     if(el.querySelector('[data-i18n]')) return;
     if(el.classList.contains('topbanner')) {
-      const lang3 = {'nl':'Galerie T','en':'Galerie T','de':'Galerie T'};
-      el.innerHTML = '◆ ' + {'nl':'Vooralsnog exclusief verkrijgbaar bij ','en':'For now exclusively available at ','de':'Vorerst exklusiv erhältlich bei '}[lang]
-        + '<a href="https://galerie-t.nl" target="_blank" rel="noopener">' + lang3[lang] + '</a>'
-        + {'nl':', Middelburg','en':', Middelburg','de':', Middelburg'}[lang];
+      el.innerHTML = t[key];
     } else if(key === 'kunst-sub') {
       el.innerHTML = t[key];
     } else {
