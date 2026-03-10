@@ -1504,13 +1504,13 @@ function swapLocal(varId){
   const v = VARIANTS.find(v=>v.id===varId);
   if(!v) return;
 
-  // Altijd direct knop actief — nooit blokkeren
+  // Direct knop actief + animatie afbreken via nieuw seq
   curV = v;
   updateSwActive();
   window._rhombiCurrentVariant = v;
 
   const glbFile = v.glb ? GLB_BASE + v.glb : null;
-  const mySeq = ++_swapSeq; // nieuwe klik annuleert vorige laadbeurt
+  const mySeq = ++_swapSeq; // hogere seq = vorige _animate ticks stoppen meteen
 
   if(glbFile){
     const prevGroups = activeGLBGroups ? {...activeGLBGroups} : null;
@@ -1528,7 +1528,7 @@ function swapLocal(varId){
         grp.position.set(off[0]*1.1, off[1]*1.1, off[2]*1.1);
       });
       _setAllOpacity(0);
-      _animate(650, 0, 1,
+      _animate(750, 0, 1,
         t => {
           if(_swapSeq !== mySeq) return;
           _setAllOpacity(t);
@@ -1543,7 +1543,7 @@ function swapLocal(varId){
     };
 
     if(prevGroups && Object.keys(prevGroups).length > 0) {
-      _animate(180, 1, 0,
+      _animate(500, 1, 0,
         t => {
           if(_swapSeq !== mySeq) return;
           _setAllOpacity(t);
@@ -1928,9 +1928,11 @@ function loadGLBParts(url) {
 
     // Cache hit?
     if (_glbCache.has(url)) {
-      parseBuffer(_glbCache.get(url).slice(0)); // slice = kopie zodat parse niet muteert
+      console.log('[Rhombi] cache hit', url);
+      parseBuffer(_glbCache.get(url).slice(0));
       return;
     }
+    console.log('[Rhombi] fetching', url);
     fetch(url)
       .then(r => { if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
       .then(buffer => { _glbCache.set(url, buffer); parseBuffer(buffer.slice(0)); })
@@ -1944,10 +1946,11 @@ function preloadAllGLBs() {
     if(!v.glb) return;
     const url = GLB_BASE + v.glb;
     if(_glbCache.has(url)) return;
+    console.log('[Rhombi] preloading', v.id, url);
     fetch(url)
-      .then(r => { if(r.ok) return r.arrayBuffer(); })
-      .then(buf => { if(buf) _glbCache.set(url, buf); console.log('[Rhombi] preloaded', v.id); })
-      .catch(() => {});
+      .then(r => { if(r.ok) return r.arrayBuffer(); throw new Error(r.status); })
+      .then(buf => { _glbCache.set(url, buf); console.log('[Rhombi] cached', v.id, Math.round(buf.byteLength/1024)+'kb'); })
+      .catch(e => console.warn('[Rhombi] preload failed', v.id, e));
   });
 }
 
@@ -1978,7 +1981,7 @@ let camTh=0,camPh=.42,camR=6.5,panX=0,panY=0;
 
 // Init first variant instantly
 swapLocal("tafel");
-setTimeout(preloadAllGLBs, 2000); // preload overige GLBs op achtergrond
+setTimeout(preloadAllGLBs, 500); // preload overige GLBs snel op achtergrond
 
 // ═══════════════════════════════════════════
 // VARIANT SWITCH — KEY FUNCTION
