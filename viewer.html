@@ -249,7 +249,7 @@ canvas{ touch-action:none; cursor:crosshair }
     bottom: auto;
     left: 0;
     right: 0;
-    z-index: 41;
+    z-index: 50;
     height: var(--mob-bar-h);
     align-items: flex-start;
     padding-top: 10px;
@@ -304,7 +304,7 @@ canvas{ touch-action:none; cursor:crosshair }
     position: fixed;
     left: 0;
     right: 0;
-    top: 52vh;
+    top: calc(52vh + var(--mob-bar-h));
     bottom: 0;
     width: 100% !important;
     max-width: 100% !important;
@@ -315,18 +315,18 @@ canvas{ touch-action:none; cursor:crosshair }
     border-top: 1px solid rgba(200,136,74,.25);
     border-bottom: none;
     border-radius: 0;
-    transform: translateY(-200vh);
-    transition: transform .40s cubic-bezier(.32,.72,0,1);
-    visibility: hidden;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform .35s cubic-bezier(.32,.72,0,1);
+    overflow: hidden;
     box-shadow: 0 8px 40px rgba(0,0,0,.7);
     padding-top: 0;
     padding-bottom: calc(var(--sai-bottom) + 8px);
     overflow-y: auto;
-    z-index: 1000;
+    z-index: 45;
   }
   .panel.open{
-    transform: translateY(0);
-    visibility: visible;
+    transform: scaleY(1);
   }
 
   .sheet-handle{
@@ -970,7 +970,8 @@ function resize(){
     // Panel ook
     const panel = document.getElementById('panel');
     if(panel) {
-      panel.style.top = h + 'px';
+      const mbH = document.getElementById('mobBar')?.offsetHeight || 64;
+      panel.style.top = (h + mbH) + 'px';
       panel.style.bottom = '0';
     }
   } else {
@@ -2985,7 +2986,7 @@ function closePanel(){
     const dy = e.touches[0].clientY - startY;
     // Swipe omhoog (dy < 0) sluit het panel — schuift terug omhoog weg
     if(dy < 0){
-      panel.style.transform = `translateY(${dy}px)`;
+      // swipe disabled (scaleY panel)
       panel.style.transition = "none";
       e.preventDefault();
     }
