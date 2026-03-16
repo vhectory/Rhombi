@@ -1527,10 +1527,18 @@ function _finishLoad(result, prevGroups, skipCamera=false) {
       g.position.y -= _cCenter.y;
       g.position.z -= _cCenter.z;
     });
+    // Pas dezelfde centering toe op lamp_pos Empty
+    if(_glbLampPos) {
+      _glbLampPos.x -= _cCenter.x;
+      _glbLampPos.y -= _cCenter.y;
+      _glbLampPos.z -= _cCenter.z;
+    }
     // Variant yOffset NA centering (Y = omhoog in Three.js)
     const _vOff = window._rhombiCurrentVariant;
     if(_vOff && _vOff.yOffset) {
       Object.values(activeGLBGroups).forEach(g => { g.position.y += _vOff.yOffset; });
+      // Ook lamp_pos meeschuiven met yOffset
+      if(_glbLampPos) _glbLampPos.y += _vOff.yOffset;
     }
   }
 
