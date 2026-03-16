@@ -1898,8 +1898,10 @@ input, textarea, select {
     </div>
     <p style="font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;color:var(--text-dim);text-transform:uppercase" data-i18n="conf-types">Tafel · Wand · Plafond · Accent · Hang</p>
   </div>
-  <div class="configurator-frame-wrap"><iframe src="viewer.html" class="configurator-frame" id="configuratorFrame" title="Rhombi 3D Configurator" allowfullscreen></iframe></div>
-</section>
+  <div class="configurator-frame-wrap">
+    <iframe src="viewer.html" class="configurator-frame" id="configuratorFrame"
+      title="Rhombi 3D Configurator" allowfullscreen loading="lazy"></iframe>
+  </div>
 <section class="types-section" id="types">
   <p class="section-label reveal" data-i18n="types-label">◆ Varianten</p>
   <h2 class="section-title reveal" ><span data-i18n="types-t1">Meerdere vormen,</span><br><em data-i18n="types-t2">één systeem.</em></h2>
@@ -2669,6 +2671,21 @@ track.querySelectorAll('img').forEach(img => {
   startAuto();
 }
 window.addEventListener('resize', () => { if(typeof setOffset==='function' && track) setOffset(centerOffset(carIdx), false); });
+
+// ── Viewer iframe hoogte aanpassen ──
+window.addEventListener('message', function(e) {
+  if (!e.data || e.data.type !== 'rhombi-height') return;
+  const wrap = document.querySelector('.configurator-frame-wrap');
+  if (!wrap) return;
+  const isMob = window.innerWidth <= 768;
+  if (isMob) {
+    wrap.style.paddingBottom = '0';
+    wrap.style.height = e.data.height + 'px';
+  } else {
+    wrap.style.height = '';
+    wrap.style.paddingBottom = '';
+  }
+});
 
 // Nav scroll effect
 window.addEventListener('scroll', () => {
