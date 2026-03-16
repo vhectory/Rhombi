@@ -246,7 +246,7 @@ canvas{ touch-action:none; cursor:crosshair }
   /* ── BOTTOM BAR — instellingen-knop + model-naam ── */
   .mob-bar-bottom{
     display: flex;
-    position: fixed;
+    position: absolute;
     top: 100vw;
     bottom: auto;
     left: 0;
@@ -306,9 +306,10 @@ canvas{ touch-action:none; cursor:crosshair }
     position: absolute;
     left: 0;
     right: 0;
-    top: auto;
-    bottom: 0;
-    transform: translateY(100%);
+    top: calc(100vw + var(--mob-bar-h));
+    bottom: auto;
+    transform: translateY(-100%) scaleY(0);
+    transform-origin: top;
     height: auto;
     max-height: 65vh;
     width: 100% !important;
@@ -325,7 +326,7 @@ canvas{ touch-action:none; cursor:crosshair }
     z-index: 45;
   }
   .panel.open{
-    transform: translateY(0);
+    transform: translateY(0) scaleY(1);
   }
 
   .sheet-handle{
@@ -2975,9 +2976,15 @@ function togglePanel(){
   if(p.classList.contains("open")){
     p.classList.remove("open");
     ov.classList.remove("show");
+    // Vertel parent: klein formaat
+    setTimeout(notifyParentHeight, 50);
+    setTimeout(notifyParentHeight, 400);
   } else {
     p.classList.add("open");
     ov.classList.add("show");
+    // Vertel parent direct: groter formaat nodig
+    setTimeout(notifyParentHeight, 20);
+    setTimeout(notifyParentHeight, 350);
   }
 }
 function closePanel(){
