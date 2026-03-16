@@ -602,6 +602,7 @@ const VARIANTS=[
 
   // ── Binnenkort ───────────────────────────────────────────────────
   {id:"accent", icon:"◈", lbl:"Accent", yOffset:-0.10,
+   kapId:"shade",           // kap-mesh heet "shade" in dit GLB
    tit:"Rhombi Accent", sub:"Accentlamp · slanke sokkel",
    glb:"rhombi-accent.glb",
    excludeNodes:["voet_t"],  // alleen voet_a gebruiken
@@ -1539,7 +1540,15 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   updateSelectionOutline();
 
   // kapGlow + LP in het midden van de kap (peertje zit daarbinnen)
-  const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
+  // Zoek de juiste groep: peer → variant.kapId → 'kap' → 'shade'
+  const _vKapId = window._rhombiCurrentVariant && window._rhombiCurrentVariant.kapId;
+  const _lightCandidates = ['peer', _vKapId, 'kap', 'shade'].filter(Boolean);
+  let _peerGrp = null;
+  if(activeGLBGroups) {
+    for(const _gid of _lightCandidates) {
+      if(activeGLBGroups[_gid]) { _peerGrp = activeGLBGroups[_gid]; break; }
+    }
+  }
   if(_peerGrp) {
     const kb = new THREE.Box3();
     // expandByObject werkt met world matrix — forceert update eerst
@@ -1554,7 +1563,10 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
       const kc = kb.getCenter(new THREE.Vector3());
       kapGlow.position.copy(kc);
       LP.position.set(kc.x, kc.y, kc.z);
-      console.log('[Rhombi] lamp pos', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
+      // Bounce lights volgen de lamp positie
+      bounceDown.position.set(kc.x, kc.y - 0.65, kc.z);
+      bounceSide.position.set(kc.x + 0.75, kc.y + 0.1, kc.z + 0.55);
+      console.log('[Rhombi] lamp pos (groep: ' + (_vKapId||'kap') + ')', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
       kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
     }
   }
@@ -2666,13 +2678,14 @@ const _setLampOrig = setLamp;
 // Kap: opacity daalt bij lamp aan zodat binnenpatroon zichtbaar wordt
 // emissive geeft de warme SSS gloed
 function updateKapGlow() {
-  const kapMat = MGLB['kap'];
+  const curKapId = (window._rhombiCurrentVariant && window._rhombiCurrentVariant.kapId) || 'kap';
+  const kapMat = MGLB[curKapId] || MGLB['kap'];
   if(!kapMat) return;
-  const kp = kapLightProps(partMat['kap'] || 'pla-mat');
+  const kp = kapLightProps(partMat[curKapId] || partMat['kap'] || 'pla-mat');
   const t = lampOn ? peerIntensity : 0;
 
   // CF is altijd opaque — geen opacity daling
-  const isCF = (partMat['kap'] || 'pla-mat') === 'pla-cf';
+  const isCF = (partMat[curKapId] || partMat['kap'] || 'pla-mat') === 'pla-cf';
   if(!isCF) {
     const opBase = kp.opacity;
     const opGlow = Math.max(0.84, opBase - 0.12);
@@ -2693,7 +2706,7 @@ function updateKapGlow() {
   kapMat.needsUpdate = true;
 
   // kapGlow kleur = kap kleur + warmte
-  const glowColor = kapColor.clone().lerp(new THREE.Color(0xFF8820), 0.55);
+  const glowColor = kapMat.color.clone().lerp(new THREE.Color(0xFF8820), 0.55);
   kapGlow.color.copy(glowColor);
 }
 
