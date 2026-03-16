@@ -1578,32 +1578,34 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     if(kb.isEmpty()) return;
 
     const kc = kb.getCenter(new THREE.Vector3());
-    // Peertje-positie per mesh-type:
+    // De Rhombi kap is ruit-vormig — fitting zit aan één kant in Z-richting.
+    // Peertje hangt in Z, niet in Y (kap is symmetrisch van hoogte).
     //   peer    → exact, geen offset
-    //   fitting → peertje hangt ONDER de fitting; bias naar beneden (richting min.y)
-    //   kap/shade → fitting zit bovenin; licht in het bovenste deel (richting max.y)
-    let ly;
+    //   fitting → peertje steekt uit in +Z richting van de fitting
+    //   kap/shade → fitting zit aan de -Z kant; peertje zit dichter bij center/+Z
+    let lz;
     if(!_useTopBias) {
       const isFitting = activeGLBGroups && activeGLBGroups['fitting'] &&
                         _lightGrp === activeGLBGroups['fitting'];
-      ly = isFitting
-        ? kc.y + (kb.max.y - kc.y) * 0.4 + _yBias   // ~40% boven fitting-midden
-        : kc.y + _yBias;                               // peer: exact
+      lz = isFitting
+        ? kc.z + (kb.max.z - kc.z) * 0.5 + _yBias   // peertje steekt uit voorbij fitting in +Z
+        : kc.z + _yBias;                               // peer: exact
     } else {
-      // kap/shade bbox: fitting zit onderin de kap
-      ly = kc.y + (kb.min.y - kc.y) * 0.55 + _yBias;
+      // kap/shade bbox: fitting aan -Z kant, peertje iets richting center
+      lz = kc.z + (kb.min.z - kc.z) * 0.4 + _yBias;
     }
-    const lp = new THREE.Vector3(kc.x, ly, kc.z);
+    const ly = kc.y; // Y blijft bbox-midden
+    const lp = new THREE.Vector3(kc.x, ly, lz);
 
     kapGlow.position.copy(lp);
     LP.position.copy(lp);
     bounceDown.position.set(lp.x, lp.y - 0.65, lp.z);
     bounceSide.position.set(lp.x + 0.75, lp.y + 0.1, lp.z + 0.55);
-    kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
+    kapGlow.distance = Math.max(1.0, (kb.max.z - kb.min.z) * 1.5);
 
     console.log('[Rhombi] lamp pos (' + (_useTopBias ? 'shade-bias' : 'exact') + ')',
       lp.x.toFixed(2), lp.y.toFixed(2), lp.z.toFixed(2),
-      'bbox h:', (kb.max.y - kb.min.y).toFixed(2));
+      'bbox z-span:', (kb.max.z - kb.min.z).toFixed(2));
   })();
   updateKapGlow();
 }
