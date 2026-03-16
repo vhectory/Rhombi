@@ -3061,22 +3061,22 @@ function notifyParentHeight() {
   const isMobLayout = window.innerWidth <= 768;
   const panel = document.getElementById('panel');
   const panelOpen = panel && panel.classList.contains('open');
-  
+  const canvasFrame = document.getElementById('canvas-frame');
+
   let h;
   if(isMobLayout) {
-    const canvasH = Math.round(window.innerHeight * 0.52);
+    // Use actual canvas element height
+    const canvasH = canvasFrame ? canvasFrame.offsetHeight : Math.round(window.innerWidth);
     const mobBarH = document.getElementById('mobBar')?.offsetHeight || 64;
     if(panelOpen) {
-      // Canvas + mobbar + panel inhoud
-      h = canvasH + mobBarH + (panel?.scrollHeight || 0);
+      h = canvasH + mobBarH + (panel?.scrollHeight || 300);
     } else {
-      // Alleen canvas + mobbar
       h = canvasH + mobBarH;
     }
   } else {
-    h = window.innerHeight; // desktop: iframe volledige hoogte
+    h = window.innerHeight;
   }
-  
+
   window.parent.postMessage({ type: 'rhombi-height', height: h }, '*');
 }
 
