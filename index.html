@@ -1763,7 +1763,7 @@ input, textarea, select {
 <!-- MOBILE MENU -->
 <div class="topbanner" data-i18n="topbanner">
   ◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>
-  Opening studio: zondag 17 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25
+  Opening studio: zondag 7 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25
 </div>
 
 <div class="mobile-menu" id="mobileMenu">
@@ -1902,6 +1902,8 @@ input, textarea, select {
     <iframe src="viewer.html" class="configurator-frame" id="configuratorFrame"
       title="Rhombi 3D Configurator" allowfullscreen loading="lazy"></iframe>
   </div>
+</section>
+
 <section class="types-section" id="types">
   <p class="section-label reveal" data-i18n="types-label">◆ Varianten</p>
   <h2 class="section-title reveal" ><span data-i18n="types-t1">Meerdere vormen,</span><br><em data-i18n="types-t2">één systeem.</em></h2>
@@ -2674,16 +2676,26 @@ window.addEventListener('resize', () => { if(typeof setOffset==='function' && tr
 
 // ── Viewer iframe hoogte aanpassen ──
 window.addEventListener('message', function(e) {
-  if (!e.data || e.data.type !== 'rhombi-height') return;
+  if (!e.data || (e.data.type !== 'rhombi-height' && e.data.type !== 'rhombi-resize')) return;
   const wrap = document.querySelector('.configurator-frame-wrap');
-  if (!wrap) return;
+  const frame = document.getElementById('configuratorFrame');
+  if (!wrap || !frame) return;
   const isMob = window.innerWidth <= 768;
-  if (isMob) {
+  if (isMob && e.data.height) {
+    // Switch from padding-bottom trick to explicit height
     wrap.style.paddingBottom = '0';
     wrap.style.height = e.data.height + 'px';
-  } else {
-    wrap.style.height = '';
-    wrap.style.paddingBottom = '';
+    frame.style.height = e.data.height + 'px';
+  }
+});
+
+// Reset iframe height on resize to desktop
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) {
+    const wrap = document.querySelector('.configurator-frame-wrap');
+    const frame = document.getElementById('configuratorFrame');
+    if (wrap) { wrap.style.height = ''; wrap.style.paddingBottom = ''; }
+    if (frame) { frame.style.height = ''; }
   }
 });
 
@@ -2734,7 +2746,7 @@ document.querySelectorAll('.rhombi-frame').forEach(frame => {
 // ── i18n ──────────────────────────────────────────────────────
 const TRANSLATIONS = {
   nl: {
-    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Opening studio: zondag 17 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25',
+    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Opening studio: zondag 7 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25',
     'type-hint': "Tik voor foto's",
     'type-tafel-label': '◆ Tafellamp',
     'type-hang-label': '◆ Hang',
@@ -2841,7 +2853,7 @@ const TRANSLATIONS = {
 
   },
   en: {
-    'topbanner': '◆ Exclusively available at <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studio opening: Sunday 17 June (Kunst &amp; Cultuurroute) · Every 1st Sunday of the month · 13:00–17:00 · Turfkaai 25',
+    'topbanner': '◆ Exclusively available at <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studio opening: Sunday 7 June (Kunst &amp; Cultuurroute) · Every 1st Sunday of the month · 13:00–17:00 · Turfkaai 25',
     'type-hint': 'Tap for photos',
     'type-tafel-label': '◆ Table lamp',
     'type-hang-label': '◆ Pendant',
@@ -2948,7 +2960,7 @@ const TRANSLATIONS = {
 
   },
   de: {
-    'topbanner': '◆ Exklusiv erhältlich bei <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studioöffnung: Sonntag 17. Juni (Kunst &amp; Cultuurroute) · Jeden 1. Sonntag im Monat · 13:00–17:00 · Turfkaai 25',
+    'topbanner': '◆ Exklusiv erhältlich bei <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studioöffnung: Sonntag 7. Juni (Kunst &amp; Cultuurroute) · Jeden 1. Sonntag im Monat · 13:00–17:00 · Turfkaai 25',
     'type-hint': 'Tippen für Fotos',
     'type-tafel-label': '◆ Tischleuchte',
     'type-hang-label': '◆ Hänge',
