@@ -21,6 +21,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--amber:#C8884A;--cream:#EDE4D0;--dark:#12151A;--dark2:#181C23;--dark3:#1E232C;--text:#A8B0B8;--text-dim:#606870}
 html,body{width:100%;height:100%;overflow:hidden;margin:0}
+body{position:relative;}
 body{font-family:"Space Grotesk",sans-serif;background:var(--dark);color:var(--cream)}
 #c{z-index:10;position:fixed;top:0;bottom:0;left:0;right:30%;display:flex;align-items:center;justify-content:center;padding:24px 24px 24px 24px}
 canvas{display:block;border-radius:2px}
@@ -302,30 +303,29 @@ canvas{ touch-action:none; cursor:crosshair }
 
   /* ── DROP-DOWN PANEL — klapt uit onder mob-bar ── */
   .panel{
-    position: fixed;
+    position: absolute;
     left: 0;
     right: 0;
-    top: calc(100vw + var(--mob-bar-h));
-    bottom: auto;
-    height: 65vh;
+    top: auto;
+    bottom: 0;
+    transform: translateY(100%);
+    height: auto;
+    max-height: 65vh;
     width: 100% !important;
     max-width: 100% !important;
     border-left: none;
     border-top: 1px solid rgba(200,136,74,.25);
     border-bottom: none;
     border-radius: 0;
-    transform: scaleY(0);
-    transform-origin: top;
     transition: transform .35s cubic-bezier(.32,.72,0,1);
-    overflow: hidden;
+    overflow-y: auto;
     box-shadow: 0 8px 40px rgba(0,0,0,.7);
     padding-top: 0;
     padding-bottom: calc(var(--sai-bottom) + 8px);
-    overflow-y: auto;
     z-index: 45;
   }
   .panel.open{
-    transform: scaleY(1);
+    transform: translateY(0);
   }
 
   .sheet-handle{
