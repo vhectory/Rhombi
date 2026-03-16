@@ -1923,7 +1923,7 @@ function getOrCreateMat(partId) {
       emissive: new THREE.Color('#FF9900'), emissiveIntensity: 2.5,
       envMapIntensity: 0.3,
     });
-  } else if (partId === 'kap') {
+  } else if (partId === 'kap' || partId.startsWith('kap_') || partId === 'shade') {
     MGLB[partId] = new THREE.MeshStandardMaterial({
       color: new THREE.Color('#F5F3EE'), roughness: 0.88, metalness: 0.0,
       transparent: true, opacity: 0.97, side: THREE.DoubleSide,
@@ -1950,8 +1950,9 @@ function getOrCreateMat(partId) {
     });
   }
   if(MGLB[partId] && partId !== "peer") {
-    applyCavityHighlight(MGLB[partId], partId === "kap" ? 0.30 : 0.52);
-    applyRimDarkening(MGLB[partId], partId === "kap" ? 0.45 : 0.65);
+    const _isKapMat = partId === 'kap' || partId.startsWith('kap_') || partId === 'shade';
+    applyCavityHighlight(MGLB[partId], _isKapMat ? 0.30 : 0.52);
+    applyRimDarkening(MGLB[partId], _isKapMat ? 0.45 : 0.65);
   }
   return MGLB[partId];
 }
@@ -2720,36 +2721,47 @@ const _setLampOrig = setLamp;
 // Kap: opacity daalt bij lamp aan zodat binnenpatroon zichtbaar wordt
 // emissive geeft de warme SSS gloed
 function updateKapGlow() {
-  const curKapId = (window._rhombiCurrentVariant && window._rhombiCurrentVariant.kapId) || 'kap';
-  const kapMat = MGLB[curKapId] || MGLB['kap'];
-  if(!kapMat) return;
-  const kp = kapLightProps(partMat[curKapId] || partMat['kap'] || 'pla-mat');
   const t = lampOn ? peerIntensity : 0;
 
-  // CF is altijd opaque — geen opacity daling
-  const isCF = (partMat[curKapId] || partMat['kap'] || 'pla-mat') === 'pla-cf';
-  if(!isCF) {
-    const opBase = kp.opacity;
-    const opGlow = Math.max(0.84, opBase - 0.12);
-    kapMat.opacity = opBase - (opBase - opGlow) * t;
-    kapMat.transparent = kp.transparent;
-  } else {
-    kapMat.opacity = 1.0;
-    kapMat.transparent = false;
-  }
+  // Verzamel alle actieve kap-materialen: MGLB['kap'], MGLB['kap_1'], MGLB['kap_2'],
+  // MGLB['shade'] etc. — alles wat een sh:true onderdeel is of 'kap' in de naam heeft.
+  const _kapIds = Object.keys(MGLB).filter(id => {
+    if(id === 'peer' || id === 'fitting') return false;
+    const info = partInfo(id);
+    return info.sh || id === 'kap' || id.startsWith('kap') || id === 'shade';
+  });
+  if(_kapIds.length === 0) return;
 
-  // Emissive = warme kap-tint gemengd met de werkelijke kapkleur
-  const kapColor = kapMat.color.clone();
-  // Mix: amber SSS gloed + echte kleur
-  const sssColor = new THREE.Color(kp.emissive);
-  sssColor.lerp(kapColor, 0.45); // 45% echte kleur, 55% warm amber
-  kapMat.emissive = sssColor;
-  kapMat.emissiveIntensity = kp.emissiveIntensity * t;
-  kapMat.needsUpdate = true;
+  // Gebruik eerste kap als referentie voor kapGlow kleur
+  let _glowColor = null;
 
-  // kapGlow kleur = kap kleur + warmte
-  const glowColor = kapMat.color.clone().lerp(new THREE.Color(0xFF8820), 0.55);
-  kapGlow.color.copy(glowColor);
+  _kapIds.forEach(kapId => {
+    const kapMat = MGLB[kapId];
+    if(!kapMat) return;
+    const kp = kapLightProps(partMat[kapId] || 'pla-mat');
+    const isCF = (partMat[kapId] || 'pla-mat') === 'pla-cf';
+
+    if(!isCF) {
+      const opBase = kp.opacity;
+      const opGlow = Math.max(0.84, opBase - 0.12);
+      kapMat.opacity = opBase - (opBase - opGlow) * t;
+      kapMat.transparent = kp.transparent;
+    } else {
+      kapMat.opacity = 1.0;
+      kapMat.transparent = false;
+    }
+
+    const kapColor = kapMat.color.clone();
+    const sssColor = new THREE.Color(kp.emissive);
+    sssColor.lerp(kapColor, 0.45);
+    kapMat.emissive = sssColor;
+    kapMat.emissiveIntensity = kp.emissiveIntensity * t;
+    kapMat.needsUpdate = true;
+
+    if(!_glowColor) _glowColor = kapColor.clone().lerp(new THREE.Color(0xFF8820), 0.55);
+  });
+
+  if(_glowColor) kapGlow.color.copy(_glowColor);
 }
 
 function toggleLamp(){ setLamp(!lampOn); }
