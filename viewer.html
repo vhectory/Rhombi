@@ -1587,11 +1587,11 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
       const isFitting = activeGLBGroups && activeGLBGroups['fitting'] &&
                         _lightGrp === activeGLBGroups['fitting'];
       ly = isFitting
-        ? kc.y + (kb.min.y - kc.y) * 0.4 + _yBias   // ~40% onder fitting-midden
+        ? kc.y + (kb.max.y - kc.y) * 0.4 + _yBias   // ~40% boven fitting-midden
         : kc.y + _yBias;                               // peer: exact
     } else {
-      // kap/shade bbox: fitting zit bovenin de kap
-      ly = kc.y + (kb.max.y - kc.y) * 0.55 + _yBias;
+      // kap/shade bbox: fitting zit onderin de kap
+      ly = kc.y + (kb.min.y - kc.y) * 0.55 + _yBias;
     }
     const lp = new THREE.Vector3(kc.x, ly, kc.z);
 
