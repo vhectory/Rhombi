@@ -1578,10 +1578,9 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     if(kb.isEmpty()) return;
 
     const kc = kb.getCenter(new THREE.Vector3());
-    // X en Y van peer kloppen. Z van peer = fitting-socket aan één kant
-    // van de kap. Gebruik kap bbox-center voor Z zodat het licht midden
-    // in de kap-diepte hangt.
-    let lz = kc.z + _yBias; // fallback: peer Z
+    // Peer X klopt. Maar peer Y én Z = fitting-socket (bovenhoek ruit).
+    // De kap hangt omlaag vanaf de fitting — licht moet op kap-bbox center.
+    let lx = kc.x, ly = kc.y, lz = kc.z;
     const _kapCandidates = ['kap', 'kap_1', 'shade', _vKapId].filter(Boolean);
     for(const _kid of _kapCandidates) {
       if(activeGLBGroups && activeGLBGroups[_kid]) {
@@ -1592,14 +1591,16 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
         });
         if(!_kb2.isEmpty()) {
           const _kc2 = _kb2.getCenter(new THREE.Vector3());
+          ly = _kc2.y + _yBias;
           lz = _kc2.z + _yBias;
-          console.log('[Rhombi] kap Z center:', _kc2.z.toFixed(3), 'peer Z was:', kc.z.toFixed(3),
-            'kap Z span:', _kb2.min.z.toFixed(3), '->', _kb2.max.z.toFixed(3));
+          console.log('[Rhombi] kap center Y:', _kc2.y.toFixed(3), 'Z:', _kc2.z.toFixed(3),
+            '| peer Y was:', kc.y.toFixed(3), 'Z was:', kc.z.toFixed(3),
+            '| kap Y span:', _kb2.min.y.toFixed(3), '->', _kb2.max.y.toFixed(3));
         }
         break;
       }
     }
-    const lp = new THREE.Vector3(kc.x, kc.y, lz);
+    const lp = new THREE.Vector3(lx, ly, lz);
 
     kapGlow.position.copy(lp);
     LP.position.copy(lp);
