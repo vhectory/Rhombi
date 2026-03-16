@@ -1498,7 +1498,9 @@ function _animate(durationMs, fromVal, toVal, onTick, onDone) {
   requestAnimationFrame(tick);
 }
 
-function _finishLoad(groups, prevGroups, skipCamera=false) {
+function _finishLoad(result, prevGroups, skipCamera=false) {
+  const groups = result.groups || result;
+  const _glbLampPos = result.lampPos || null;
   // Verwijder oude groepen uit wrapper
   if(prevGroups) Object.values(prevGroups).forEach(g => _lampWrap.remove(g));
   activeGLBGroups = groups;
@@ -1540,77 +1542,51 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   updateSelectionOutline();
 
   // ── Lamp / kapGlow positionering ────────────────────────────────────
-  // Strategie (in volgorde van nauwkeurigheid):
-  //   1. 'peer'    — gloeilamp-mesh zelf: exacte positie
-  //   2. 'fitting' — fitting-mesh: peertje zit hier vlak boven
-  //   3. variant.kapId / 'kap' / 'shade' — kap-bbox, maar NIET het midden:
-  //      peertje zit in het bovenste deel van de kap (open aan onderkant),
-  //      dus bias = lerp van center naar kb.max.y met factor lampTopBias.
-  //
-  // Elke variant kan een optionele lampYBias (world units) instellen voor
-  // fine-tuning na het automatisch berekenen.
+  // Prioriteit:
+  //   1. lamp_pos Empty in GLB — exacte positie uit Blender (beste)
+  //   2. peer mesh bbox center — fallback
+  //   3. kap bbox center — laatste fallback
   (function(){
     const _cv = window._rhombiCurrentVariant;
-    const _vKapId = _cv && _cv.kapId;
-    const _yBias  = (_cv && _cv.lampYBias) || 0;  // handmatige fine-tune offset
+    const _bias = (_cv && _cv.lampYBias) || 0;
+    let lp = null;
 
-    // Stap 1: exacte mesh ('peer' of 'fitting')
-    let _lightGrp = null, _useTopBias = false;
-    for(const _gid of ['peer', 'fitting']) {
-      if(activeGLBGroups && activeGLBGroups[_gid]) { _lightGrp = activeGLBGroups[_gid]; break; }
+    // 1. lamp_pos Empty
+    if(_glbLampPos) {
+      lp = _glbLampPos.clone();
+      lp.y += _bias;
+      console.log('[Rhombi] lamp pos (Empty):', lp.x.toFixed(3), lp.y.toFixed(3), lp.z.toFixed(3));
     }
-    // Stap 2: kap/shade-mesh — gebruik bovenkant-bias
-    if(!_lightGrp) {
-      for(const _gid of [_vKapId, 'kap', 'shade'].filter(Boolean)) {
-        if(activeGLBGroups && activeGLBGroups[_gid]) { _lightGrp = activeGLBGroups[_gid]; _useTopBias = true; break; }
-      }
+
+    // 2. peer mesh
+    if(!lp && activeGLBGroups && activeGLBGroups['peer']) {
+      const kb = new THREE.Box3();
+      activeGLBGroups['peer'].updateWorldMatrix(true, true);
+      activeGLBGroups['peer'].traverse(o => { if(o.isMesh) { o.updateWorldMatrix(true,false); kb.expandByObject(o); }});
+      if(!kb.isEmpty()) { lp = kb.getCenter(new THREE.Vector3()); lp.y += _bias; }
+      console.log('[Rhombi] lamp pos (peer):', lp && lp.x.toFixed(3), lp && lp.y.toFixed(3), lp && lp.z.toFixed(3));
     }
-    if(!_lightGrp) return;
 
-    const kb = new THREE.Box3();
-    _lightGrp.updateWorldMatrix(true, true);
-    _lightGrp.traverse(o => {
-      if(o.isMesh && !o.userData.isOutline) {
-        o.updateWorldMatrix(true, false);
-        kb.expandByObject(o);
-      }
-    });
-    if(kb.isEmpty()) return;
-
-    const kc = kb.getCenter(new THREE.Vector3());
-    // Peer X klopt. Maar peer Y én Z = fitting-socket (bovenhoek ruit).
-    // De kap hangt omlaag vanaf de fitting — licht moet op kap-bbox center.
-    let lx = kc.x, ly = kc.y, lz = kc.z;
-    const _kapCandidates = ['kap', 'kap_1', 'shade', _vKapId].filter(Boolean);
-    for(const _kid of _kapCandidates) {
-      if(activeGLBGroups && activeGLBGroups[_kid]) {
-        const _kb2 = new THREE.Box3();
-        activeGLBGroups[_kid].updateWorldMatrix(true, true);
-        activeGLBGroups[_kid].traverse(o => {
-          if(o.isMesh && !o.userData.isOutline) { o.updateWorldMatrix(true,false); _kb2.expandByObject(o); }
-        });
-        if(!_kb2.isEmpty()) {
-          const _kc2 = _kb2.getCenter(new THREE.Vector3());
-          ly = _kc2.y + _yBias;
-          lz = _kc2.z + _yBias;
-          console.log('[Rhombi] kap center Y:', _kc2.y.toFixed(3), 'Z:', _kc2.z.toFixed(3),
-            '| peer Y was:', kc.y.toFixed(3), 'Z was:', kc.z.toFixed(3),
-            '| kap Y span:', _kb2.min.y.toFixed(3), '->', _kb2.max.y.toFixed(3));
+    // 3. kap bbox center
+    if(!lp) {
+      for(const _kid of ['kap','kap_1','shade'].filter(Boolean)) {
+        if(activeGLBGroups && activeGLBGroups[_kid]) {
+          const kb = new THREE.Box3();
+          activeGLBGroups[_kid].updateWorldMatrix(true, true);
+          activeGLBGroups[_kid].traverse(o => { if(o.isMesh) { o.updateWorldMatrix(true,false); kb.expandByObject(o); }});
+          if(!kb.isEmpty()) { lp = kb.getCenter(new THREE.Vector3()); lp.y += _bias; }
+          console.log('[Rhombi] lamp pos (kap bbox):', lp && lp.x.toFixed(3), lp && lp.y.toFixed(3), lp && lp.z.toFixed(3));
+          break;
         }
-        break;
       }
     }
-    const lp = new THREE.Vector3(lx, ly, lz);
 
+    if(!lp) return;
     kapGlow.position.copy(lp);
     LP.position.copy(lp);
     bounceDown.position.set(lp.x, lp.y - 0.65, lp.z);
     bounceSide.position.set(lp.x + 0.75, lp.y + 0.1, lp.z + 0.55);
-    kapGlow.distance = Math.max(1.0, (kb.max.z - kb.min.z) * 1.5);
-
-    console.log('[Rhombi] lamp pos (' + (_useTopBias ? 'shade-bias' : 'exact') + ')',
-      lp.x.toFixed(2), lp.y.toFixed(2), lp.z.toFixed(2),
-      'bbox z-span:', (kb.max.z - kb.min.z).toFixed(2));
+    kapGlow.distance = 2.0;
   })();
   updateKapGlow();
 }
@@ -1635,9 +1611,10 @@ function swapLocal(varId){
     // Laad parallel met out-animatie
     const loadPromise = loadGLBParts(glbFile);
 
-    const doShow = (groups) => {
+    const doShow = (result) => {
+      const groups = result.groups || result;
       if(_swapSeq !== mySeq) return; // nieuwere klik — weggooien
-      _finishLoad(groups, prevGroups, !!prevGroups);
+      _finishLoad(result, prevGroups, !!prevGroups);
       _cacheBaseOpacity();
       exP = 1.1;
       Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
@@ -2013,8 +1990,16 @@ function loadGLBParts(url) {
       gltfLoader.parse(buffer, '',
           function(gltf) {
             var groups = {};
+            var lampPosWorld = null; // wordt gevuld als 'lamp_pos' Empty gevonden
             var excludeList = window._rhombiExcludeNodes || [];
             gltf.scene.traverse(function(obj) {
+              // Vang 'lamp_pos' Empty op (geen mesh, wel een node met naam)
+              if (obj.name === 'lamp_pos') {
+                obj.updateWorldMatrix(true, false);
+                lampPosWorld = new THREE.Vector3();
+                lampPosWorld.setFromMatrixPosition(obj.matrixWorld);
+                console.log('[Rhombi] lamp_pos Empty gevonden:', lampPosWorld.x.toFixed(3), lampPosWorld.y.toFixed(3), lampPosWorld.z.toFixed(3));
+              }
               if (!obj.isMesh) return;
               var rawId = obj.name;
               if (!rawId) return;
@@ -2038,7 +2023,7 @@ function loadGLBParts(url) {
             });
             var summary = Object.keys(groups).join(', ');
             console.log('[Rhombi GLB] ' + url + ' → ' + summary);
-            resolve(groups);
+            resolve({ groups: groups, lampPos: lampPosWorld });
           },
           function(err) { reject(err); }
         );
