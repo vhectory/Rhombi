@@ -1539,37 +1539,61 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   });
   updateSelectionOutline();
 
-  // kapGlow + LP in het midden van de kap (peertje zit daarbinnen)
-  // Zoek de juiste groep: peer → variant.kapId → 'kap' → 'shade'
-  const _vKapId = window._rhombiCurrentVariant && window._rhombiCurrentVariant.kapId;
-  const _lightCandidates = ['peer', _vKapId, 'kap', 'shade'].filter(Boolean);
-  let _peerGrp = null;
-  if(activeGLBGroups) {
-    for(const _gid of _lightCandidates) {
-      if(activeGLBGroups[_gid]) { _peerGrp = activeGLBGroups[_gid]; break; }
+  // ── Lamp / kapGlow positionering ────────────────────────────────────
+  // Strategie (in volgorde van nauwkeurigheid):
+  //   1. 'peer'    — gloeilamp-mesh zelf: exacte positie
+  //   2. 'fitting' — fitting-mesh: peertje zit hier vlak boven
+  //   3. variant.kapId / 'kap' / 'shade' — kap-bbox, maar NIET het midden:
+  //      peertje zit in het bovenste deel van de kap (open aan onderkant),
+  //      dus bias = lerp van center naar kb.max.y met factor lampTopBias.
+  //
+  // Elke variant kan een optionele lampYBias (world units) instellen voor
+  // fine-tuning na het automatisch berekenen.
+  (function(){
+    const _cv = window._rhombiCurrentVariant;
+    const _vKapId = _cv && _cv.kapId;
+    const _yBias  = (_cv && _cv.lampYBias) || 0;  // handmatige fine-tune offset
+
+    // Stap 1: exacte mesh ('peer' of 'fitting')
+    let _lightGrp = null, _useTopBias = false;
+    for(const _gid of ['peer', 'fitting']) {
+      if(activeGLBGroups && activeGLBGroups[_gid]) { _lightGrp = activeGLBGroups[_gid]; break; }
     }
-  }
-  if(_peerGrp) {
+    // Stap 2: kap/shade-mesh — gebruik bovenkant-bias
+    if(!_lightGrp) {
+      for(const _gid of [_vKapId, 'kap', 'shade'].filter(Boolean)) {
+        if(activeGLBGroups && activeGLBGroups[_gid]) { _lightGrp = activeGLBGroups[_gid]; _useTopBias = true; break; }
+      }
+    }
+    if(!_lightGrp) return;
+
     const kb = new THREE.Box3();
-    // expandByObject werkt met world matrix — forceert update eerst
-    _peerGrp.updateWorldMatrix(true, true);
-    _peerGrp.traverse(o => {
+    _lightGrp.updateWorldMatrix(true, true);
+    _lightGrp.traverse(o => {
       if(o.isMesh && !o.userData.isOutline) {
         o.updateWorldMatrix(true, false);
         kb.expandByObject(o);
       }
     });
-    if(!kb.isEmpty()) {
-      const kc = kb.getCenter(new THREE.Vector3());
-      kapGlow.position.copy(kc);
-      LP.position.set(kc.x, kc.y, kc.z);
-      // Bounce lights volgen de lamp positie
-      bounceDown.position.set(kc.x, kc.y - 0.65, kc.z);
-      bounceSide.position.set(kc.x + 0.75, kc.y + 0.1, kc.z + 0.55);
-      console.log('[Rhombi] lamp pos (groep: ' + (_vKapId||'kap') + ')', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
-      kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
-    }
-  }
+    if(kb.isEmpty()) return;
+
+    const kc = kb.getCenter(new THREE.Vector3());
+    // Bij kap/shade: peertje zit in het bovenste kwart van de kap
+    // (0 = midden, 1 = top van de bbox). 0.45 = iets boven het midden.
+    const topBias = _useTopBias ? 0.45 : 0;
+    const ly = kc.y + (kb.max.y - kc.y) * topBias + _yBias;
+    const lp = new THREE.Vector3(kc.x, ly, kc.z);
+
+    kapGlow.position.copy(lp);
+    LP.position.copy(lp);
+    bounceDown.position.set(lp.x, lp.y - 0.65, lp.z);
+    bounceSide.position.set(lp.x + 0.75, lp.y + 0.1, lp.z + 0.55);
+    kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
+
+    console.log('[Rhombi] lamp pos (' + (_useTopBias ? 'shade-bias' : 'exact') + ')',
+      lp.x.toFixed(2), lp.y.toFixed(2), lp.z.toFixed(2),
+      'bbox h:', (kb.max.y - kb.min.y).toFixed(2));
+  })();
   updateKapGlow();
 }
 
