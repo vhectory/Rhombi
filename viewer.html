@@ -3086,16 +3086,5 @@ setTimeout(notifyParentHeight, 500);
 
 </script>
 
-// ── iframe hoogte communiceren naar parent pagina ──────────────────
-function notifyParentHeight() {
-  if(window.self === window.top) return; // niet in iframe
-  const h = document.body.scrollHeight || document.documentElement.scrollHeight;
-  window.parent.postMessage({ type: 'rhombi-height', height: h }, '*');
-}
-
-// Stuur hoogte bij laden en bij panel open/sluiten
-window.addEventListener('load', notifyParentHeight);
-window.addEventListener('resize', notifyParentHeight);
-
 </body>
 </html>
