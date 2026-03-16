@@ -1578,23 +1578,24 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     if(kb.isEmpty()) return;
 
     const kc = kb.getCenter(new THREE.Vector3());
-    // De Rhombi kap is ruit-vormig — fitting zit aan één kant in Z-richting.
-    // Peertje hangt in Z, niet in Y (kap is symmetrisch van hoogte).
-    //   peer    → exact, geen offset
-    //   fitting → peertje steekt uit in +Z richting van de fitting
-    //   kap/shade → fitting zit aan de -Z kant; peertje zit dichter bij center/+Z
-    let lz;
-    if(!_useTopBias) {
-      const isFitting = activeGLBGroups && activeGLBGroups['fitting'] &&
-                        _lightGrp === activeGLBGroups['fitting'];
-      lz = isFitting
-        ? kc.z + (kb.max.z - kc.z) * 0.5 + _yBias   // peertje steekt uit voorbij fitting in +Z
-        : kc.z + _yBias;                               // peer: exact
-    } else {
-      // kap/shade bbox: fitting aan -Z kant, peertje iets richting center
-      lz = kc.z + (kb.min.z - kc.z) * 0.4 + _yBias;
+    // peer/fitting geeft goede X en Y — maar Z-positie klopt niet:
+    // de peer-mesh zit op de fitting-socket aan de rand van de kap.
+    // Gebruik de kap-bbox center voor Z zodat het licht in het midden van
+    // de kap hangt. lampYBias = handmatige Z fine-tune per variant.
+    let lz = kc.z + _yBias; // fallback: peer Z
+    const _kapCandidates = ['kap', 'kap_1', 'shade', _vKapId].filter(Boolean);
+    for(const _kid of _kapCandidates) {
+      if(activeGLBGroups && activeGLBGroups[_kid]) {
+        const _kb2 = new THREE.Box3();
+        activeGLBGroups[_kid].updateWorldMatrix(true, true);
+        activeGLBGroups[_kid].traverse(o => {
+          if(o.isMesh && !o.userData.isOutline) { o.updateWorldMatrix(true,false); _kb2.expandByObject(o); }
+        });
+        if(!_kb2.isEmpty()) { lz = _kb2.getCenter(new THREE.Vector3()).z + _yBias; }
+        break;
+      }
     }
-    const ly = kc.y; // Y blijft bbox-midden
+    const ly = kc.y;
     const lp = new THREE.Vector3(kc.x, ly, lz);
 
     kapGlow.position.copy(lp);
