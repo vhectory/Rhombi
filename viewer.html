@@ -1578,11 +1578,10 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     if(kb.isEmpty()) return;
 
     const kc = kb.getCenter(new THREE.Vector3());
-    // peer/fitting geeft goede X en Y — maar Z-positie klopt niet:
-    // de peer-mesh zit op de fitting-socket aan de rand van de kap.
-    // Gebruik de kap-bbox center voor Z zodat het licht in het midden van
-    // de kap hangt. lampYBias = handmatige Z fine-tune per variant.
-    let lz = kc.z + _yBias; // fallback: peer Z
+    // peer X en Z kloppen — die zitten lateraal in het midden.
+    // Maar peer Y = fitting-socket (bovenhoek van de ruit-kap).
+    // Het licht moet op de Y van het KAP-midden, niet de fitting.
+    let ly = kc.y + _yBias; // fallback: peer Y
     const _kapCandidates = ['kap', 'kap_1', 'shade', _vKapId].filter(Boolean);
     for(const _kid of _kapCandidates) {
       if(activeGLBGroups && activeGLBGroups[_kid]) {
@@ -1591,12 +1590,15 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
         activeGLBGroups[_kid].traverse(o => {
           if(o.isMesh && !o.userData.isOutline) { o.updateWorldMatrix(true,false); _kb2.expandByObject(o); }
         });
-        if(!_kb2.isEmpty()) { lz = _kb2.getCenter(new THREE.Vector3()).z + _yBias; }
+        if(!_kb2.isEmpty()) {
+          const _kc2 = _kb2.getCenter(new THREE.Vector3());
+          ly = _kc2.y + _yBias;
+          console.log('[Rhombi] kap Y center:', _kc2.y.toFixed(3), 'peer Y was:', kc.y.toFixed(3));
+        }
         break;
       }
     }
-    const ly = kc.y;
-    const lp = new THREE.Vector3(kc.x, ly, lz);
+    const lp = new THREE.Vector3(kc.x, ly, kc.z);
 
     kapGlow.position.copy(lp);
     LP.position.copy(lp);
