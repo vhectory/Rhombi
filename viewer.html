@@ -299,7 +299,7 @@ canvas{ touch-action:none; cursor:crosshair }
     position: absolute;
     left: 0;
     right: 0;
-    top: calc(100vw + 48px + var(--mob-bar-h)); /* wordt via JS bijgewerkt */
+    top: calc(100vw + 48px + var(--mob-bar-h)); /* JS overschrijft */
     bottom: auto;
     transform: translateY(-100%) scaleY(0);
     transform-origin: top;
@@ -961,20 +961,22 @@ function resize(){
     const vbar   = document.querySelector('.vbar');
     const mobBar = document.getElementById('mobBar');
     const panel  = document.getElementById('panel');
-    // Mobiel: vbar fixed direct onder canvas
-    if(vbar) { vbar.style.position='fixed'; vbar.style.top=h+'px'; vbar.style.left='0'; vbar.style.right='0'; }
-    setTimeout(() => {
-      const vH = vbar ? (vbar.getBoundingClientRect().height||52) : 52;
-      if(mobBar) { mobBar.style.position='fixed'; mobBar.style.top=(h+vH)+'px'; }
-      setTimeout(() => {
-        const mbH = mobBar ? (mobBar.getBoundingClientRect().height||64) : 64;
-        const vH2 = vbar ? (vbar.getBoundingClientRect().height||52) : 52;
-        if(panel) panel.style.top=(h+vH2+mbH)+'px';
-      }, 50);
-    }, 0);
+    const vH = 48; // vbar hoogte (CSS fallback)
+    const mbH = 64; // mob-bar hoogte (CSS fallback)
+    // Alleen top en position overschrijven — overige CSS intact laten
+    if(vbar)   { vbar.style.position='fixed'; vbar.style.top=h+'px'; }
+    if(mobBar) { mobBar.style.top=(h+vH)+'px'; }
+    if(panel)  { panel.style.top=(h+vH+mbH)+'px'; }
+    // Verfijn na render met werkelijke hoogtes
+    requestAnimationFrame(() => {
+      const vH2  = vbar   ? vbar.offsetHeight   : vH;
+      const mbH2 = mobBar ? mobBar.offsetHeight : mbH;
+      if(mobBar) mobBar.style.top = (h + vH2)        + 'px';
+      if(panel)  panel.style.top  = (h + vH2 + mbH2) + 'px';
+    });
   } else {
     const vbar = document.querySelector('.vbar');
-    if(vbar) { vbar.style.position=''; vbar.style.top=''; vbar.style.left=''; vbar.style.right=''; }
+    if(vbar) { vbar.style.position=''; vbar.style.top=''; }
   }
 }
 window.addEventListener("resize",resize); resize();
