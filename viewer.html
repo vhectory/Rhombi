@@ -800,6 +800,7 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
       new THREE.SphereGeometry(22,48,32),
       new THREE.MeshBasicMaterial({map:bgTex,side:THREE.BackSide,depthWrite:false})
     );
+    window._bgSphere=bgSphere;
     bgSphere.renderOrder=-10;
     SC.add(bgSphere);
 
@@ -3176,7 +3177,9 @@ async function startAR() {
     R.xr.enabled=true; await R.xr.setSession(arSession);
     arHitTestSource=await arSession.requestHitTestSource({space:await arSession.requestReferenceSpace('local')});
     SC.background=null;
-    arSession.addEventListener('end',()=>{arSession=null;arHitTestSource=null;arPlaced=false;if(arReticle){SC.remove(arReticle);arReticle=null;}if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}R.xr.enabled=false;SC.background=new THREE.Color(0x0C0E12);});
+    if(window._bgSphere) window._bgSphere.visible=false;
+    if(window._vignetteSphere) window._vignetteSphere.visible=false;
+    arSession.addEventListener('end',()=>{arSession=null;arHitTestSource=null;arPlaced=false;if(arReticle){SC.remove(arReticle);arReticle=null;}if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}R.xr.enabled=false;SC.background=new THREE.Color(0x0C0E12);if(window._bgSphere)window._bgSphere.visible=true;if(window._vignetteSphere)window._vignetteSphere.visible=true;});
     R.setAnimationLoop((t,frame)=>{
       if(frame&&arHitTestSource&&!arPlaced){
         const hits=frame.getHitTestResults(arHitTestSource);
@@ -3191,10 +3194,47 @@ function arPlaceModel(){
   if(!arReticle||!arReticle.visible)return;
   const pos=new THREE.Vector3(),quat=new THREE.Quaternion();
   arReticle.matrix.decompose(pos,quat,new THREE.Vector3());
-  LAMP.position.copy(pos);LAMP.quaternion.copy(quat);
-  arPlaced=true;arReticle.visible=false;
-  document.getElementById('arHint').textContent='Geplaatst';
+  LAMP.position.copy(pos);
+  const euler=new THREE.Euler().setFromQuaternion(quat,'YXZ');
+  LAMP.rotation.set(0,euler.y,0);
+  arPlaced=true; arReticle.visible=false;
+  document.getElementById('arHint').textContent='Sleep: verplaats  ·  2 vingers: draai';
   document.getElementById('arPlaceBtn').style.display='none';
+
+  // Touch: verplaatsen (1 vinger) en draaien (2 vingers)
+  const cv=R.domElement;
+  let _arT={}, _arAng=null;
+
+  cv.addEventListener('touchstart',function(e){
+    e.preventDefault();
+    _arT={};
+    Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
+    if(e.touches.length===2){
+      const a=e.touches[0],b=e.touches[1];
+      _arAng=Math.atan2(b.clientY-a.clientY,b.clientX-a.clientX);
+    } else { _arAng=null; }
+  },{passive:false});
+
+  cv.addEventListener('touchmove',function(e){
+    e.preventDefault();
+    if(!arPlaced)return;
+    if(e.touches.length===1){
+      const t=e.touches[0], p=_arT[t.identifier];
+      if(!p)return;
+      const dx=(t.clientX-p.x)*0.003, dz=(t.clientY-p.y)*0.003;
+      const dir=new THREE.Vector3(); CAM.getWorldDirection(dir); dir.y=0; dir.normalize();
+      const right=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
+      LAMP.position.addScaledVector(right,dx);
+      LAMP.position.addScaledVector(dir,-dz);
+      _arT[t.identifier]={x:t.clientX,y:t.clientY};
+    } else if(e.touches.length===2){
+      const a=e.touches[0],b=e.touches[1];
+      const ang=Math.atan2(b.clientY-a.clientY,b.clientX-a.clientX);
+      if(_arAng!==null) LAMP.rotation.y+=ang-_arAng;
+      _arAng=ang;
+      Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
+    }
+  },{passive:false});
 }
 checkARSupport();
 
