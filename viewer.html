@@ -20,7 +20,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--amber:#C8884A;--cream:#EDE4D0;--dark:#12151A;--dark2:#181C23;--dark3:#1E232C;--text:#A8B0B8;--text-dim:#606870}
-html,body{width:100%;height:100%;overflow:hidden;margin:0}
+html{width:100%;height:100%;margin:0}body{width:100%;min-height:100%;overflow-x:hidden;margin:0;position:relative}
 body{font-family:"Space Grotesk",sans-serif;background:var(--dark);color:var(--cream)}
 #c{z-index:10;position:fixed;top:0;bottom:0;left:0;right:30%;display:flex;align-items:center;justify-content:center;padding:24px 24px 24px 24px}
 canvas{display:block;border-radius:2px}
@@ -35,7 +35,7 @@ canvas{display:block;border-radius:2px}
 .bartit{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim)}
 .back{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color .3s}
 .back:hover{color:var(--amber)}
-.vbar{position:fixed;bottom:20px;left:0;right:30%;z-index:20;display:flex;justify-content:center;gap:4px}
+.vbar{display:none!important}
 .vbtn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 16px;min-width:78px;background:rgba(22,26,32,.92);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.07);color:var(--text-dim);cursor:pointer;transition:all .2s;font-family:"Space Mono",monospace}
 .vbtn:hover{border-color:rgba(200,136,74,.4);color:var(--cream)}
 .vbtn.on{border-color:var(--amber);color:var(--amber);background:rgba(200,136,74,.1)}
@@ -114,54 +114,6 @@ canvas{display:block;border-radius:2px}
 /* ── TOUCH-ACTION op canvas ── */
 /* Voorkomt dat 3D drag conflicteert met browser pan/zoom */
 canvas{ touch-action:none; cursor:crosshair }
-
-/* ── AR ── */
-#arBtn {
-  display: none;
-  align-items: center;
-  gap: 6px;
-}
-#arBtn.visible { display: flex; }
-.ar-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  pointer-events: none;
-}
-.ar-overlay-ui {
-  position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  pointer-events: all;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.ar-place-btn {
-  background: rgba(200,136,74,.9);
-  border: none;
-  color: #0C0E12;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  padding: 14px 32px;
-  cursor: pointer;
-}
-.ar-exit-btn {
-  background: rgba(12,14,18,.8);
-  border: 1px solid rgba(200,136,74,.4);
-  color: var(--cream);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  padding: 10px 24px;
-  cursor: pointer;
-}
-
 
 /* ── RHOMBI FRAME ── */
 #canvas-frame {
@@ -293,7 +245,7 @@ canvas{ touch-action:none; cursor:crosshair }
   /* ── BOTTOM BAR — instellingen-knop + model-naam ── */
   .mob-bar-bottom{
     display: flex;
-    position: fixed;
+    position: absolute;
     top: 100vw;
     bottom: auto;
     left: 0;
@@ -350,7 +302,7 @@ canvas{ touch-action:none; cursor:crosshair }
 
   /* ── DROP-DOWN PANEL — klapt uit onder mob-bar ── */
   .panel{
-    position: fixed;
+    position: absolute;
     left: 0;
     right: 0;
     top: calc(100vw + var(--mob-bar-h));
@@ -445,7 +397,7 @@ canvas{ touch-action:none; cursor:crosshair }
   <a href="index.html" class="logo">Rhombi</a>
   <span class="bartit">◆ 3D Configurator</span>
   <a href="index.html" class="back">← Terug</a>
-  <button id="arBtn" onclick="startAR()" title="Bekijk in AR" style="background:none;border:1px solid rgba(200,136,74,.35);color:var(--amber);font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:6px 14px;cursor:pointer;gap:6px;align-items:center">
+  <button id="arBtn" onclick="startAR()" style="display:none;background:none;border:1px solid rgba(200,136,74,.35);color:var(--amber);font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:6px 14px;cursor:pointer;align-items:center;gap:6px">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
     AR
   </button>
@@ -3140,151 +3092,95 @@ function notifyParentHeight() {
 window.addEventListener('resize', notifyParentHeight);
 setTimeout(notifyParentHeight, 500);
 
-// ════════════════════════════════════════════════════════════
-// AR — WebXR hit-test
-// ════════════════════════════════════════════════════════════
-let arSession = null;
-let arHitTestSource = null;
-let arReticle = null;
-let arPlaced = false;
-let arOverlayEl = null;
+window.addEventListener('message', function(e){ if(e.data&&e.data.type==='rhombi-setvariant'){const v=VARIANTS&&VARIANTS.find(v=>v.id===e.data.variant);if(v)swapLocal(v.id);} });
 
-function isIOS() {
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
+// ════════════ AR — WebXR + iOS Quick Look ════════════
+let arSession = null, arHitTestSource = null, arReticle = null, arPlaced = false, arOverlayEl = null;
+
+function isIOS() { return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
 
 async function checkARSupport() {
   const b1 = document.getElementById('arBtn');
   const b2 = document.getElementById('arBtnMob');
-
+  const show = () => { if(b1){b1.style.display='flex';} if(b2){b2.style.display='flex';} };
   if (isIOS()) {
-    // iOS: Quick Look — altijd beschikbaar als USDZ bestaat
-    const show = () => { if(b1) b1.classList.add('visible'); if(b2) b2.style.display='flex'; };
-    // Check of USDZ bestand bestaat
-    fetch('rhombi_tafel.usdz', {method:'HEAD'}).then(r => { if(r.ok) show(); }).catch(()=>{});
+    fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{if(r.ok)show();}).catch(()=>{});
     return;
   }
-
   if (!navigator.xr) return;
-  try {
-    const ok = await navigator.xr.isSessionSupported('immersive-ar');
-    if (ok) {
-      if (b1) b1.classList.add('visible');
-      if (b2) b2.style.display = 'flex';
-    }
-  } catch(e) {}
+  try { const ok = await navigator.xr.isSessionSupported('immersive-ar'); if(ok) show(); } catch(e) {}
 }
 
 async function startAR() {
-  // iOS: gebruik Quick Look
   if (isIOS()) {
-    // Wissel USDZ op basis van actieve variant
-    const varUSDZ = {
-      tafel: 'rhombi_tafel.usdz',
-      accent: 'rhombi_accent.usdz'
-    };
-    const usdz = varUSDZ[curV?.id] || 'rhombi_tafel.usdz';
-    const anchor = document.getElementById('qlAnchor');
-    if (anchor) {
-      anchor.href = usdz;
-      anchor.click();
-    }
-    return;
+    const usdz = (curV?.id==='accent') ? 'rhombi_accent.usdz' : 'rhombi_tafel.usdz';
+    const a = document.getElementById('qlAnchor') || document.createElement('a');
+    a.id='qlAnchor'; a.rel='ar'; a.href=usdz; a.style.display='none';
+    if(!a.parentNode) { const img=document.createElement('img'); a.appendChild(img); document.body.appendChild(a); }
+    a.click(); return;
   }
-
   if (arSession) { arSession.end(); return; }
-
   try {
-    // Maak reticle (ring op de grond)
-    const geo = new THREE.RingGeometry(0.08, 0.12, 32).rotateX(-Math.PI / 2);
-    arReticle = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xC8884A, side: THREE.DoubleSide }));
-    arReticle.matrixAutoUpdate = false;
-    arReticle.visible = false;
-    SC.add(arReticle);
-
-    // Maak overlay UI
+    const geo = new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2);
+    arReticle = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide}));
+    arReticle.matrixAutoUpdate = false; arReticle.visible = false; SC.add(arReticle);
     arOverlayEl = document.createElement('div');
-    arOverlayEl.className = 'ar-overlay';
-    arOverlayEl.innerHTML = `
-      <div class="ar-overlay-ui">
-        <div style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(237,228,208,.7);text-align:center" id="arHint">Richt op een vlak oppervlak</div>
-        <button class="ar-place-btn" id="arPlaceBtn" onclick="arPlaceModel()" style="display:none">Hier plaatsen</button>
-        <button class="ar-exit-btn" onclick="arSession&&arSession.end()">✕ Sluiten</button>
-      </div>`;
+    arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
+    arOverlayEl.innerHTML=`<div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:12px">
+      <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(237,228,208,.8);text-align:center">Richt op een vlak</div>
+      <button id="arPlaceBtn" onclick="arPlaceModel()" style="display:none;background:rgba(200,136,74,.9);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:14px 32px;cursor:pointer">Hier plaatsen</button>
+      <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.8);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">✕ Sluiten</button>
+    </div>`;
     document.body.appendChild(arOverlayEl);
-
-    arSession = await navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['hit-test'],
-      optionalFeatures: ['dom-overlay'],
-      domOverlay: { root: arOverlayEl }
+    arSession = await navigator.xr.requestSession('immersive-ar',{
+      requiredFeatures:['hit-test'], optionalFeatures:['dom-overlay'],
+      domOverlay:{root:arOverlayEl}
     });
-
     R.xr.enabled = true;
     await R.xr.setSession(arSession);
-
     const refSpace = await arSession.requestReferenceSpace('viewer');
-    arHitTestSource = await arSession.requestHitTestSource({ space: refSpace });
-
-    // Verberg originele scene-achtergrond
+    arHitTestSource = await arSession.requestHitTestSource({space:refSpace});
     SC.background = null;
-
-    arSession.addEventListener('end', () => {
-      arSession = null; arHitTestSource = null; arPlaced = false;
-      if (arReticle) { SC.remove(arReticle); arReticle = null; }
-      if (arOverlayEl) { arOverlayEl.remove(); arOverlayEl = null; }
-      R.xr.enabled = false;
-      SC.background = new THREE.Color(0x0C0E12);
+    arSession.addEventListener('end',()=>{
+      arSession=null; arHitTestSource=null; arPlaced=false;
+      if(arReticle){SC.remove(arReticle);arReticle=null;}
+      if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
+      R.xr.enabled=false; SC.background=new THREE.Color(0x0C0E12);
     });
-
-    // Toon reticle in render loop
-    R.setAnimationLoop((t, frame) => {
-      if (frame && arHitTestSource && !arPlaced) {
-        const hits = frame.getHitTestResults(arHitTestSource);
-        if (hits.length) {
-          const pose = hits[0].getPose(R.xr.getReferenceSpace());
-          arReticle.visible = true;
-          arReticle.matrix.fromArray(pose.transform.matrix);
-          document.getElementById('arPlaceBtn').style.display = 'block';
-          document.getElementById('arHint').textContent = 'Vlak gevonden';
+    R.setAnimationLoop((t,frame)=>{
+      if(frame&&arHitTestSource&&!arPlaced){
+        const hits=frame.getHitTestResults(arHitTestSource);
+        if(hits.length){
+          const pose=hits[0].getPose(R.xr.getReferenceSpace());
+          arReticle.visible=true; arReticle.matrix.fromArray(pose.transform.matrix);
+          document.getElementById('arPlaceBtn').style.display='block';
+          document.getElementById('arHint').textContent='Vlak gevonden';
         } else {
-          arReticle.visible = false;
-          document.getElementById('arPlaceBtn').style.display = 'none';
-          document.getElementById('arHint').textContent = 'Richt op een vlak oppervlak';
+          arReticle.visible=false; document.getElementById('arPlaceBtn').style.display='none';
+          document.getElementById('arHint').textContent='Richt op een vlak';
         }
       }
-      if (composer) composer.render();
-      else R.render(SC, CAM);
+      if(composer)composer.render(); else R.render(SC,CAM);
     });
-
   } catch(err) {
-    alert('AR niet beschikbaar: ' + err.message);
-    if (arOverlayEl) { arOverlayEl.remove(); arOverlayEl = null; }
+    alert('AR niet beschikbaar: '+err.message);
+    if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
   }
 }
 
 function arPlaceModel() {
-  if (!arReticle || !arReticle.visible) return;
-  const pos = new THREE.Vector3();
-  const quat = new THREE.Quaternion();
-  arReticle.matrix.decompose(pos, quat, new THREE.Vector3());
-  LAMP.position.copy(pos);
-  LAMP.quaternion.copy(quat);
-  arPlaced = true;
-  arReticle.visible = false;
-  document.getElementById('arHint').textContent = 'Geplaatst — sleep om te draaien';
-  document.getElementById('arPlaceBtn').style.display = 'none';
+  if(!arReticle||!arReticle.visible) return;
+  const pos=new THREE.Vector3(), quat=new THREE.Quaternion();
+  arReticle.matrix.decompose(pos,quat,new THREE.Vector3());
+  LAMP.position.copy(pos); LAMP.quaternion.copy(quat);
+  arPlaced=true; arReticle.visible=false;
+  document.getElementById('arHint').textContent='Geplaatst';
+  document.getElementById('arPlaceBtn').style.display='none';
 }
 
-// Check AR support bij laden
 checkARSupport();
 
 </script>
 
-// ── iframe hoogte communiceren naar parent pagina ──────────────────
-
-<!-- iOS Quick Look AR anchor (verborgen, getriggerd via JS) -->
-<a id="qlAnchor" rel="ar" href="rhombi_tafel.usdz" style="display:none">
-  <img src="">
-</a>
 </body>
 </html>
