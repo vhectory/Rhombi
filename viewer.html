@@ -35,7 +35,7 @@ canvas{display:block;border-radius:2px}
 .bartit{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim)}
 .back{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color .3s}
 .back:hover{color:var(--amber)}
-.vbar{display:none!important}
+.vbar{position:fixed;bottom:20px;left:0;right:30%;z-index:20;display:flex;justify-content:center;gap:4px}
 .vbtn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 16px;min-width:78px;background:rgba(22,26,32,.92);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.07);color:var(--text-dim);cursor:pointer;transition:all .2s;font-family:"Space Mono",monospace}
 .vbtn:hover{border-color:rgba(200,136,74,.4);color:var(--cream)}
 .vbtn.on{border-color:var(--amber);color:var(--amber);background:rgba(200,136,74,.1)}
@@ -1581,7 +1581,7 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
       }
     });
   }
-  if(!_lampPosSet) {
+  if(!_lampPosSet) { console.log('[Rhombi] lamp_pos not found, using fallback. Groups:', Object.keys(activeGLBGroups||{}));
     const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
     if(_peerGrp) {
       const kb = new THREE.Box3();
@@ -1971,7 +1971,7 @@ if (typeof THREE.GLTFLoader !== 'undefined') {
   }
 }
 const GLB_BASE = 'glb/';
-const GLB_BUST = '?v=' + Date.now().toString(36).slice(-4); // cache bust
+const GLB_BUST = '?v=20260321'; // cache bust — update bij nieuw model
 const _glbCache = new Map(); // url → ArrayBuffer cache
 let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na laden
 Object.defineProperty(window, "activeGLBGroups", { get: () => activeGLBGroups, set: v => { activeGLBGroups = v; } });
@@ -2027,6 +2027,8 @@ function loadGLBParts(url) {
             });
             var summary = Object.keys(groups).join(', ');
             console.log('[Rhombi GLB] ' + url + ' → ' + summary);
+            if(lampPosNode) console.log('[Rhombi] lamp_pos empty gevonden in GLB');
+            else console.log('[Rhombi] lamp_pos NIET gevonden - beschikbare namen:', Object.keys(groups).join(', '));
             if(lampPosNode) {
               lampPosNode.updateWorldMatrix(true, false);
               groups.__lampPos = lampPosNode;
@@ -3154,6 +3156,15 @@ async function checkARSupport() {
   try{ if(await navigator.xr.isSessionSupported('immersive-ar')) show(); }catch(e){}
 }
 async function startAR() {
+  // HTTPS vereist voor WebXR
+  if(!isIOS() && location.protocol !== 'https:') {
+    const toast=document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 20px;z-index:9999;text-align:center';
+    toast.textContent='AR vereist HTTPS verbinding';
+    document.body.appendChild(toast);
+    setTimeout(()=>toast.remove(),3000);
+    return;
+  }
   if(isIOS()){
     const usdz=(curV&&curV.id==='accent')?'rhombi_accent.usdz':'rhombi_tafel.usdz';
     let a=document.getElementById('qlAnchor');
@@ -3184,9 +3195,27 @@ async function startAR() {
       <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.8);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">✕ Sluiten</button>
     </div>`;
     document.body.appendChild(arOverlayEl);
-    arSession=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay'],domOverlay:{root:arOverlayEl}});
+    // Probeer eerst met hit-test, daarna zonder als fallback
+    try {
+      arSession=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay'],domOverlay:{root:arOverlayEl}});
+    } catch(e1) {
+      console.warn('hit-test niet beschikbaar, probeer zonder:', e1.message);
+      try {
+        arSession=await navigator.xr.requestSession('immersive-ar',{optionalFeatures:['dom-overlay'],domOverlay:{root:arOverlayEl}});
+        // Geen hit-test: plaats model direct voor camera
+        window._arNoHitTest = true;
+      } catch(e2) {
+        throw e2;
+      }
+    }
     R.xr.enabled=true; await R.xr.setSession(arSession);
-    arHitTestSource=await arSession.requestHitTestSource({space:await arSession.requestReferenceSpace('local')});
+    try {
+      const refSpace = await arSession.requestReferenceSpace('local');
+      arHitTestSource = await arSession.requestHitTestSource({space: refSpace});
+    } catch(htErr) {
+      console.warn('hit-test niet beschikbaar:', htErr.message);
+      arHitTestSource = null;
+    }
     SC.background=null;
     if(window._bgSphere) window._bgSphere.visible=false;
     if(window._vignetteSphere) window._vignetteSphere.visible=false;
@@ -3196,11 +3225,27 @@ async function startAR() {
     R.alpha = true;
     arSession.addEventListener('end',()=>{arSession=null;arHitTestSource=null;arPlaced=false;if(arReticle){SC.remove(arReticle);arReticle=null;}if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}R.xr.enabled=false;SC.background=new THREE.Color(0x0C0E12);
       const _arBE=document.getElementById("arBtnMob"); if(_arBE){_arBE.style.borderColor="";_arBE.style.color="";}if(window._bgSphere)window._bgSphere.visible=true;if(window._vignetteSphere)window._vignetteSphere.visible=true;if(window._occSphere)window._occSphere.visible=true;R.setClearColor(0x0C0E12,1);});
+    // Als geen hit-test: toon toch de plaats-knop meteen
+    if(!arHitTestSource) {
+      document.getElementById('arPlaceBtn').style.display='block';
+      document.getElementById('arHint').textContent='Tik op Hier plaatsen';
+      // Zet lamp op vaste afstand voor camera
+      LAMP.position.set(0, -0.5, -1.5);
+    }
+
     R.setAnimationLoop((t,frame)=>{
       if(frame&&arHitTestSource&&!arPlaced){
         const hits=frame.getHitTestResults(arHitTestSource);
-        if(hits.length){const pose=hits[0].getPose(R.xr.getReferenceSpace());arReticle.visible=true;arReticle.matrix.fromArray(pose.transform.matrix);document.getElementById('arPlaceBtn').style.display='block';document.getElementById('arHint').textContent='Vlak gevonden';}
-        else{arReticle.visible=false;document.getElementById('arPlaceBtn').style.display='none';document.getElementById('arHint').textContent='Richt op een vlak';}
+        if(hits.length){
+          const pose=hits[0].getPose(R.xr.getReferenceSpace());
+          arReticle.visible=true; arReticle.matrix.fromArray(pose.transform.matrix);
+          document.getElementById('arPlaceBtn').style.display='block';
+          document.getElementById('arHint').textContent='Vlak gevonden';
+        } else {
+          arReticle.visible=false;
+          document.getElementById('arPlaceBtn').style.display='none';
+          document.getElementById('arHint').textContent='Richt op een vlak';
+        }
       }
       if(composer)composer.render();else R.render(SC,CAM);
     });
