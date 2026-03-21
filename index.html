@@ -1449,6 +1449,20 @@ nav.scrolled {
   contain-intrinsic-size: 0 600px;
 }
 
+
+/* ── CONFIGURATOR LAYOUT ── */
+.configurator-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+.configurator-text { display: flex; flex-direction: column; gap: 0; }
+@media (max-width: 900px) {
+  .configurator-layout { grid-template-columns: 1fr; }
+  .configurator-preview { max-width: 100%; }
+}
+
 /* ── CAROUSEL HEIGHT LIMIT ── */
 .carousel-section {
   overflow: hidden;
@@ -1958,14 +1972,13 @@ input, textarea, select {
 </section>
 
 <!-- 3. CONFIGURATOR -->
-<section id="configurator" style="padding:0 48px 80px;background:var(--dark)">
-  <div style="padding:80px 48px 40px;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;flex-wrap:wrap">
-    <div>
+<section id="configurator" style="padding:80px 48px;background:var(--dark)">
+  <div class="configurator-layout">
+    <div class="configurator-text">
       <p class="section-label reveal" data-i18n="conf-label">◆ 3D Configurator</p>
-      <h2 class="section-title reveal" ><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
+      <h2 class="section-title reveal"><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
       <p style="font-size:14px;line-height:1.7;color:var(--text-dim);margin-top:12px;letter-spacing:.01em" data-i18n="conf-sub">Kies variant, materiaal en kleur.</p>
     </div>
-  </div>
   <div class="configurator-preview rhombi-frame" onclick="openConfigurator('tafel')" style="cursor:pointer">
     <img decoding="async" id="confPreviewImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
       alt="Rhombi configurator" class="configurator-preview-img" style="opacity:0;transition:opacity .6s">
@@ -1975,6 +1988,7 @@ input, textarea, select {
         <span data-i18n="conf-open">Open 3D Configurator</span>
       </button>
     </div>
+  </div>
   </div>
 </section>
 
@@ -2772,13 +2786,7 @@ function openConfigurator(varId) {
   window.open('viewer.html?variant=' + v, '_blank');
 }
 
-function closeConfigurator() {
-  const overlay = document.getElementById('confOverlay');
-  const frame   = document.getElementById('confFrame');
-  if (overlay) overlay.style.display = 'none';
-  if (frame)   frame.src = '';
-  document.body.style.overflow = '';
-}
+
 
 function setConfigVariant(varId) {
   document.querySelectorAll('.conf-vbtn').forEach(b => b.classList.toggle('active', b.dataset.variant === varId));
@@ -3417,31 +3425,7 @@ window.addEventListener('resize', () => {
 })();
 
 // ── Configurator popup ────────────────────────────────────
-function openConfigurator() {
-  const popup = document.getElementById('confPopup');
-  const iframe = document.getElementById('confIframe');
-  if(!iframe.src || iframe.src === window.location.href) {
-    iframe.src = 'viewer.html';
-  }
-  popup.style.display = 'block';
-  document.body.style.overflow = 'hidden';
-  // Request fullscreen on mobile for best experience
-  if(popup.requestFullscreen) popup.requestFullscreen().catch(()=>{});
-  else if(popup.webkitRequestFullscreen) popup.webkitRequestFullscreen();
-}
 
-function closeConfigurator() {
-  const popup = document.getElementById('confPopup');
-  popup.style.display = 'none';
-  document.body.style.overflow = '';
-  if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-  else if(document.webkitFullscreenElement) document.webkitExitFullscreen();
-}
-
-// Close on Escape
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') closeConfigurator();
-});
 
 // ── CAROUSELS (pixel-width approach - bulletproof) ──
 (function() {
