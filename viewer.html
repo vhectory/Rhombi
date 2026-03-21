@@ -131,6 +131,7 @@ canvas{display:block;border-radius:2px}
   --sai-left:   env(safe-area-inset-left,   0px);
   /* hoogte bottombar op mobiel */
   --mob-bar-h:  calc(64px + var(--sai-bottom));
+  --vbar-h:     48px;
   /* hoogte bottomsheet handle + zichtbare strip */
   --sheet-peek: calc(var(--mob-bar-h) + 12px);
 }
@@ -244,38 +245,38 @@ canvas{ touch-action:none; cursor:crosshair }
   #loading{ right:0 !important; }
   .hints{ display:none }
 
-  /* Variantenbar onderin — grote vingerzone */
+  /* Variantenbar ONDER canvas — niet overlappend */
   .vbar{
     right:0 !important;
     bottom: auto !important;
-    top: calc(100vw - 56px) !important;
+    top: 100vw !important;
     left:0;
-    padding-bottom: 4px;
+    padding: 4px calc(8px + var(--sai-left)) 4px calc(8px + var(--sai-left));
     gap: 3px;
     overflow-x: auto;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    padding-left: calc(8px + var(--sai-left));
-    padding-right: calc(8px + var(--sai-right));
+    background: rgba(18,21,26,.96);
+    border-bottom: 1px solid rgba(255,255,255,.06);
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
   .vbar::-webkit-scrollbar{ display:none }
   .vbtn{
-    min-width: 72px;
-    padding: 14px 12px;
+    min-width: 64px;
+    padding: 8px 10px;
     flex-shrink: 0;
-    gap: 5px;
+    gap: 4px;
   }
   /* Grotere touch target */
-  .vi{ font-size:24px }
-  .vl{ font-size:10px; letter-spacing:.12em }
+  .vi{ font-size:20px }
+  .vl{ font-size:9px; letter-spacing:.12em }
 
   /* ── BOTTOM BAR — instellingen-knop + model-naam ── */
   .mob-bar-bottom{
     display: flex;
     position: absolute;
-    top: 100vw;
+    top: calc(100vw + var(--vbar-h));
     bottom: auto;
     left: 0;
     right: 0;
@@ -334,7 +335,7 @@ canvas{ touch-action:none; cursor:crosshair }
     position: absolute;
     left: 0;
     right: 0;
-    top: calc(100vw + var(--mob-bar-h));
+    top: calc(100vw + var(--vbar-h) + var(--mob-bar-h));
     bottom: auto;
     transform: translateY(-100%) scaleY(0);
     transform-origin: top;
@@ -489,7 +490,7 @@ canvas{ touch-action:none; cursor:crosshair }
     <button class="cb on" id="bAO" onclick="toggleSSAO()"><span>Ambient Occlusion</span><span>◉</span></button>
     <button class="cb" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
     <button class="cb" onclick="saveConfig()"><span>Deel configuratie</span><span>⬡</span></button>
-    <button class="cb" id="arBtn" onclick="startAR()" style="display:none"><span>Bekijk in je ruimte</span><span>◈</span></button>
+
   </div>
   <div class="ps">
     <span class="pl">◆ Specificaties</span>
@@ -510,6 +511,9 @@ canvas{ touch-action:none; cursor:crosshair }
   </div>
   <button class="mob-open-sheet" onclick="togglePanel()">
     <span>☰</span><span>Opties</span>
+  </button>
+  <button class="mob-open-sheet" id="arBtn" onclick="startAR()" style="display:none;background:rgba(200,136,74,.08);padding:0 12px;">
+    <span style="font-size:18px">◈</span><span>AR</span>
   </button>
 </div>
 
@@ -994,25 +998,22 @@ function resize(){
   if(composer) composer.setSize(w, h);
   if(window._edgeOccPass) window._edgeOccPass.uniforms.uRes.value.set(w, h);
 
-  // Mobiel: vbar direct onder canvas
+  // Mobiel: vbar → mob-bar → panel stapelen onder canvas
   if(isMobLayout) {
-    const vbar = document.querySelector('.vbar');
-    if(vbar) {
-      vbar.style.top = h + 'px';
-      vbar.style.bottom = 'auto';
-    }
-    // Zorg dat mob-bar ook direct aansluit
+    const vbar   = document.querySelector('.vbar');
     const mobBar = document.getElementById('mobBar');
-    if(mobBar) mobBar.style.top = h + 'px';
-    // vbar ook
-    const vbar2 = document.querySelector('.vbar');
-    if(vbar2) { vbar2.style.top = (h - 56) + 'px'; vbar2.style.bottom = 'auto'; }
-    // Panel ook
-    const panel = document.getElementById('panel');
-    if(panel) {
-      const mbH = document.getElementById('mobBar')?.offsetHeight || 64;
-      panel.style.top = (h + mbH) + 'px';
-    }
+    const panel  = document.getElementById('panel');
+
+    // 1. vbar direct onder canvas
+    if(vbar) { vbar.style.top = h + 'px'; vbar.style.bottom = 'auto'; }
+
+    // 2. mob-bar na vbar
+    const vbarH = vbar ? vbar.offsetHeight : 48;
+    if(mobBar) mobBar.style.top = (h + vbarH) + 'px';
+
+    // 3. panel na mob-bar
+    const mbH = mobBar ? mobBar.offsetHeight : 64;
+    if(panel) panel.style.top = (h + vbarH + mbH) + 'px';
   } else {
     const vbar = document.querySelector('.vbar');
     if(vbar) { vbar.style.top = ''; vbar.style.bottom = ''; }
