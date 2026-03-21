@@ -1437,6 +1437,18 @@ nav.scrolled {
   .configurator-preview { aspect-ratio: 4 / 3; }
 }
 
+
+/* ── Performance: content-visibility voor off-screen secties ── */
+.types-section,
+.carousel-section,
+#uitleg,
+#materialen,
+#handleiding,
+#ontwerper {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
+}
+
 /* ── CAROUSEL HEIGHT LIMIT ── */
 .carousel-section {
   overflow: hidden;
@@ -1955,8 +1967,8 @@ input, textarea, select {
     </div>
   </div>
   <div class="configurator-preview">
-    <img decoding="async" data-folder="sfeer" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-      alt="Rhombi configurator" class="configurator-preview-img">
+    <img decoding="async" id="confPreviewImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+      alt="Rhombi configurator" class="configurator-preview-img" style="opacity:0;transition:opacity .6s">
     <div class="configurator-preview-overlay">
       <button class="conf-open-btn conf-open-btn-overlay" onclick="openConfigurator('tafel')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -2548,11 +2560,25 @@ if(document.readyState === 'loading') {
 const track       = document.getElementById('carouselTrack');
 
 // ── Dynamic carousel loader ──────────────────────────────
+// ── Gecachte fotos.json fetch ──────────────────────────────────────
+let _fotosCache = null;
+async function getFotosData() {
+  if (_fotosCache) return _fotosCache;
+  const res = await fetch('fotos.json');
+  if (!res.ok) throw new Error('fotos.json niet gevonden (HTTP ' + res.status + ')');
+  _fotosCache = await res.json();
+  return _fotosCache;
+}
+
+// ── Preload eerste carousel afbeelding ──
+function preloadImg(src) {
+  const img = new Image();
+  img.src = src;
+}
+
 async function loadCarousel() {
   try {
-    const res = await fetch('fotos.json');
-    if(!res.ok) throw new Error('fotos.json niet gevonden (HTTP ' + res.status + ')');
-    const data = await res.json();
+    const data = await getFotosData();
     let files = [...data.sfeer];
 
     // Fisher-Yates shuffle
@@ -2568,7 +2594,8 @@ async function loadCarousel() {
       const img = document.createElement('img');
       img.src = "fotos/sfeer/" + file;
       img.alt = 'Rhombi sfeerfoto ' + (idx + 1);
-      img.loading = 'lazy';
+      img.loading = idx === 0 ? 'eager' : 'lazy';
+      img.decoding = 'async';
       img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center 50%';
       img.addEventListener('dragstart', e => e.preventDefault());
       div.appendChild(img);
@@ -3181,9 +3208,7 @@ let variantName = '';
 
 async function openVariantLightbox(variant) {
   try {
-    const res = await fetch('fotos.json');
-    if(!res.ok) throw new Error('fotos.json niet gevonden');
-    const data = await res.json();
+    const data = await getFotosData();
     const photos = data[variant] || [];
     if(!photos.length) return;
     
@@ -3249,9 +3274,7 @@ let kunstDragging = false, kunstDragStartX = 0, kunstDragOff = 0, kunstCurOff = 
 
 async function loadKunstCarousel() {
   try {
-    const res = await fetch('fotos.json');
-    if(!res.ok) throw new Error('fotos.json niet gevonden (HTTP ' + res.status + ')');
-    const data = await res.json();
+    const data = await getFotosData();
     const files = data.kunst || [];
     if(!files.length) {
       document.getElementById('kunst').style.display = 'none';
@@ -3263,7 +3286,8 @@ async function loadKunstCarousel() {
       const img = document.createElement('img');
       img.src = 'fotos/kunst/' + file;
       img.alt = 'Rhombi kunst ' + (idx + 1);
-      img.loading = 'lazy';
+      img.loading = idx === 0 ? 'eager' : 'lazy';
+      img.decoding = 'async';
       img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center';
       img.addEventListener('dragstart', e => e.preventDefault());
       div.appendChild(img);
@@ -3325,9 +3349,7 @@ loadKunstCarousel();
 // All images with data-folder="x" pick a random photo from fotos.json[x] on each load
 async function loadRandomImages() {
   try {
-    const res = await fetch('fotos.json');
-    if(!res.ok) return;
-    const data = await res.json();
+    const data = await getFotosData();
 
     function pickRandom(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
@@ -3357,6 +3379,21 @@ async function loadRandomImages() {
 }
 
 loadRandomImages();
+loadConfPreview();
+
+// ── Configurator preview afbeelding laden ──
+async function loadConfPreview() {
+  try {
+    const data = await getFotosData();
+    const files = data['tafel'] || data['sfeer'] || [];
+    if (!files.length) return;
+    const img = document.getElementById('confPreviewImg');
+    if (!img) return;
+    const src = 'fotos/' + (data['tafel'] ? 'tafel' : 'sfeer') + '/' + files[0];
+    img.onload = () => { img.style.opacity = '1'; };
+    img.src = src;
+  } catch(e) {}
+}
 
 // ── Dynamic nav offset ──
 (function() {
@@ -3368,7 +3405,11 @@ loadRandomImages();
     document.documentElement.style.setProperty('--nav-offset', offset + 'px');
   }
   document.addEventListener('DOMContentLoaded', () => { setNavOffset(); setBannerH(); });
-  window.addEventListener('resize', () => { setNavOffset(); setBannerH(); });
+  let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => { setNavOffset(); setBannerH(); }, 100);
+});
   if (document.readyState !== 'loading') { setNavOffset(); setBannerH(); }
   function setBannerH() {
     const b = document.querySelector('.topbanner');
