@@ -1438,29 +1438,39 @@ nav.scrolled {
 }
 
 
-/* ── Performance: content-visibility voor off-screen secties ── */
-.types-section,
-.carousel-section,
-#uitleg,
-#materialen,
-#handleiding,
-#ontwerper {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 600px;
-}
+
 
 
 /* ── CONFIGURATOR LAYOUT ── */
 .configurator-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  gap: 64px;
   align-items: center;
+  max-width: 1100px;
 }
-.configurator-text { display: flex; flex-direction: column; gap: 0; }
+.configurator-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.configurator-text .section-title {
+  margin-top: 8px;
+}
+.configurator-preview {
+  max-width: 480px;
+  width: 100%;
+  justify-self: end;
+}
 @media (max-width: 900px) {
-  .configurator-layout { grid-template-columns: 1fr; }
-  .configurator-preview { max-width: 100%; }
+  .configurator-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .configurator-preview {
+    max-width: 100%;
+    justify-self: start;
+  }
 }
 
 /* ── CAROUSEL HEIGHT LIMIT ── */
@@ -1556,8 +1566,7 @@ input, textarea, select {
 
 /* Performance: skip rendering off-screen sections */
 #kunst, #uitleg, #materialen, #handleiding, #ontwerper {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 600px;
+
 }
 
 /* ── TOPBANNER ── */
@@ -1979,16 +1988,16 @@ input, textarea, select {
       <h2 class="section-title reveal"><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
       <p style="font-size:14px;line-height:1.7;color:var(--text-dim);margin-top:12px;letter-spacing:.01em" data-i18n="conf-sub">Kies variant, materiaal en kleur.</p>
     </div>
-  <div class="configurator-preview rhombi-frame" onclick="openConfigurator('tafel')" style="cursor:pointer">
+  <a href="viewer.html?variant=tafel" target="_blank" class="configurator-preview rhombi-frame" style="display:block;text-decoration:none">
     <img decoding="async" id="confPreviewImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
       alt="Rhombi configurator" class="configurator-preview-img" style="opacity:0;transition:opacity .6s">
     <div class="configurator-preview-overlay">
-      <button class="conf-open-btn conf-open-btn-overlay" onclick="event.stopPropagation();openConfigurator('tafel')">
+      <span class="conf-open-btn conf-open-btn-overlay" style="pointer-events:none">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         <span data-i18n="conf-open">Open 3D Configurator</span>
-      </button>
+      </span>
     </div>
-  </div>
+  </a>
   </div>
 </section>
 
@@ -2789,13 +2798,7 @@ function openConfigurator(varId) {
 
 
 function setConfigVariant(varId) {
-  document.querySelectorAll('.conf-vbtn').forEach(b => b.classList.toggle('active', b.dataset.variant === varId));
-  // Update open variant knop tekst
-  const btn = document.getElementById('confOpenBtn');
-  if(btn) btn.onclick = () => openConfigurator(varId);
-  // Als popup al open is, wissel variant
-  if(_confWin && !_confWin.closed) {
-    _confWin.postMessage({ type: 'rhombi-setvariant', variant: varId }, '*');
+  document.querySelectorAll(', '*');
     _confWin.focus();
   } else {
     openConfigurator(varId);
@@ -2816,364 +2819,7 @@ window.addEventListener('scroll', () => {
 });
 
 // Lightbox
-function openLightbox(src, alt) {
-  const lb = document.getElementById('lb');
-  const img = document.getElementById('lb-img');
-  img.src = src; img.alt = alt || '';
-  lb.style.display='flex'; lb.classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeLightbox() {
-  const lb=document.getElementById('lightbox');
-  lb.style.display='none'; lb.classList.remove('open');
-  document.body.style.overflow = '';
-}
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
-document.querySelectorAll('.rhombi-frame').forEach(frame => {
-  const img = frame.querySelector('img');
-  if(!img) return;
-  // Only open lightbox on non-link frames, or if it's a type-card open lightbox and stop nav
-  const isLink = frame.tagName === 'A' || frame.closest('a');
-  if(!isLink) {
-    frame.addEventListener('click', () => openLightbox(img.src, img.alt));
-  } else {
-    // For type-cards: single click = navigate, long press / dedicated zoom icon = lightbox
-    // Simple: add a zoom button overlay instead
-    const zoom = document.createElement('button');
-    zoom.innerHTML = '⊕';
-    zoom.style.cssText = 'position:absolute;top:10px;right:10px;z-index:5;background:rgba(18,21,26,.7);border:1px solid rgba(200,136,74,.3);color:#C8884A;width:28px;height:28px;font-size:13px;cursor:zoom-in;display:flex;align-items:center;justify-content:center;';
-    zoom.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openLightbox(img.src, img.alt); });
-    frame.style.position = frame.style.position || 'relative';
-    frame.appendChild(zoom);
-  }
-});
 
-// ── i18n ──────────────────────────────────────────────────────
-const TRANSLATIONS = {
-  nl: {
-    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Opening studio: zondag 7 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25',
-    'type-hint': "Tik voor foto's",
-    'type-tafel-label': '◆ Tafellamp',
-    'type-hang-label': '◆ Hang',
-    'type-plafond-label': '◆ Plafond',
-    'type-wand-label': '◆ Wand',
-    'type-accent-label': '◆ Accent',
-    'kunst-sub': `Rhombi is meer dan verlichting; het is een object dat dialoog aangaat met kunst en ruimte. Voor vragen over de getoonde werken of de betrokken kunstenaars kunt u contact opnemen met <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(200,136,74,.3)">Galerie T, Middelburg</a>.`,
-    'kunst-label': '◆ Kunst',
-    'kunst-title': 'Rhombi ontmoet',
-    'kunst-title2': 'kunst.',
-    'nav-kunst': 'Kunst',
-    'nav-geo': 'Geometrie',
-    'ont-label': '◆ Ontwerper',
-    'nav-ont': 'Ontwerper',
-    'ont-title': 'Ontmoet de',
-    'ont-title2': 'ontwerper.',
-    'ont-p1': 'Vincent Hector is architect en visualisator uit Rotterdam en werkzaam op het snijvlak van architectuur, productontwerp en digitale beeldvorming. In zijn werk onderzoekt hij de wisselwerking tussen structuur, licht en ruimtelijke perceptie, met een nadruk op modulair denken en digitale maakprocessen.',
-    'ont-p2': 'In uiteenlopende projecten, van ruimtelijke ontwerpen tot visuele representaties, streeft hij naar helderheid in vorm en een subtiele, gelaagde ruimtelijke ervaring. Vincent maakt gebruik van technieken zoals 3D-modellering, digitale fabricage en visualisatie om ontwerpen te ontwikkelen en te verfijnen. Met deze werkwijze verbindt hij het architectonische met het sculpturale, waarbij licht niet enkel functioneel is maar een integraal onderdeel vormt van het ontwerpconcept.',
-    'ont-p3': 'Als ontwerper zoekt hij naar objecten die zowel een rustige aanwezigheid als een expressieve vormkwaliteit bezitten en die uitnodigen om licht en ruimte op een nieuwe manier te ervaren.',    'nav-conf': 'Configurator',
-    'nav-types': 'Varianten',
-    'nav-sfeer': 'Sfeer',
-    'nav-about': 'Over Rhombi',
-    'nav-montage': 'Montage',
-    'nav-contact': 'Contact',
-    'nav-mat': 'Materiaal',
-    'hero-eyebrow': '◆ Modulaire lichtobjecten',
-    'hero-t1': 'Geometrie',
-    'hero-t2': 'ontmoet',
-    'hero-t3': 'licht.',
-    'hero-sub': 'Rhombi is een lijn modulaire lichtobjecten waarin geometrie, licht en digitale fabricage samenkomen. Elk object is volledig 3D-geprint en functioneert zowel als sfeerverlichting als sculpturaal element in de ruimte.',
-    'hero-btn1': 'Bekijk de varianten',
-    'hero-btn2': 'Open 3D configurator',
-    'conf-open': 'Open 3D Configurator',
-    'conf-close': '✕ Sluiten',
-    'conf-label': '◆ 3D Configurator',
-    'conf-t1': 'Stel jouw',
-    'conf-t2': 'Rhombi samen.',
-    'conf-sub': 'Kies variant, materiaal en kleur.',
-    'conf-types': 'Tafel · Wand · Plafond · Accent · Hang',
-    'types-label': '◆ Varianten',
-    'types-t1': 'Meerdere vormen,',
-    'types-t2': 'één systeem.',
-    'type-tafel': 'Tafellamp',
-    'type-wand': 'Wandlamp',
-    'type-plafond': 'Plafondlamp',
-    'type-accent': 'Accentlamp',
-    'type-hang': 'Hanglamp',
-    'sfeer-label': '◆ Sfeer',
-    'sfeer-title': 'Licht in context.',
-    'uitleg-label': '◆ Over Rhombi',
-    'uitleg-t1': 'Licht als',
-    'uitleg-t2': 'materiaal.',
-    'uitleg-p1': 'Rhombi is een persoonlijk onderzoek naar de grenzen van wat 3D-printtechnologie visueel en functioneel kan betekenen. Elk onderdeel is ontworpen om te kunnen worden geprint op een standaard FDM-printer.',
-    'uitleg-p2': 'De kap filtert en vervormt het licht op een manier die afhangt van de printrichting, de laagdikte en de kleur van het filament. Geen twee exemplaren zijn exact hetzelfde.',
-    'uitleg-p3': 'Ontworpen in Rotterdam door Vincent Hector, Vhector.',
-    'spec-materiaal': 'Materiaal',
-    'spec-fitting': 'Fitting',
-    'spec-componenten': 'Componenten',
-    'spec-montage-val': 'Geen gereedschap nodig',
-    'spec-kleuren': 'Kleuren',
-    'spec-kleuren-val': '12 standaard · maatwerk mogelijk',
-    'mont-label': '◆ Montage',
-    'mont-onderdelen': 'Onderdelen',
-    'mont-stappen': 'Montage stappen',
-    'step-00-label': 'OVERZICHT',
-    'step-00': 'De kap wordt van binnenuit opgebouwd. Alle onderdelen klikken zonder gereedschap in elkaar.',
-    'mont-t1': 'Stap voor stap',
-    'mont-t2': 'in elkaar.',
-    'part-02': 'Vleugel L + R',
-    'part-02-info': 'Zijpanelen · klikverbinding',
-    'part-04': 'Kern',
-    'part-04-info': 'Centrale fitting-houder',
-    'part-05-info': 'Vervangbaar voor andere versies',
-    'part-06-info': 'Zijkader links',
-    'part-07-info': 'Zijkader rechts · klikhaken',
-    'part-08-info': 'Frontframe · afwerking',
-    'dl-manual': 'handleiding →',
-    'step-01-label': 'STAP 01',
-    'step-01': 'Plaats vleugel L (2) en vleugel R (3) in de kap. Zorg dat de klikverbinding goed vastzit.',
-    'step-02-label': 'STAP 02',
-    'step-02': 'Schuif de kern (4) in de fitting-houder en vergrendel de positie.',
-    'step-03-label': 'STAP 03',
-    'step-03': 'Klik de E14 ring (5) op de kern. De ring is vervangbaar voor andere fittingversies.',
-    'step-04-label': 'STAP 04',
-    'step-04': 'Bevestig kader L (6) en kader R (7). Voer het snoer door de snoergeleider.',
-    'step-05-label': 'STAP 05',
-    'step-05': 'Sluit de kap door de fitting van bovenaf naar beneden te schuiven. Combineer met het gewenste onderstel.',
-    'cta-t1': 'Tussen product',
-    'cta-t2': 'en autonoom object.',
-    'cta-sub': 'Rhombi is ontworpen voor interieur, expositie en designcontext. Neem contact op voor informatie, bestellingen of maatwerk.',
-    'cta-btn1': 'Neem contact op',
-    'cta-btn2': 'Bekijk varianten',
-    'footer-note': 'Ontwerp: Vincent Hector · Vhector · Rotterdam, NL',
-    'lb-close': '✕ Sluiten',
-    'mat-label': '◆ Materiaal',
-    'geo-label': '◆ Geometrie',
-    'geo-t1': 'De kap als',
-    'geo-t2': 'architectonische huid.',
-    'geo-p1': 'De kap van Rhombi functioneert als een architectonische huid rond het licht. De ruitvorm wordt in een ritmisch patroon herhaald en vormt een open, sculpturale structuur die het licht filtert en verzacht.',
-    'geo-p2': 'Het raster breekt de directe lichtbron en creëert een warme, gelaagde gloed. De naam <em style="color:var(--cream)">Rhombi</em> verwijst naar deze herhaling van vormen: niet één gebaar, maar een samenstelling van geometrieën die samen het licht vormgeven.',
-    'mat-title': 'Dezelfde vorm, ander karakter.',
-    'mat-note': 'Elk onderdeel kan in een ander materiaal worden geprint. Meer varianten zijn altijd mogelijk op aanvraag.',
-    'mat-more': 'Meer mogelijk. Heb je een specifiek filament of afwerking in gedachten? Neem contact op voor de mogelijkheden, de lijst groeit.',
-
-  },
-  en: {
-    'topbanner': '◆ Exclusively available at <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studio opening: Sunday 7 June (Kunst &amp; Cultuurroute) · Every 1st Sunday of the month · 13:00–17:00 · Turfkaai 25',
-    'type-hint': 'Tap for photos',
-    'type-tafel-label': '◆ Table lamp',
-    'type-hang-label': '◆ Pendant',
-    'type-plafond-label': '◆ Ceiling',
-    'type-wand-label': '◆ Wall',
-    'type-accent-label': '◆ Accent',
-    'kunst-sub': `Rhombi is more than lighting — it is an object that enters into dialogue with art and space. For enquiries about the works shown or the artists involved, please contact <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(200,136,74,.3)">Galerie T, Middelburg</a>.`,
-    'kunst-label': '◆ Art',
-    'kunst-title': 'Rhombi meets',
-    'kunst-title2': 'art.',
-    'nav-kunst': 'Art',
-    'nav-geo': 'Geometry',
-    'ont-label': '◆ Designer',
-    'nav-ont': 'Designer',
-    'ont-title': 'Meet the',
-    'ont-title2': 'designer.',
-    'ont-p1': 'Vincent Hector is an architect and visualiser from Rotterdam, working at the intersection of architecture, product design and digital imaging. In his work he explores the interplay between structure, light and spatial perception, with an emphasis on modular thinking and digital fabrication processes.',
-    'ont-p2': 'Across diverse projects — from spatial designs to visual representations — he strives for clarity of form and a subtle, layered spatial experience. Vincent uses techniques such as 3D modelling, digital fabrication and visualisation to develop and refine his designs. Through this approach he connects the architectural with the sculptural, where light is not merely functional but an integral part of the design concept.',
-    'ont-p3': 'As a designer he seeks objects that possess both a quiet presence and an expressive formal quality, inviting people to experience light and space in a new way.',    'nav-conf': 'Configurator',
-    'nav-types': 'Variants',
-    'nav-sfeer': 'Atmosphere',
-    'nav-about': 'About Rhombi',
-    'nav-montage': 'Assembly',
-    'nav-contact': 'Contact',
-    'nav-mat': 'Material',
-    'hero-eyebrow': '◆ Modular light objects',
-    'hero-t1': 'Geometry',
-    'hero-t2': 'meets',
-    'hero-t3': 'light.',
-    'hero-sub': 'Rhombi is a line of modular light objects where geometry, light and digital fabrication meet. Each object is fully 3D-printed and functions both as atmospheric lighting and as a sculptural element in the space.',
-    'hero-btn1': 'View the variants',
-    'hero-btn2': 'Open 3D configurator',
-    'conf-open': 'Open 3D Configurator',
-    'conf-close': '✕ Close',
-    'conf-label': '◆ 3D Configurator',
-    'conf-t1': 'Configure your',
-    'conf-t2': 'Rhombi.',
-    'conf-sub': 'Choose variant, material and colour.',
-    'conf-types': 'Table · Wall · Ceiling · Accent · Pendant',
-    'types-label': '◆ Variants',
-    'types-t1': 'Multiple forms,',
-    'types-t2': 'one system.',
-    'type-tafel': 'Table lamp',
-    'type-wand': 'Wall lamp',
-    'type-plafond': 'Ceiling lamp',
-    'type-accent': 'Mantle lamp',
-    'type-hang': 'Pendant lamp',
-    'sfeer-label': '◆ Atmosphere',
-    'sfeer-title': 'Light in context.',
-    'uitleg-label': '◆ About Rhombi',
-    'uitleg-t1': 'Light as',
-    'uitleg-t2': 'material.',
-    'uitleg-p1': 'Rhombi is a personal exploration of the visual and functional possibilities of 3D-print technology. Every component is designed to be printed on a standard FDM printer.',
-    'uitleg-p2': 'The shade filters and bends light in ways that depend on print direction, layer height and filament colour. No two pieces are exactly alike.',
-    'uitleg-p3': 'Designed in Rotterdam by Vincent Hector — Vhector.',
-    'spec-materiaal': 'Material',
-    'spec-fitting': 'Socket',
-    'spec-componenten': 'Components',
-    'spec-montage-val': 'No tools required',
-    'spec-kleuren': 'Colours',
-    'spec-kleuren-val': '12 standard · custom on request',
-    'mont-label': '◆ Assembly',
-    'mont-onderdelen': 'Components',
-    'mont-stappen': 'Assembly steps',
-    'step-00-label': 'OVERVIEW',
-    'step-00': 'The shade is assembled from the inside out. All parts click together without tools.',
-    'mont-t1': 'Step by step',
-    'mont-t2': 'together.',
-    'part-02': 'Wing L + R',
-    'part-02-info': 'Side panels · click connection',
-    'part-04': 'Core',
-    'part-04-info': 'Central socket holder',
-    'part-05-info': 'Replaceable for other versions',
-    'part-06-info': 'Side frame left',
-    'part-07-info': 'Side frame right · click hooks',
-    'part-08-info': 'Front frame · finish',
-    'dl-manual': 'manual →',
-    'step-01-label': 'STEP 01',
-    'step-01': 'Insert wing L (2) and wing R (3) into the shade. Make sure the click connection is secure.',
-    'step-02-label': 'STEP 02',
-    'step-02': 'Slide the core (4) into the socket holder and lock the position.',
-    'step-03-label': 'STEP 03',
-    'step-03': 'Click the E14 ring (5) onto the core. The ring is replaceable for other socket versions.',
-    'step-04-label': 'STEP 04',
-    'step-04': 'Attach frame L (6) and frame R (7). Route the cable through the cable guide.',
-    'step-05-label': 'STEP 05',
-    'step-05': 'Close the shade by sliding the socket from top to bottom. Combine with your chosen base.',
-    'cta-t1': 'Between product',
-    'cta-t2': 'and autonomous object.',
-    'cta-sub': 'Rhombi is designed for interior, exhibition and design contexts. Get in touch for information, orders or custom work.',
-    'cta-btn1': 'Get in touch',
-    'cta-btn2': 'View variants',
-    'footer-note': 'Design: Vincent Hector — Vhector · Rotterdam, NL',
-    'lb-close': '✕ Close',
-    'mat-label': '◆ Material',
-    'mat-title': 'Same form, different character.',
-    'mat-note': 'Every part can be printed in a different material. More options are always possible on request.',
-    'mat-more': 'More possible. Have a specific filament or finish in mind? Get in touch — the list keeps growing.',
-    'geo-label': '◆ Geometry',
-    'geo-t1': 'The shade as',
-    'geo-t2': 'architectural skin.',
-    'geo-p1': 'The Rhombi shade acts as an architectural skin around the light. The diamond shape repeats in a rhythmic pattern, forming an open, sculptural structure that filters and softens the light.',
-    'geo-p2': 'The grid breaks the direct light source and creates a warm, layered glow. The name <em style="color:var(--cream)">Rhombi</em> refers to this repetition of forms: not a single gesture, but a composition of geometries that shape the light together.',
-
-  },
-  de: {
-    'topbanner': '◆ Exklusiv erhältlich bei <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studioöffnung: Sonntag 7. Juni (Kunst &amp; Cultuurroute) · Jeden 1. Sonntag im Monat · 13:00–17:00 · Turfkaai 25',
-    'type-hint': 'Tippen für Fotos',
-    'type-tafel-label': '◆ Tischleuchte',
-    'type-hang-label': '◆ Hänge',
-    'type-plafond-label': '◆ Decke',
-    'type-wand-label': '◆ Wand',
-    'type-accent-label': '◆ Akzent',
-    'kunst-sub': `Rhombi ist mehr als Beleuchtung — es ist ein Objekt, das in Dialog mit Kunst und Raum tritt. Für Fragen zu den gezeigten Werken oder den beteiligten Künstlern wenden Sie sich bitte an <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(200,136,74,.3)">Galerie T, Middelburg</a>.`,
-    'kunst-label': '◆ Kunst',
-    'kunst-title': 'Rhombi trifft',
-    'kunst-title2': 'Kunst.',
-    'nav-kunst': 'Kunst',
-    'ont-label': '◆ Designer',
-    'nav-ont': 'Designer',
-    'ont-title': 'Der',
-    'ont-title2': 'Designer.',
-    'ont-p1': 'Vincent Hector ist Architekt und Visualisierer aus Rotterdam und arbeitet an der Schnittstelle von Architektur, Produktdesign und digitaler Bildgebung. In seiner Arbeit untersucht er das Wechselspiel zwischen Struktur, Licht und räumlicher Wahrnehmung, mit Schwerpunkt auf modularem Denken und digitalen Fertigungsprozessen.',
-    'ont-p2': 'In unterschiedlichen Projekten — von Raumgestaltungen bis hin zu visuellen Darstellungen — strebt er nach Klarheit der Form und einer subtilen, vielschichtigen Raumwahrnehmung. Vincent nutzt Techniken wie 3D-Modellierung, digitale Fertigung und Visualisierung, um Entwürfe zu entwickeln und zu verfeinern. Mit diesem Ansatz verbindet er das Architektonische mit dem Skulpturalen, wobei Licht nicht nur funktional ist, sondern ein integraler Bestandteil des Entwurfskonzepts.',
-    'ont-p3': 'Als Designer sucht er nach Objekten, die sowohl eine ruhige Präsenz als auch eine ausdrucksstarke Formqualität besitzen und dazu einladen, Licht und Raum auf eine neue Weise zu erleben.',    'nav-conf': 'Konfigurator',
-    'nav-mat': 'Material',
-    'nav-types': 'Varianten',
-    'nav-sfeer': 'Atmosphäre',
-    'nav-about': 'Über Rhombi',
-    'nav-montage': 'Montage',
-    'nav-contact': 'Kontakt',
-    'hero-eyebrow': '◆ Modulare Lichtobjekte',
-    'hero-t1': 'Geometrie',
-    'hero-t2': 'trifft',
-    'hero-t3': 'Licht.',
-    'hero-sub': 'Rhombi ist eine Linie modularer Lichtobjekte, in der Geometrie, Licht und digitale Fertigung zusammenkommen. Jedes Objekt ist vollständig 3D-gedruckt und fungiert sowohl als Stimmungsbeleuchtung als auch als skulpturales Element im Raum.',
-    'hero-btn1': 'Varianten ansehen',
-    'hero-btn2': '3D-Konfigurator öffnen',
-    'conf-open': '3D Konfigurator öffnen',
-    'conf-close': '✕ Schließen',
-    'conf-label': '◆ 3D Konfigurator',
-    'conf-t1': 'Gestalte dein',
-    'conf-t2': 'Rhombi.',
-    'conf-sub': 'Variante, Material und Farbe wählen.',
-    'conf-types': 'Tisch · Wand · Decke · Akzent · Hänge',
-    'types-label': '◆ Varianten',
-    'types-t1': 'Mehrere Formen,',
-    'types-t2': 'ein System.',
-    'type-tafel': 'Tischleuchte',
-    'type-wand': 'Wandleuchte',
-    'type-plafond': 'Deckenleuchte',
-    'type-accent': 'Akzentleuchte',
-    'type-hang': 'Hängeleuchte',
-    'sfeer-label': '◆ Atmosphäre',
-    'sfeer-title': 'Licht im Kontext.',
-    'uitleg-label': '◆ Über Rhombi',
-    'uitleg-t1': 'Licht als',
-    'uitleg-t2': 'Material.',
-    'uitleg-p1': 'Rhombi ist eine persönliche Erforschung der visuellen und funktionalen Möglichkeiten des 3D-Drucks. Jedes Bauteil wurde so entwickelt, dass es auf einem handelsüblichen FDM-Drucker gedruckt werden kann.',
-    'uitleg-p2': 'Der Schirm filtert und bricht das Licht auf eine Weise, die von der Druckrichtung, der Schichthöhe und der Farbe des Filaments abhängt. Keine zwei Exemplare sind genau gleich.',
-    'uitleg-p3': 'Entworfen in Rotterdam von Vincent Hector — Vhector.',
-    'spec-materiaal': 'Material',
-    'spec-fitting': 'Fassung',
-    'spec-componenten': 'Bauteile',
-    'spec-montage-val': 'Kein Werkzeug erforderlich',
-    'spec-kleuren': 'Farben',
-    'spec-kleuren-val': '12 Standard · Sonderfarben möglich',
-    'mont-label': '◆ Montage',
-    'mont-onderdelen': 'Bauteile',
-    'mont-stappen': 'Montageschritte',
-    'step-00-label': 'ÜBERSICHT',
-    'step-00': 'Der Schirm wird von innen zusammengebaut. Alle Teile rasten werkzeuglos ein.',
-    'mont-t1': 'Schritt für Schritt',
-    'mont-t2': 'zusammenbauen.',
-    'part-02': 'Flügel L + R',
-    'part-02-info': 'Seitenpaneele · Klickverbindung',
-    'part-04': 'Kern',
-    'part-04-info': 'Zentraler Fassungshalter',
-    'part-05-info': 'Austauschbar für andere Versionen',
-    'part-06-info': 'Seitenrahmen links',
-    'part-07-info': 'Seitenrahmen rechts · Klickhaken',
-    'part-08-info': 'Frontrahmen · Abschluss',
-    'dl-manual': 'Anleitung →',
-    'step-01-label': 'SCHRITT 01',
-    'step-01': 'Flügel L (2) und Flügel R (3) in den Schirm einsetzen. Sicherstellen, dass die Klickverbindung hält.',
-    'step-02-label': 'SCHRITT 02',
-    'step-02': 'Kern (4) in den Fassungshalter schieben und Position arretieren.',
-    'step-03-label': 'SCHRITT 03',
-    'step-03': 'E14-Ring (5) auf den Kern klicken. Der Ring ist für andere Fassungsversionen austauschbar.',
-    'step-04-label': 'SCHRITT 04',
-    'step-04': 'Rahmen L (6) und Rahmen R (7) befestigen. Das Kabel durch die Kabelführung führen.',
-    'step-05-label': 'SCHRITT 05',
-    'step-05': 'Schirm schließen, indem die Fassung von oben nach unten geschoben wird. Mit dem gewünschten Sockel kombinieren.',
-    'cta-t1': 'Zwischen Produkt',
-    'cta-t2': 'und autonomem Objekt.',
-    'cta-sub': 'Rhombi ist für Interieur, Ausstellung und Designkontexte konzipiert. Kontakt aufnehmen für Informationen, Bestellungen oder Sonderwünsche.',
-    'cta-btn1': 'Kontakt aufnehmen',
-    'cta-btn2': 'Varianten ansehen',
-    'footer-note': 'Entwurf: Vincent Hector — Vhector · Rotterdam, NL',
-    'lb-close': '✕ Schließen',
-    'mat-label': '◆ Material',
-    'mat-title': 'Gleiche Form, anderer Charakter.',
-    'mat-note': 'Jedes Bauteil kann in einem anderen Material gedruckt werden. Weitere Varianten sind jederzeit auf Anfrage möglich.',
-    'mat-more': 'Mehr möglich. Ein bestimmtes Filament oder eine Oberfläche im Sinn? Kontakt aufnehmen — die Liste wächst.',
-    'nav-geo': 'Geometrie',
-    'geo-label': '◆ Geometrie',
-    'geo-t1': 'Der Schirm als',
-    'geo-t2': 'architektonische Haut.',
-    'geo-p1': 'Der Rhombi-Schirm wirkt als architektonische Haut um das Licht. Die Rautenform wiederholt sich in einem rhythmischen Muster und bildet eine offene, skulpturale Struktur, die das Licht filtert und bricht.',
-    'geo-p2': 'Das Raster bricht die direkte Lichtquelle und erzeugt ein warmes, vielschichtiges Leuchten. Der Name <em style="color:var(--cream)">Rhombi</em> verweist auf diese Wiederholung von Formen: nicht eine einzelne Geste, sondern eine Komposition von Geometrien, die gemeinsam das Licht formen.',
-
-  }
-};
-
-let currentLang = 'nl';
 
 function setLang(lang) {
   if(!TRANSLATIONS[lang]) return;

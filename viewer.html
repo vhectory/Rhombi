@@ -1970,9 +1970,10 @@ if (typeof THREE.GLTFLoader !== 'undefined') {
     console.warn('[Rhombi] DRACOLoader niet beschikbaar — Draco GLBs worden niet ondersteund');
   }
 }
-const GLB_BASE = 'https://cdn.jsdelivr.net/gh/vhectory/Rhombi@master/glb/';
+const GLB_BASE = 'glb/';
 const _glbCache = new Map(); // url → ArrayBuffer cache
 let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na laden
+Object.defineProperty(window, "activeGLBGroups", { get: () => activeGLBGroups, set: v => { activeGLBGroups = v; } });
 
 function clearActiveGLB() {
   // Reset zichtbaarheid bij variant wissel
@@ -3163,6 +3164,9 @@ async function startAR() {
   }
 
   if(arSession){arSession.end();return;}
+  // Toon actieve staat
+  const _arB = document.getElementById('arBtnMob');
+  if(_arB) { _arB.style.borderColor='var(--amber)'; _arB.style.color='var(--amber)'; }
   try{
     arReticle=new THREE.Mesh(new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide}));
     arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
@@ -3184,7 +3188,8 @@ async function startAR() {
     // Transparante renderer voor AR pass-through
     R.setClearColor(0x000000, 0);
     R.alpha = true;
-    arSession.addEventListener('end',()=>{arSession=null;arHitTestSource=null;arPlaced=false;if(arReticle){SC.remove(arReticle);arReticle=null;}if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}R.xr.enabled=false;SC.background=new THREE.Color(0x0C0E12);if(window._bgSphere)window._bgSphere.visible=true;if(window._vignetteSphere)window._vignetteSphere.visible=true;if(window._occSphere)window._occSphere.visible=true;R.setClearColor(0x0C0E12,1);});
+    arSession.addEventListener('end',()=>{arSession=null;arHitTestSource=null;arPlaced=false;if(arReticle){SC.remove(arReticle);arReticle=null;}if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}R.xr.enabled=false;SC.background=new THREE.Color(0x0C0E12);
+      const _arBE=document.getElementById("arBtnMob"); if(_arBE){_arBE.style.borderColor="";_arBE.style.color="";}if(window._bgSphere)window._bgSphere.visible=true;if(window._vignetteSphere)window._vignetteSphere.visible=true;if(window._occSphere)window._occSphere.visible=true;R.setClearColor(0x0C0E12,1);});
     R.setAnimationLoop((t,frame)=>{
       if(frame&&arHitTestSource&&!arPlaced){
         const hits=frame.getHitTestResults(arHitTestSource);
@@ -3246,17 +3251,52 @@ checkARSupport();
 // Auto-start AR als geopend via ?ar=1
 (function() {
   const params = new URLSearchParams(window.location.search);
-  if(params.get('ar') === '1') {
-    const varId = params.get('variant');
-    window.addEventListener('load', function() {
-      // Laad juiste variant eerst
-      if(varId) {
-        const v = VARIANTS && VARIANTS.find(v => v.id === varId);
-        if(v) swapLocal(v.id);
+  if(params.get('ar') !== '1') return;
+
+  const varId = params.get('variant') || 'tafel';
+  window._arAutoStart = true;
+
+  // Verberg loading screen achtergrond
+  document.documentElement.style.background = 'transparent';
+  document.body.style.background = 'transparent';
+
+  // Laad variant en start AR zodra alles klaar is
+  function doStartAR() {
+    // Kleine delay zodat renderer klaar is
+    setTimeout(function() {
+      startAR();
+    }, 600);
+  }
+
+  // Hook: wacht op swapLocal + model load
+  function waitAndStart() {
+    if(typeof swapLocal !== 'function' || typeof VARIANTS === 'undefined') {
+      setTimeout(waitAndStart, 200);
+      return;
+    }
+    // Swap naar juiste variant
+    swapLocal(varId);
+    // Wacht op GLB load — poll activeGLBGroups
+    let tries = 0;
+    function waitForGLB() {
+      tries++;
+      const grps = window.activeGLBGroups;
+      if(grps && Object.keys(grps).filter(k => k !== '__lampPos').length > 0) {
+        doStartAR();
+      } else if(tries < 30) {
+        setTimeout(waitForGLB, 400);
+      } else {
+        // Timeout — probeer toch
+        doStartAR();
       }
-      // Start AR na kort moment zodat model geladen is
-      setTimeout(startAR, 1500);
-    });
+    }
+    setTimeout(waitForGLB, 500);
+  }
+
+  if(document.readyState === 'complete') {
+    waitAndStart();
+  } else {
+    window.addEventListener('load', waitAndStart);
   }
 })();
 
