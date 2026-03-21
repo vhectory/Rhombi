@@ -1543,43 +1543,58 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   });
   updateSelectionOutline();
 
-  // lamp_pos empty als authoritative lichtpositie
+  // lamp_pos: gebruik positie uit GLB __lampPos node, gecorrigeerd voor centering
   let _lampPosSet = false;
-  // Zoek __lampPos die direct uit de GLB komt (voor Empty nodes)
   const _lpNode = activeGLBGroups && activeGLBGroups.__lampPos;
   if(_lpNode) {
-    // Bereken world position na centering
-    const wp = new THREE.Vector3();
-    // lamp_pos positie zit in local space van de GLB — pas centering offset toe
-    _lpNode.getWorldPosition(wp);
-    // Pas de centering offset toe die we net op de groups hebben toegepast
+    // lamp_pos world pos in originele GLB space
+    const wpOrig = new THREE.Vector3();
+    _lpNode.getWorldPosition(wpOrig);
+
+    // Bereken wat de centering verschuiving was
+    // (centering heeft groups.position.x -= center.x etc. gedaan)
+    // De groups zitten nu al gecentreerd in LAMP/_lampWrap
+    // lamp_pos positie is in dezelfde local space als de GLB meshes voor centering
+    // Centering offset = gemiddeld centrum van alle meshes vóór centering
+    // Dat is wat er van wpOrig afgetrokken moet worden:
     const _cBox2 = new THREE.Box3();
     Object.entries(activeGLBGroups).forEach(([k,g]) => {
       if(k === '__lampPos') return;
-      g.traverse(o => { if(o.isMesh && !o.userData.isOutline) _cBox2.expandByObject(o); });
+      // Gebruik originele posities (voor centering) - niet mogelijk na het feit
+      // In plaats: neem lamp_pos relatief t.o.v. een mesh centrum
     });
-    if(!_cBox2.isEmpty()) {
-      const offset = _cBox2.getCenter(new THREE.Vector3());
-      wp.x -= offset.x; wp.y -= offset.y; wp.z -= offset.z;
-      const _vOff2 = window._rhombiCurrentVariant;
-      if(_vOff2 && _vOff2.yOffset) wp.y += _vOff2.yOffset;
+    
+    // Simpelste aanpak: lamp_pos local positie in de GLB = absolute positie
+    // Na centering zijn de meshes verschoven maar lamp_pos niet
+    // Gebruik de local position van lamp_pos direct (x,y,z in GLB coords)
+    // en corrigeer met de huidige group offsets
+    const grpKeys = Object.keys(activeGLBGroups).filter(k => k !== '__lampPos');
+    if(grpKeys.length > 0) {
+      const g0 = activeGLBGroups[grpKeys[0]];
+      // g0.position is de offset na centering = -center
+      // Dus: gecorrigeerde pos = wpOrig + g0.position
+      const corrected = wpOrig.clone().add(g0.position);
+      const _vOff = window._rhombiCurrentVariant;
+      if(_vOff && _vOff.yOffset) corrected.y += _vOff.yOffset;
+      LP.position.copy(corrected);
+      kapGlow.position.copy(corrected);
+      console.log('[Rhombi] lamp_pos gecorrigeerd:', corrected.x.toFixed(2), corrected.y.toFixed(2), corrected.z.toFixed(2));
+      _lampPosSet = true;
     }
-    LP.position.copy(wp); kapGlow.position.copy(wp);
-    console.log('[Rhombi] lamp_pos (empty):', wp.x.toFixed(2), wp.y.toFixed(2), wp.z.toFixed(2));
-    _lampPosSet = true;
   }
-  if(!_lampPosSet && LAMP) {
-    LAMP.traverse(o => {
-      if(_lampPosSet) return;
-      if(o.name === 'lamp_pos') {
-        o.updateWorldMatrix(true, false);
-        const wp = new THREE.Vector3();
-        o.getWorldPosition(wp);
-        LP.position.copy(wp); kapGlow.position.copy(wp);
-        console.log('[Rhombi] lamp_pos (traverse):', wp.x.toFixed(2), wp.y.toFixed(2), wp.z.toFixed(2));
-        _lampPosSet = true;
+  if(!_lampPosSet) {
+    const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
+    if(_peerGrp) {
+      const kb = new THREE.Box3();
+      _peerGrp.updateWorldMatrix(true, true);
+      _peerGrp.traverse(o => { if(o.isMesh && !o.userData.isOutline) { o.updateWorldMatrix(true,false); kb.expandByObject(o); }});
+      if(!kb.isEmpty()) {
+        const kc = kb.getCenter(new THREE.Vector3());
+        kapGlow.position.copy(kc); LP.position.set(kc.x,kc.y,kc.z);
+        kapGlow.distance = Math.max(1.0,(kb.max.y-kb.min.y)*1.5);
+        console.log('[Rhombi] lamp_pos fallback (kap):', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
       }
-    });
+    }
   }
   if(!_lampPosSet) { console.log('[Rhombi] lamp_pos not found, using fallback. Groups:', Object.keys(activeGLBGroups||{}));
     const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
@@ -3168,15 +3183,7 @@ async function checkARSupport() {
   }
 }
 async function startAR() {
-  // HTTPS vereist voor WebXR
-  if(!isIOS() && location.protocol !== 'https:') {
-    const toast=document.createElement('div');
-    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 20px;z-index:9999;text-align:center';
-    toast.textContent='AR vereist HTTPS verbinding';
-    document.body.appendChild(toast);
-    setTimeout(()=>toast.remove(),3000);
-    return;
-  }
+  // iOS: Quick Look
   if(isIOS()){
     const usdz=(curV&&curV.id==='accent')?'rhombi_accent.usdz':'rhombi_tafel.usdz';
     let a=document.getElementById('qlAnchor');
@@ -3184,94 +3191,110 @@ async function startAR() {
     a.href=usdz; a.click(); return;
   }
 
-  // Als embedded in iframe: open AR in fullscreen nieuw venster
-  if(window.self !== window.top) {
-    const varId = curV ? curV.id : 'tafel';
-    const arUrl = 'viewer.html?ar=1&variant=' + varId;
-    window.open(arUrl, '_blank', 'fullscreen=yes');
-    return;
-  }
-
+  // Toggle: stop als al actief
   if(arSession){arSession.end();return;}
-  // Toon actieve staat
+
+  // WebXR AR
+  if(!navigator.xr) { showARToast('WebXR niet beschikbaar in deze browser'); return; }
+
   const _arB = document.getElementById('arBtnMob');
   if(_arB) { _arB.style.borderColor='var(--amber)'; _arB.style.color='var(--amber)'; }
-  try{
-    arReticle=new THREE.Mesh(new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide}));
-    arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
+
+  try {
+    // Maak overlay
     arOverlayEl=document.createElement('div');
     arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
     arOverlayEl.innerHTML=`<div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:12px">
-      <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(237,228,208,.8)">Richt op een vlak</div>
-      <button id="arPlaceBtn" onclick="arPlaceModel()" style="display:none;background:rgba(200,136,74,.9);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:14px 32px;cursor:pointer">Hier plaatsen</button>
-      <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.8);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">✕ Sluiten</button>
+      <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(237,228,208,.9);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8)">Richt op een vlak oppervlak</div>
+      <button id="arPlaceBtn" onclick="arPlaceModel()" style="display:none;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:16px 36px;cursor:pointer">Hier plaatsen</button>
+      <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.85);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">✕ Sluiten</button>
     </div>`;
     document.body.appendChild(arOverlayEl);
-    // Probeer eerst met hit-test, daarna zonder als fallback
-    try {
-      arSession=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay'],domOverlay:{root:arOverlayEl}});
-    } catch(e1) {
-      console.warn('hit-test niet beschikbaar, probeer zonder:', e1.message);
-      try {
-        arSession=await navigator.xr.requestSession('immersive-ar',{optionalFeatures:['dom-overlay'],domOverlay:{root:arOverlayEl}});
-        // Geen hit-test: plaats model direct voor camera
-        window._arNoHitTest = true;
-      } catch(e2) {
-        throw e2;
-      }
-    }
-    R.xr.enabled=true; await R.xr.setSession(arSession);
+
+    // Reticle
+    arReticle=new THREE.Mesh(
+      new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),
+      new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide})
+    );
+    arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
+
+    // Probeer sessie — hit-test optioneel
+    const sessionOpts = {
+      optionalFeatures: ['hit-test', 'dom-overlay', 'local-floor'],
+      domOverlay: { root: arOverlayEl }
+    };
+    arSession = await navigator.xr.requestSession('immersive-ar', sessionOpts);
+
+    R.xr.enabled = true;
+    await R.xr.setSession(arSession);
+
+    // Probeer hit-test
     try {
       const refSpace = await arSession.requestReferenceSpace('local');
       arHitTestSource = await arSession.requestHitTestSource({space: refSpace});
-    } catch(htErr) {
-      console.warn('hit-test niet beschikbaar:', htErr.message);
+      console.log('[AR] hit-test actief');
+    } catch(e) {
+      console.warn('[AR] hit-test niet beschikbaar:', e.message);
       arHitTestSource = null;
-    }
-    SC.background=null;
-    if(window._bgSphere) window._bgSphere.visible=false;
-    if(window._vignetteSphere) window._vignetteSphere.visible=false;
-    if(window._occSphere) window._occSphere.visible=false;
-    // Transparante renderer voor AR pass-through
-    R.setClearColor(0x000000, 0);
-    R.alpha = true;
-    arSession.addEventListener('end',()=>{arSession=null;arHitTestSource=null;arPlaced=false;if(arReticle){SC.remove(arReticle);arReticle=null;}if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}R.xr.enabled=false;SC.background=new THREE.Color(0x0C0E12);
-      const _arBE=document.getElementById("arBtnMob"); if(_arBE){_arBE.style.borderColor="";_arBE.style.color="";}if(window._bgSphere)window._bgSphere.visible=true;if(window._vignetteSphere)window._vignetteSphere.visible=true;if(window._occSphere)window._occSphere.visible=true;R.setClearColor(0x0C0E12,1);});
-    // Als geen hit-test: toon toch de plaats-knop meteen
-    if(!arHitTestSource) {
+      // Toon knop meteen zonder hit-test
       document.getElementById('arPlaceBtn').style.display='block';
-      document.getElementById('arHint').textContent='Tik op Hier plaatsen';
-      // Zet lamp op vaste afstand voor camera
-      LAMP.position.set(0, -0.5, -1.5);
+      document.getElementById('arHint').textContent='Tik op Hier plaatsen om de lamp te zetten';
     }
 
-    R.setAnimationLoop((t,frame)=>{
-      if(frame&&arHitTestSource&&!arPlaced){
-        const hits=frame.getHitTestResults(arHitTestSource);
-        if(hits.length){
-          const pose=hits[0].getPose(R.xr.getReferenceSpace());
-          arReticle.visible=true; arReticle.matrix.fromArray(pose.transform.matrix);
+    SC.background = null;
+    if(window._bgSphere) window._bgSphere.visible=false;
+    if(window._occSphere) window._occSphere.visible=false;
+
+    arSession.addEventListener('end', ()=>{
+      arSession=null; arHitTestSource=null; arPlaced=false;
+      if(arReticle){SC.remove(arReticle);arReticle=null;}
+      if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
+      R.xr.enabled=false;
+      SC.background=new THREE.Color(0x0C0E12);
+      if(window._bgSphere)window._bgSphere.visible=true;
+      if(window._occSphere)window._occSphere.visible=true;
+      const b=document.getElementById('arBtnMob');
+      if(b){b.style.borderColor='';b.style.color='';}
+    });
+
+    R.setAnimationLoop((t, frame) => {
+      if(frame && arHitTestSource && !arPlaced) {
+        const hits = frame.getHitTestResults(arHitTestSource);
+        if(hits.length) {
+          const pose = hits[0].getPose(R.xr.getReferenceSpace());
+          arReticle.visible = true;
+          arReticle.matrix.fromArray(pose.transform.matrix);
           document.getElementById('arPlaceBtn').style.display='block';
-          document.getElementById('arHint').textContent='Vlak gevonden';
+          document.getElementById('arHint').textContent='Vlak gevonden — tik om te plaatsen';
         } else {
-          arReticle.visible=false;
+          arReticle.visible = false;
           document.getElementById('arPlaceBtn').style.display='none';
-          document.getElementById('arHint').textContent='Richt op een vlak';
+          document.getElementById('arHint').textContent='Richt op een vlak oppervlak';
         }
       }
-      if(composer)composer.render();else R.render(SC,CAM);
+      if(composer) composer.render(); else R.render(SC, CAM);
     });
-  }catch(err){
-    console.warn('AR error:', err.name, err.message);
+
+  } catch(err) {
+    console.error('[AR] fout:', err.name, err.message);
     if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
-    // Toon vriendelijke foutmelding
-    const toast=document.createElement('div');
-    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 20px;z-index:9999;text-align:center';
-    toast.textContent='AR niet beschikbaar op dit apparaat';
-    document.body.appendChild(toast);
-    setTimeout(()=>toast.remove(),3000);
+    if(arReticle){SC.remove(arReticle);arReticle=null;}
+    R.xr.enabled=false;
+    const b=document.getElementById('arBtnMob');
+    if(b){b.style.borderColor='';b.style.color='';}
+    showARToast(err.message || 'AR niet beschikbaar');
   }
 }
+
+function showARToast(msg) {
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;z-index:9999;text-align:center;max-width:80vw';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),4000);
+}
+
+
 function arPlaceModel(){
   if(!arReticle||!arReticle.visible)return;
   const pos=new THREE.Vector3(),quat=new THREE.Quaternion();
