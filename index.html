@@ -1405,9 +1405,8 @@ nav.scrolled {
 .configurator-preview {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-top: 1px solid rgba(255,255,255,.05);
+  aspect-ratio: 1 / 1;
+  max-width: 600px;
   cursor: pointer;
 }
 .configurator-preview-img {
@@ -1422,19 +1421,20 @@ nav.scrolled {
 .configurator-preview-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(12,14,18,.45);
+  background: rgba(12,14,18,.4);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background .3s;
+  z-index: 2;
 }
-.configurator-preview:hover .configurator-preview-overlay { background: rgba(12,14,18,.3); }
+.configurator-preview:hover .configurator-preview-overlay { background: rgba(12,14,18,.2); }
 .conf-open-btn-overlay {
-  background: rgba(200,136,74,.9);
+  background: rgba(200,136,74,.92);
   backdrop-filter: blur(8px);
 }
 @media (max-width: 768px) {
-  .configurator-preview { aspect-ratio: 4 / 3; }
+  .configurator-preview { max-width: 100%; }
 }
 
 
@@ -1966,11 +1966,11 @@ input, textarea, select {
       <p style="font-size:14px;line-height:1.7;color:var(--text-dim);margin-top:12px;letter-spacing:.01em" data-i18n="conf-sub">Kies variant, materiaal en kleur.</p>
     </div>
   </div>
-  <div class="configurator-preview">
+  <div class="configurator-preview rhombi-frame" onclick="openConfigurator('tafel')" style="cursor:pointer">
     <img decoding="async" id="confPreviewImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
       alt="Rhombi configurator" class="configurator-preview-img" style="opacity:0;transition:opacity .6s">
     <div class="configurator-preview-overlay">
-      <button class="conf-open-btn conf-open-btn-overlay" onclick="openConfigurator('tafel')">
+      <button class="conf-open-btn conf-open-btn-overlay" onclick="event.stopPropagation();openConfigurator('tafel')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         <span data-i18n="conf-open">Open 3D Configurator</span>
       </button>
@@ -2768,17 +2768,21 @@ window.addEventListener('resize', () => { if(typeof setOffset==='function' && tr
 let _confWin = null;
 
 function openConfigurator(varId) {
-  const v = varId || document.querySelector('.conf-vbtn.active')?.dataset.variant || 'tafel';
-  const w = 520, h = 820;
-  const left = Math.round((screen.width  - w) / 2);
-  const top  = Math.round((screen.height - h) / 2);
-  _confWin = window.open(
-    'viewer.html?variant=' + v,
-    'rhombi-configurator',
-    'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top +
-    ',resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no'
-  );
-  if(_confWin) _confWin.focus();
+  const v = varId || 'tafel';
+  const overlay = document.getElementById('confOverlay');
+  const frame   = document.getElementById('confFrame');
+  if (!overlay || !frame) return;
+  frame.src = 'viewer.html?variant=' + v;
+  overlay.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeConfigurator() {
+  const overlay = document.getElementById('confOverlay');
+  const frame   = document.getElementById('confFrame');
+  if (overlay) overlay.style.display = 'none';
+  if (frame)   frame.src = '';
+  document.body.style.overflow = '';
 }
 
 function setConfigVariant(varId) {
@@ -3540,5 +3544,11 @@ document.addEventListener('keydown', e => {
   <div id="variantLbTitle" style="font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-top:-20px"></div>
 </div>
 
+
+<!-- Configurator fullscreen overlay -->
+<div id="confOverlay" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(12,14,18,.96);backdrop-filter:blur(8px)">
+  <button onclick="closeConfigurator()" style="position:absolute;top:20px;right:24px;z-index:10;background:none;border:1px solid rgba(200,136,74,.4);color:var(--cream);font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:10px 20px;cursor:pointer">✕ Sluiten</button>
+  <iframe id="confFrame" src="" style="width:100%;height:100%;border:none;display:block" allow="xr-spatial-tracking; camera; accelerometer; gyroscope" allowfullscreen></iframe>
+</div>
 </body>
 </html>
