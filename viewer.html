@@ -300,42 +300,23 @@ canvas{ touch-action:none; cursor:crosshair }
   }
   .mob-open-sheet:active{ background:rgba(200,136,74,.25) }
 
-  /* ── DROP-DOWN PANEL — klapt uit onder mob-bar ── */
+  /* ── PANEL — altijd zichtbaar onder mob-bar ── */
   .panel{
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: calc(100vw + var(--mob-bar-h));
-    bottom: auto;
-    height: 65vh;
+    position: relative !important;
     width: 100% !important;
     max-width: 100% !important;
+    height: auto !important;
     border-left: none;
     border-top: 1px solid rgba(200,136,74,.25);
-    border-bottom: none;
     border-radius: 0;
-    transform: scaleY(0);
-    transform-origin: top;
-    transition: transform .35s cubic-bezier(.32,.72,0,1);
-    overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0,0,0,.7);
-    padding-top: 0;
-    padding-bottom: calc(var(--sai-bottom) + 8px);
-    overflow-y: auto;
+    overflow-y: visible;
+    display: block !important;
+    padding-bottom: calc(var(--sai-bottom) + 16px);
     z-index: 45;
   }
-  .panel.open{
-    transform: scaleY(1);
-  }
+  .panel.open{ transform: none; }
 
-  .sheet-handle{
-    display:flex;
-    justify-content:flex-end;
-    align-items:center;
-    padding:10px 16px 8px;
-    flex-shrink:0;
-    border-bottom:1px solid rgba(255,255,255,.05);
-  }
+  .sheet-handle{ display:none !important; }
   .sheet-close{
     color:var(--text-dim);
     padding:6px 8px;
@@ -365,7 +346,7 @@ canvas{ touch-action:none; cursor:crosshair }
     z-index:29;
     background:rgba(0,0,0,0);
   }
-  .panel-overlay.show{display:block}
+  
 
   /* Kleurengrid groter op mobiel */
   .cgrid{ grid-template-columns:repeat(6,1fr); gap:6px }
@@ -482,9 +463,7 @@ canvas{ touch-action:none; cursor:crosshair }
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
     <span>AR</span>
   </button>
-  <button class="mob-open-sheet" onclick="togglePanel()">
-    <span>☰</span><span>Opties</span>
-  </button>
+  <!-- Opties altijd zichtbaar -->
 </div>
 
 <div class="hints" id="hints">
@@ -3244,15 +3223,24 @@ async function startAR() {
     SC.background = null;
     if(window._bgSphere) window._bgSphere.visible=false;
     if(window._occSphere) window._occSphere.visible=false;
+    // Reset LAMP positie voor AR
+    LAMP.position.set(0, 0, -1.5);
+    LAMP.rotation.set(0, 0, 0);
 
     arSession.addEventListener('end', ()=>{
       arSession=null; arHitTestSource=null; arPlaced=false;
       if(arReticle){SC.remove(arReticle);arReticle=null;}
       if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
       R.xr.enabled=false;
+      // Zet normale renderloop terug
+      R.setAnimationLoop(null);
+      requestAnimationFrame(animate);
+      // Herstel scene
       SC.background=new THREE.Color(0x0C0E12);
       if(window._bgSphere)window._bgSphere.visible=true;
       if(window._occSphere)window._occSphere.visible=true;
+      // Herstel LAMP positie
+      LAMP.position.set(0,0,0);
       const b=document.getElementById('arBtnMob');
       if(b){b.style.borderColor='';b.style.color='';}
     });
