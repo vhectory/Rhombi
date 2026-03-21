@@ -23,7 +23,7 @@
 html,body{width:100%;height:100%;overflow:hidden;margin:0}
 body{position:relative;}
 body{font-family:"Space Grotesk",sans-serif;background:var(--dark);color:var(--cream)}
-#c{z-index:10;position:fixed;top:0;bottom:0;left:0;right:30%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:8px}
+#c{z-index:10;position:fixed;top:0;bottom:0;left:0;right:30%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:0}
 canvas{display:block;border-radius:2px}
 .bar{position:fixed;top:0;left:0;right:30%;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:linear-gradient(to bottom,rgba(18,21,26,.95),transparent);pointer-events:none}
 /* Hide topbar when embedded */
@@ -36,7 +36,7 @@ canvas{display:block;border-radius:2px}
 .bartit{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim)}
 .back{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;transition:color .3s}
 .back:hover{color:var(--amber)}
-.vbar{position:relative;z-index:20;display:flex;justify-content:center;gap:4px;flex-shrink:0;flex-wrap:wrap}
+.vbar{position:relative;z-index:20;display:flex;justify-content:center;gap:4px;flex-shrink:0;flex-wrap:wrap;margin-top:6px;width:100%}
 .vbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 12px;min-width:68px;background:rgba(22,26,32,.92);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.07);color:var(--text-dim);cursor:pointer;transition:all .2s;font-family:"Space Mono",monospace}
 .vbtn:hover{border-color:rgba(200,136,74,.4);color:var(--cream)}
 .vbtn.on{border-color:var(--amber);color:var(--amber);background:rgba(200,136,74,.1)}
@@ -198,13 +198,14 @@ canvas{ touch-action:none; cursor:crosshair }
     bottom: auto !important;
     top:0 !important;
     left:0 !important;
-    height: 100vw !important;
-    padding:0 !important;
-    align-items:flex-start !important;
-    justify-content:center !important;
-    overflow:hidden !important;
+    height: auto !important;
+    padding:0 !important; gap:0 !important;
+    align-items:stretch !important;
+    justify-content:flex-start !important;
+    overflow:visible !important;
+    flex-direction:column !important;
   }
-  canvas{ width:100vw !important; height:100vw !important; border-radius:0 !important; display:block; }
+  canvas{ width:100vw !important; height:100vw !important; border-radius:0 !important; display:block; touch-action:none; }
   #c, #canvas-frame, #c canvas{ pointer-events:all !important; touch-action:none !important; z-index:5 }
   .bar{
     right:0 !important;
@@ -216,19 +217,19 @@ canvas{ touch-action:none; cursor:crosshair }
   #loading{ right:0 !important; }
   .hints{ display:none }
 
-  /* Variantenbar: fixed, direct onder canvas */
+  /* Variantenbar: in de flow onder canvas, scrollbaar */
   .vbar{
-    position:fixed !important;
-    top: 100vw !important;
-    left:0; right:0; bottom:auto !important;
+    position:relative !important;
+    top:auto !important; left:0; right:0; bottom:auto !important;
     z-index:40;
     justify-content:flex-start;
     gap:2px;
-    padding: 3px calc(6px + var(--sai-left));
+    padding: 4px calc(6px + var(--sai-left));
     background: rgba(18,21,26,.97);
     border-bottom: 1px solid rgba(255,255,255,.07);
     overflow-x:auto; flex-wrap:nowrap;
     scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    width:100vw; flex-shrink:0;
   }
   .vbar::-webkit-scrollbar{ display:none }
   .vbtn{ min-width:60px; padding:7px 10px; gap:3px; flex-shrink:0; }
@@ -238,8 +239,8 @@ canvas{ touch-action:none; cursor:crosshair }
   /* ── BOTTOM BAR — instellingen-knop + model-naam ── */
   .mob-bar-bottom{
     display: flex;
-    position: absolute;
-    top: calc(100vw + 48px); /* wordt via JS bijgewerkt */
+    position: fixed;
+    top: calc(100vw + 52px); /* wordt via JS bijgewerkt */
     bottom: auto;
     left: 0;
     right: 0;
@@ -377,21 +378,22 @@ canvas{ touch-action:none; cursor:crosshair }
 
 <div id="loading"><div class="lr"></div><p class="lt">Configurator laden...</p></div>
 <div id="transit"><span class="ttext">◆ Onderdelen bewegen</span></div>
-<div id="c"><div id="canvas-frame"><div id="edge-overlay"></div><button id="screenshot-btn" onclick="takeScreenshot()" title="Screenshot (P)">
+<div id="c"><div id="canvas-wrap" style="display:flex;flex-direction:column;align-items:center;gap:0"><div id="canvas-frame"><div id="edge-overlay"></div><button id="screenshot-btn" onclick="takeScreenshot()" title="Screenshot (P)">
   <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
     <rect x="0.5" y="2.5" width="15" height="11" stroke="currentColor" stroke-width="1"/>
     <path d="M5 2.5 L6 0.5 L10 0.5 L11 2.5" stroke="currentColor" stroke-width="1" fill="none"/>
     <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1"/>
     <rect x="12" y="4" width="2" height="1.5" fill="currentColor"/>
   </svg>
-</button></div></div>
+</button></div>
+<div class="vbar" id="vbar"></div>
+</div></div>
 
 <div class="bar">
   <a href="index.html" class="logo">Rhombi</a>
   <span class="bartit">◆ 3D Configurator</span>
   <a href="index.html" class="back">← Terug</a>
 </div>
-<div class="vbar" id="vbar"></div>
 
 <div class="panel" id="panel">
   <!-- Handle voor bottom sheet swipe (mobiel) -->
@@ -936,9 +938,10 @@ function resize(){
     h = window.innerWidth; // vierkant = breedte
   } else {
     const pad = 48;
+    const vbarH = 52; // ruimte voor vbar onder canvas
     const avW = wrap.clientWidth  - pad;
-    const avH = wrap.clientHeight - pad;
-    const s   = Math.min(avW, avH);
+    const avH = wrap.clientHeight - pad - vbarH;
+    const s   = Math.floor(Math.min(avW, avH));
     w = s; h = s;
   }
   const cv = R.domElement;
@@ -958,16 +961,20 @@ function resize(){
     const vbar   = document.querySelector('.vbar');
     const mobBar = document.getElementById('mobBar');
     const panel  = document.getElementById('panel');
-    // Stapel: canvas → vbar → mob-bar → panel
-    if(vbar)   { vbar.style.top = h + 'px'; vbar.style.bottom = 'auto'; }
-    const vbarH = vbar ? (vbar.offsetHeight || 48) : 48;
-    if(mobBar) { mobBar.style.top = (h + vbarH) + 'px'; }
-    const mbH   = mobBar ? (mobBar.offsetHeight || 64) : 64;
-    if(panel)  { panel.style.top  = (h + vbarH + mbH) + 'px'; }
+    // Mobiel: vbar fixed direct onder canvas
+    if(vbar) { vbar.style.position='fixed'; vbar.style.top=h+'px'; vbar.style.left='0'; vbar.style.right='0'; }
+    setTimeout(() => {
+      const vH = vbar ? (vbar.getBoundingClientRect().height||52) : 52;
+      if(mobBar) { mobBar.style.position='fixed'; mobBar.style.top=(h+vH)+'px'; }
+      setTimeout(() => {
+        const mbH = mobBar ? (mobBar.getBoundingClientRect().height||64) : 64;
+        const vH2 = vbar ? (vbar.getBoundingClientRect().height||52) : 52;
+        if(panel) panel.style.top=(h+vH2+mbH)+'px';
+      }, 50);
+    }, 0);
   } else {
-    // Desktop: vbar zit in de flow onder canvas (position:relative)
     const vbar = document.querySelector('.vbar');
-    if(vbar) { vbar.style.top = ''; vbar.style.bottom = ''; }
+    if(vbar) { vbar.style.position=''; vbar.style.top=''; vbar.style.left=''; vbar.style.right=''; }
   }
 }
 window.addEventListener("resize",resize); resize();
