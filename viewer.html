@@ -1543,7 +1543,30 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
 
   // lamp_pos empty als authoritative lichtpositie
   let _lampPosSet = false;
-  if(LAMP) {
+  // Zoek __lampPos die direct uit de GLB komt (voor Empty nodes)
+  const _lpNode = activeGLBGroups && activeGLBGroups.__lampPos;
+  if(_lpNode) {
+    // Bereken world position na centering
+    const wp = new THREE.Vector3();
+    // lamp_pos positie zit in local space van de GLB — pas centering offset toe
+    _lpNode.getWorldPosition(wp);
+    // Pas de centering offset toe die we net op de groups hebben toegepast
+    const _cBox2 = new THREE.Box3();
+    Object.entries(activeGLBGroups).forEach(([k,g]) => {
+      if(k === '__lampPos') return;
+      g.traverse(o => { if(o.isMesh && !o.userData.isOutline) _cBox2.expandByObject(o); });
+    });
+    if(!_cBox2.isEmpty()) {
+      const offset = _cBox2.getCenter(new THREE.Vector3());
+      wp.x -= offset.x; wp.y -= offset.y; wp.z -= offset.z;
+      const _vOff2 = window._rhombiCurrentVariant;
+      if(_vOff2 && _vOff2.yOffset) wp.y += _vOff2.yOffset;
+    }
+    LP.position.copy(wp); kapGlow.position.copy(wp);
+    console.log('[Rhombi] lamp_pos (empty):', wp.x.toFixed(2), wp.y.toFixed(2), wp.z.toFixed(2));
+    _lampPosSet = true;
+  }
+  if(!_lampPosSet && LAMP) {
     LAMP.traverse(o => {
       if(_lampPosSet) return;
       if(o.name === 'lamp_pos') {
@@ -1551,7 +1574,7 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
         const wp = new THREE.Vector3();
         o.getWorldPosition(wp);
         LP.position.copy(wp); kapGlow.position.copy(wp);
-        console.log('[Rhombi] lamp_pos:', wp.x.toFixed(2), wp.y.toFixed(2), wp.z.toFixed(2));
+        console.log('[Rhombi] lamp_pos (traverse):', wp.x.toFixed(2), wp.y.toFixed(2), wp.z.toFixed(2));
         _lampPosSet = true;
       }
     });
@@ -1970,6 +1993,12 @@ function loadGLBParts(url) {
           function(gltf) {
             var groups = {};
             var excludeList = window._rhombiExcludeNodes || [];
+            // Bewaar lamp_pos empty apart
+            var lampPosNode = null;
+            gltf.scene.traverse(function(obj) {
+              if (obj.name === 'lamp_pos') { lampPosNode = obj; }
+            });
+
             gltf.scene.traverse(function(obj) {
               if (!obj.isMesh) return;
               var rawId = obj.name;
@@ -1994,6 +2023,10 @@ function loadGLBParts(url) {
             });
             var summary = Object.keys(groups).join(', ');
             console.log('[Rhombi GLB] ' + url + ' → ' + summary);
+            if(lampPosNode) {
+              lampPosNode.updateWorldMatrix(true, false);
+              groups.__lampPos = lampPosNode;
+            }
             resolve(groups);
           },
           function(err) { reject(err); }
@@ -3118,6 +3151,15 @@ async function startAR() {
     if(!a){a=document.createElement('a');a.id='qlAnchor';a.rel='ar';a.style.display='none';a.appendChild(document.createElement('img'));document.body.appendChild(a);}
     a.href=usdz; a.click(); return;
   }
+
+  // Als embedded in iframe: open AR in fullscreen nieuw venster
+  if(window.self !== window.top) {
+    const varId = curV ? curV.id : 'tafel';
+    const arUrl = 'viewer.html?ar=1&variant=' + varId;
+    window.open(arUrl, '_blank', 'fullscreen=yes');
+    return;
+  }
+
   if(arSession){arSession.end();return;}
   try{
     arReticle=new THREE.Mesh(new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide}));
@@ -3155,6 +3197,24 @@ function arPlaceModel(){
   document.getElementById('arPlaceBtn').style.display='none';
 }
 checkARSupport();
+
+// Auto-start AR als geopend via ?ar=1
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('ar') === '1') {
+    const varId = params.get('variant');
+    window.addEventListener('load', function() {
+      // Laad juiste variant eerst
+      if(varId) {
+        const v = VARIANTS && VARIANTS.find(v => v.id === varId);
+        if(v) swapLocal(v.id);
+      }
+      // Start AR na kort moment zodat model geladen is
+      setTimeout(startAR, 1500);
+    });
+  }
+})();
+
 
 </script>
 
