@@ -29,7 +29,7 @@ canvas{display:block;border-radius:2px}
 /* Hide topbar when embedded */
 .embedded .bar{display:none}
 .embedded #c{top:0}
-.embedded .vbar{bottom:16px}
+/* embedded vbar: laat JS het doen */
 .embedded .hints{bottom:90px}
 .bar *{pointer-events:auto}
 .logo{font-family:"Space Mono",monospace;font-size:13px;letter-spacing:.25em;color:var(--amber);text-decoration:none}
@@ -643,6 +643,11 @@ const wrap=document.getElementById("c");
 const canvasFrame=document.getElementById("canvas-frame");
 // Detecteer mobiel voor adaptieve kwaliteit
 const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+// Forceer mob-bar zichtbaar op mobiel — onafhankelijk van CSS media query in iframe
+if(isMobile) {
+  const mb = document.getElementById('mobBar');
+  if(mb) mb.style.display = 'flex';
+}
 const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-performance", preserveDrawingBuffer:true});
 // Lagere pixelRatio op mobiel — 80k tris kost anders te veel
 R.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio,1.5) : Math.min(window.devicePixelRatio,2));
@@ -961,22 +966,22 @@ function resize(){
     const vbar   = document.querySelector('.vbar');
     const mobBar = document.getElementById('mobBar');
     const panel  = document.getElementById('panel');
-    const vH = 48; // vbar hoogte (CSS fallback)
-    const mbH = 64; // mob-bar hoogte (CSS fallback)
-    // Alleen top en position overschrijven — overige CSS intact laten
-    if(vbar)   { vbar.style.position='fixed'; vbar.style.top=h+'px'; }
-    if(mobBar) { mobBar.style.top=(h+vH)+'px'; }
+    const vH = 48;
+    const mbH = 64;
+    if(vbar)   { vbar.style.position='fixed'; vbar.style.top=h+'px'; vbar.style.left='0'; vbar.style.right='0'; }
+    if(mobBar) { mobBar.style.display='flex'; mobBar.style.position='fixed'; mobBar.style.top=(h+vH)+'px'; mobBar.style.left='0'; mobBar.style.right='0'; }
     if(panel)  { panel.style.top=(h+vH+mbH)+'px'; }
-    // Verfijn na render met werkelijke hoogtes
     requestAnimationFrame(() => {
       const vH2  = vbar   ? vbar.offsetHeight   : vH;
       const mbH2 = mobBar ? mobBar.offsetHeight : mbH;
-      if(mobBar) mobBar.style.top = (h + vH2)        + 'px';
+      if(mobBar) mobBar.style.top = (h + vH2) + 'px';
       if(panel)  panel.style.top  = (h + vH2 + mbH2) + 'px';
     });
   } else {
     const vbar = document.querySelector('.vbar');
-    if(vbar) { vbar.style.position=''; vbar.style.top=''; }
+    if(vbar) { vbar.style.position=''; vbar.style.top=''; vbar.style.left=''; vbar.style.right=''; }
+    const mobBar = document.getElementById('mobBar');
+    if(mobBar) mobBar.style.display='none';
   }
 }
 window.addEventListener("resize",resize); resize();
