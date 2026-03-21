@@ -95,24 +95,9 @@ canvas{display:block;border-radius:2px}
 .hk{font-family:"Space Mono",monospace;font-size:8px;padding:2px 5px;border:1px solid rgba(255,255,255,.15);color:var(--text-dim)}
 .hl{font-family:"Space Mono",monospace;font-size:8px;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase}
 
-/* ── AR KNOP ── */
-#arBtn{
-  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-  z-index:25;display:none;
-  padding:10px 22px;
-  background:rgba(200,136,74,.15);
-  border:1px solid rgba(200,136,74,.6);
-  color:var(--amber);
-  font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-  cursor:pointer;backdrop-filter:blur(8px);
-  transition:all .2s;
-  gap:8px;align-items:center;
-}
-#arBtn:hover{background:rgba(200,136,74,.28);border-color:var(--amber)}
-#arBtn.active{background:rgba(200,136,74,.22)}
+/* ── AR ── */
+#arBtn{display:none}
 #arBtn.supported{display:flex}
-/* Reticle — oppervlak-indicator in AR */
-#arReticle{display:none}
 /* AR overlay UI */
 #arOverlay{
   display:none;position:fixed;inset:0;z-index:200;
@@ -504,6 +489,7 @@ canvas{ touch-action:none; cursor:crosshair }
     <button class="cb on" id="bAO" onclick="toggleSSAO()"><span>Ambient Occlusion</span><span>◉</span></button>
     <button class="cb" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
     <button class="cb" onclick="saveConfig()"><span>Deel configuratie</span><span>⬡</span></button>
+    <button class="cb" id="arBtn" onclick="startAR()" style="display:none"><span>Bekijk in je ruimte</span><span>◈</span></button>
   </div>
   <div class="ps">
     <span class="pl">◆ Specificaties</span>
@@ -532,11 +518,6 @@ canvas{ touch-action:none; cursor:crosshair }
   <div class="ht"><span class="hk">Scroll</span><span class="hl">Zoom</span></div>
   <div class="ht"><span class="hk">Shift+Sleep</span><span class="hl">Pan</span></div>
 </div>
-<!-- AR knop -->
-<button id="arBtn" onclick="startAR()">
-  <span style="font-size:16px">⬡</span><span>Bekijk in je ruimte</span>
-</button>
-
 <!-- AR overlay (zichtbaar tijdens AR sessie) -->
 <div id="arOverlay">
   <button id="arExitBtn" onclick="stopAR()">✕ AR sluiten</button>
@@ -2030,6 +2011,9 @@ if (typeof THREE.GLTFLoader !== 'undefined') {
   }
 }
 const GLB_BASE = 'https://cdn.jsdelivr.net/gh/vhectory/Rhombi@master/glb/';
+// Cache-bust: forceer nieuwe GLB als lamp_pos empty is toegevoegd
+// Verander GLB_VER als je een nieuwe GLB pusht naar GitHub
+const GLB_VER = '?v=2';
 const _glbCache = new Map(); // url → ArrayBuffer cache
 let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na laden
 
@@ -2099,7 +2083,7 @@ function loadGLBParts(url) {
       return;
     }
     console.log('[Rhombi] fetching', url);
-    fetch(url)
+    fetch(url + (url.includes('?') ? '' : GLB_VER))
       .then(r => { if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
       .then(buffer => { _glbCache.set(url, buffer); parseBuffer(buffer.slice(0)); })
       .catch(err => reject(err));
@@ -3247,7 +3231,7 @@ let _arLampScale = new THREE.Vector3(1,1,1); // bewaar normale schaal
   if(!btn) return;
   try {
     if(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')){
-      btn.classList.add('supported');
+      btn.style.display = 'flex';
       console.log('[AR] WebXR immersive-ar ondersteund');
     } else {
       console.log('[AR] WebXR niet ondersteund op dit apparaat');
@@ -3259,8 +3243,8 @@ async function startAR(){
   if(!navigator.xr){ alert('WebXR niet beschikbaar in deze browser.'); return; }
   try {
     _arSession = await navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['hit-testing'],
-      optionalFeatures: ['dom-overlay', 'light-estimation'],
+      requiredFeatures: [],
+      optionalFeatures: ['hit-testing', 'dom-overlay', 'light-estimation'],
       domOverlay: { root: document.getElementById('arOverlay') }
     });
 
@@ -3268,9 +3252,14 @@ async function startAR(){
     await R.xr.setSession(_arSession);
     R.xr.setReferenceSpaceType('local');
 
-    // Hit-test source aanmaken (vanuit de kijker/camera)
-    const refSpace = await _arSession.requestReferenceSpace('viewer');
-    _arHitSource   = await _arSession.requestHitTestSource({ space: refSpace });
+    // Hit-test source aanmaken (alleen als ondersteund)
+    try {
+      const refSpace = await _arSession.requestReferenceSpace('viewer');
+      _arHitSource   = await _arSession.requestHitTestSource({ space: refSpace });
+    } catch(e) {
+      console.warn('[AR] hit-testing niet beschikbaar:', e);
+      _arHitSource = null;
+    }
 
     // Reset lamp positie — lamp staat vrij in AR ruimte
     _arPlaced = false;
