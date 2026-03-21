@@ -95,6 +95,49 @@ canvas{display:block;border-radius:2px}
 .hk{font-family:"Space Mono",monospace;font-size:8px;padding:2px 5px;border:1px solid rgba(255,255,255,.15);color:var(--text-dim)}
 .hl{font-family:"Space Mono",monospace;font-size:8px;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase}
 
+/* ── AR KNOP ── */
+#arBtn{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  z-index:25;display:none;
+  padding:10px 22px;
+  background:rgba(200,136,74,.15);
+  border:1px solid rgba(200,136,74,.6);
+  color:var(--amber);
+  font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  cursor:pointer;backdrop-filter:blur(8px);
+  transition:all .2s;
+  gap:8px;align-items:center;
+}
+#arBtn:hover{background:rgba(200,136,74,.28);border-color:var(--amber)}
+#arBtn.active{background:rgba(200,136,74,.22)}
+#arBtn.supported{display:flex}
+/* Reticle — oppervlak-indicator in AR */
+#arReticle{display:none}
+/* AR overlay UI */
+#arOverlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  pointer-events:none;
+}
+#arOverlay.active{display:block}
+#arExitBtn{
+  pointer-events:auto;
+  position:fixed;top:calc(20px + env(safe-area-inset-top,0px));right:20px;
+  padding:10px 18px;
+  background:rgba(18,21,26,.82);border:1px solid rgba(255,255,255,.15);
+  color:var(--cream);font-family:"Space Mono",monospace;font-size:9px;
+  letter-spacing:.15em;text-transform:uppercase;cursor:pointer;
+  backdrop-filter:blur(8px);
+}
+#arHint{
+  pointer-events:none;
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.15em;
+  color:var(--cream);text-align:center;
+  background:rgba(18,21,26,.7);padding:8px 16px;
+  backdrop-filter:blur(6px);
+  transition:opacity .4s;
+}
+
 /* ── SAFE AREA VARIABELEN ── */
 :root{
   --sai-top:    env(safe-area-inset-top,    0px);
@@ -489,6 +532,17 @@ canvas{ touch-action:none; cursor:crosshair }
   <div class="ht"><span class="hk">Scroll</span><span class="hl">Zoom</span></div>
   <div class="ht"><span class="hk">Shift+Sleep</span><span class="hl">Pan</span></div>
 </div>
+<!-- AR knop -->
+<button id="arBtn" onclick="startAR()">
+  <span style="font-size:16px">⬡</span><span>Bekijk in je ruimte</span>
+</button>
+
+<!-- AR overlay (zichtbaar tijdens AR sessie) -->
+<div id="arOverlay">
+  <button id="arExitBtn" onclick="stopAR()">✕ AR sluiten</button>
+  <div id="arHint">Beweeg de telefoon langzaam om een oppervlak te vinden</div>
+</div>
+
 <script>
 if(/Android|iPhone|iPad/i.test(navigator.userAgent)){
   document.getElementById('hints').innerHTML =
@@ -669,6 +723,7 @@ R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
 
 R.outputEncoding=THREE.sRGBEncoding; R.toneMapping=THREE.ACESFilmicToneMapping; R.toneMappingExposure=1.15;
 R.physicallyCorrectLights=true;
+R.xr.enabled = true;
 canvasFrame.appendChild(R.domElement);
 
 const SC=new THREE.Scene(); SC.fog=new THREE.FogExp2(0x0E1116,.018);
@@ -2904,19 +2959,25 @@ cvs.addEventListener("touchmove", e => {
 // ═══════════════════════════════════════════
 let lastTS=0,fT=0;
 
-function animate(ts){
-  requestAnimationFrame(animate);
-  const dt=Math.min((ts-lastTS)/1000,.05); lastTS=ts;
+function animate(ts, frame){
+  const dt=Math.min(((ts||0)-lastTS)/1000,.05); lastTS=ts||0;
+  if(R.xr.isPresenting) { _arTick(frame); }
 
-  // Spin — paused during transition so user sees the movement clearly
-  if(spinning&&!isDrag) camTh+=.003;
+  // In AR: camera wordt door XR gestuurd, geen eigen camera-control
+  if(R.xr.isPresenting){
+    SC.fog = null;
+    SC.background = null;
+  } else {
+    // Spin — paused during transition so user sees the movement clearly
+    if(spinning&&!isDrag) camTh+=.003;
 
-  // Camera
-  const cx=camR*Math.sin(camPh)*Math.sin(camTh)+panX;
-  const cy=camR*Math.cos(camPh)+panY;
-  const cz=camR*Math.sin(camPh)*Math.cos(camTh);
-  CAM.position.set(cx,cy,cz); CAM.lookAt(panX,panY,0);
-  frontLight.position.set(cx*0.85, cy*0.85, cz*0.85); // iets voor camera
+    // Camera
+    const cx=camR*Math.sin(camPh)*Math.sin(camTh)+panX;
+    const cy=camR*Math.cos(camPh)+panY;
+    const cz=camR*Math.sin(camPh)*Math.cos(camTh);
+    CAM.position.set(cx,cy,cz); CAM.lookAt(panX,panY,0);
+    frontLight.position.set(cx*0.85, cy*0.85, cz*0.85);
+  }
 
   // Tweens — moves shared parts
   updateTweens(dt);
@@ -3023,7 +3084,10 @@ if(location.hash) loadConfig(location.hash.slice(1)); // PLA-CF: direct zwarte k
 
 // Detect iframe embedding
 if(window.self!==window.top)document.body.classList.add('embedded');
-setTimeout(()=>{document.getElementById("loading").classList.add("gone");animate(0)},500);
+setTimeout(()=>{
+  document.getElementById("loading").classList.add("gone");
+  R.setAnimationLoop(animate);
+},500);
 </script>
 <!-- Mobile panel overlay (achtergrond) -->
 <div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
@@ -3151,6 +3215,148 @@ function notifyParentHeight() {
 window.addEventListener('resize', notifyParentHeight);
 setTimeout(notifyParentHeight, 500);
 
+</script>
+
+
+<script>
+// ═══════════════════════════════════════════
+// AR — WebXR hit-test + tap-to-place
+// ═══════════════════════════════════════════
+
+// Reticle: ring op gevonden oppervlak
+const _arReticle = (function(){
+  const geo = new THREE.RingGeometry(0.10, 0.13, 32);
+  geo.rotateX(-Math.PI/2);
+  const mat = new THREE.MeshBasicMaterial({color:0xC8884A, side:THREE.DoubleSide, transparent:true, opacity:0.82});
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.visible = false;
+  mesh.matrixAutoUpdate = false;
+  SC.add(mesh);
+  return mesh;
+})();
+
+// AR state
+let _arSession   = null;
+let _arHitSource = null;
+let _arPlaced    = false;
+let _arLampScale = new THREE.Vector3(1,1,1); // bewaar normale schaal
+
+// Check AR support bij laden
+(async function checkAR(){
+  const btn = document.getElementById('arBtn');
+  if(!btn) return;
+  try {
+    if(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')){
+      btn.classList.add('supported');
+      console.log('[AR] WebXR immersive-ar ondersteund');
+    } else {
+      console.log('[AR] WebXR niet ondersteund op dit apparaat');
+    }
+  } catch(e){ console.log('[AR] check fout:', e); }
+})();
+
+async function startAR(){
+  if(!navigator.xr){ alert('WebXR niet beschikbaar in deze browser.'); return; }
+  try {
+    _arSession = await navigator.xr.requestSession('immersive-ar', {
+      requiredFeatures: ['hit-testing'],
+      optionalFeatures: ['dom-overlay', 'light-estimation'],
+      domOverlay: { root: document.getElementById('arOverlay') }
+    });
+
+    // Renderer koppelen aan XR sessie
+    await R.xr.setSession(_arSession);
+    R.xr.setReferenceSpaceType('local');
+
+    // Hit-test source aanmaken (vanuit de kijker/camera)
+    const refSpace = await _arSession.requestReferenceSpace('viewer');
+    _arHitSource   = await _arSession.requestHitTestSource({ space: refSpace });
+
+    // Reset lamp positie — lamp staat vrij in AR ruimte
+    _arPlaced = false;
+    LAMP.position.set(0, 0, -1.5); // buiten beeld tot geplaatst
+    LAMP.visible = false;
+    _arReticle.visible = false;
+
+    // UI
+    document.getElementById('arOverlay').classList.add('active');
+    document.getElementById('arBtn').classList.add('active');
+    document.getElementById('arHint').style.opacity = '1';
+    document.getElementById('arHint').textContent = 'Beweeg de telefoon langzaam — zoekt oppervlak…';
+
+    // Tap om lamp te plaatsen
+    _arSession.addEventListener('select', _arOnSelect);
+
+    // Sessie einde
+    _arSession.addEventListener('end', _arOnEnd);
+
+    console.log('[AR] sessie gestart');
+  } catch(e){
+    console.error('[AR] start mislukt:', e);
+    alert('AR kon niet starten: ' + e.message);
+  }
+}
+
+function stopAR(){
+  if(_arSession){ _arSession.end(); }
+}
+
+function _arOnSelect(){
+  // Tap: lamp plaatsen op reticle positie
+  if(!_arReticle.visible) return;
+  if(!_arPlaced){
+    _arPlaced = true;
+    document.getElementById('arHint').textContent = 'Lamp geplaatst — tik opnieuw om te verplaatsen';
+    setTimeout(()=>{ document.getElementById('arHint').style.opacity='0'; }, 2500);
+  }
+  // Kopieer reticle matrix naar LAMP
+  LAMP.visible = true;
+  LAMP.position.setFromMatrixPosition(_arReticle.matrix);
+  LAMP.position.y += 0.0; // optionele hoofte-correctie
+  LAMP.rotation.y = 0;
+}
+
+function _arOnEnd(){
+  // Herstel normale 3D viewer
+  _arHitSource = null;
+  _arSession   = null;
+  _arPlaced    = false;
+  _arReticle.visible = false;
+
+  LAMP.position.set(0,0,0);
+  LAMP.visible = true;
+
+  document.getElementById('arOverlay').classList.remove('active');
+  document.getElementById('arBtn').classList.remove('active');
+
+  // Renderer loskoppelen van XR
+  R.xr.setSession(null).catch(()=>{});
+  console.log('[AR] sessie beëindigd');
+}
+
+// AR render hook — aangeroepen vanuit animate() elke frame
+function _arTick(frame){
+  if(!_arSession || !frame || !_arHitSource) return;
+
+  const refSpace = R.xr.getReferenceSpace();
+  if(!refSpace) return;
+
+  const hitResults = frame.getHitTestResults(_arHitSource);
+  if(hitResults.length > 0){
+    const pose = hitResults[0].getPose(refSpace);
+    if(pose){
+      _arReticle.visible = true;
+      _arReticle.matrix.fromArray(pose.transform.matrix);
+      // Hint aanpassen als oppervlak gevonden
+      const hint = document.getElementById('arHint');
+      if(hint && !_arPlaced && hint.textContent.includes('zoekt')){
+        hint.textContent = 'Oppervlak gevonden — tik om de lamp te plaatsen';
+      }
+    }
+  } else {
+    _arReticle.visible = false;
+  }
+}
 </script>
 
 </body>
