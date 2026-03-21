@@ -2769,12 +2769,7 @@ let _confWin = null;
 
 function openConfigurator(varId) {
   const v = varId || 'tafel';
-  const overlay = document.getElementById('confOverlay');
-  const frame   = document.getElementById('confFrame');
-  if (!overlay || !frame) return;
-  frame.src = 'viewer.html?variant=' + v;
-  overlay.style.display = 'block';
-  document.body.style.overflow = 'hidden';
+  window.open('viewer.html?variant=' + v, '_blank');
 }
 
 function closeConfigurator() {
