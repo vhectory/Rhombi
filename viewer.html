@@ -1,11 +1,4 @@
-<!DOC
-<!-- MOBIEL: bottom bar met model-naam + instellingen-knop -->
-<div class="hints" id="hints">
-  <div class="ht"><span class="hk">Sleep</span><span class="hl">Roteer</span></div>
-  <div class="ht"><span class="hk">Scroll</span><span class="hl">Zoom</span></div>
-  <div class="ht"><span class="hk">Shift+Sleep</span><span class="hl">Pan</span></div>
-</div>
-TYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -28,13 +21,13 @@ TYPE html>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--amber:#C8884A;--cream:#EDE4D0;--dark:#12151A;--dark2:#181C23;--dark3:#1E232C;--text:#A8B0B8;--text-dim:#606870}
 html,body{width:100%;height:100%;overflow:hidden;margin:0}
-body{font-family:"Space Grotesk",sans-serif;background:var(--dark);color:var(--cream);position:relative}
-#c{z-index:10;position:fixed;top:0;bottom:0;left:0;right:30%;display:flex;align-items:center;justify-content:center;padding:24px 24px 24px 24px}
+body{font-family:"Space Grotesk",sans-serif;background:var(--dark);color:var(--cream)}
+#c{z-index:10;position:fixed;top:0;bottom:0;left:0;right:30%;display:flex;align-items:center;justify-content:center;padding:24px}
 canvas{display:block;border-radius:2px}
 .bar{position:fixed;top:0;left:0;right:30%;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:linear-gradient(to bottom,rgba(18,21,26,.95),transparent);pointer-events:none}
 /* Hide topbar when embedded */
 .embedded .bar{display:none}
-.embedded #c{top:0;right:0;padding:0}
+.embedded #c{top:0}
 .embedded .vbar{bottom:16px}
 .embedded .hints{bottom:90px}
 .bar *{pointer-events:auto}
@@ -211,8 +204,6 @@ canvas{ touch-action:none; cursor:crosshair }
     overflow:hidden !important;
   }
   canvas{ width:100vw !important; height:100vw !important; border-radius:0 !important; display:block; }
-  #canvas-frame{ position:relative !important; width:100vw !important; height:100vw !important; clip-path:none !important; border-radius:0 !important; flex-shrink:0; }
-  #canvas-frame canvas{ width:100vw !important; height:100vw !important; }
   #c, #canvas-frame, #c canvas{ pointer-events:all !important; touch-action:none !important; z-index:5 }
   .bar{
     right:0 !important;
@@ -254,12 +245,11 @@ canvas{ touch-action:none; cursor:crosshair }
   /* ── BOTTOM BAR — instellingen-knop + model-naam ── */
   .mob-bar-bottom{
     display: flex;
-    position: relative;
-    top: auto;
+    position: fixed;
+    top: 100vw;
     bottom: auto;
     left: 0;
     right: 0;
-    width: 100%;
     z-index: 50;
     height: var(--mob-bar-h);
     align-items: flex-start;
@@ -310,32 +300,32 @@ canvas{ touch-action:none; cursor:crosshair }
   }
   .mob-open-sheet:active{ background:rgba(200,136,74,.25) }
 
-  /* ── PANEL — flows below mob-bar ── */
+  /* ── DROP-DOWN PANEL — klapt uit onder mob-bar ── */
   .panel{
-    position: relative;
-    left: auto;
-    right: auto;
-    top: auto;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: calc(100vw + var(--mob-bar-h));
     bottom: auto;
-    height: 0;
-    max-height: 0;
+    height: 65vh;
     width: 100% !important;
     max-width: 100% !important;
     border-left: none;
     border-top: 1px solid rgba(200,136,74,.25);
     border-bottom: none;
     border-radius: 0;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform .35s cubic-bezier(.32,.72,0,1);
     overflow: hidden;
     box-shadow: 0 8px 40px rgba(0,0,0,.7);
-    padding: 0;
-    z-index: 45;
-    transition: max-height .4s cubic-bezier(.32,.72,0,1);
-  }
-  .panel.open{
-    height: auto;
-    max-height: 600px;
+    padding-top: 0;
     padding-bottom: calc(var(--sai-bottom) + 8px);
     overflow-y: auto;
+    z-index: 45;
+  }
+  .panel.open{
+    transform: scaleY(1);
   }
 
   .sheet-handle{
@@ -403,29 +393,10 @@ canvas{ touch-action:none; cursor:crosshair }
   </svg>
 </button></div></div>
 
-<div class="mob-bar-bottom" id="mobBar">
-  <div class="mob-model-name">
-    <h2 class="pt" id="vtitMob">Rhombi Tafel</h2>
-    <p class="pp" id="vsubMob">Tafellamp · E14 fitting</p>
-  </div>
-  <button id="arBtnMob" class="mob-open-sheet" onclick="startAR()" style="display:none">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
-    <span>AR</span>
-  </button>
-  <button class="mob-open-sheet" onclick="togglePanel()">
-    <span>☰</span><span>Opties</span>
-  </button>
-</div>
-
-
 <div class="bar">
   <a href="index.html" class="logo">Rhombi</a>
   <span class="bartit">◆ 3D Configurator</span>
   <a href="index.html" class="back">← Terug</a>
-  <button id="arBtn" onclick="startAR()" style="display:none;background:none;border:1px solid rgba(200,136,74,.35);color:var(--amber);font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:6px 14px;cursor:pointer;align-items:center;gap:6px">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
-    AR
-  </button>
 </div>
 <div class="vbar" id="vbar"></div>
 
@@ -501,6 +472,26 @@ canvas{ touch-action:none; cursor:crosshair }
   </div>
 </div>
 
+<!-- MOBIEL: bottom bar met model-naam + instellingen-knop -->
+<div class="mob-bar-bottom" id="mobBar">
+  <div class="mob-model-name">
+    <h2 class="pt" id="vtitMob">Rhombi Tafel</h2>
+    <p class="pp" id="vsubMob">Tafellamp · E14 fitting</p>
+  </div>
+  <button id="arBtnMob" class="mob-open-sheet" onclick="startAR()" style="display:none">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+    <span>AR</span>
+  </button>
+  <button class="mob-open-sheet" onclick="togglePanel()">
+    <span>☰</span><span>Opties</span>
+  </button>
+</div>
+
+<div class="hints" id="hints">
+  <div class="ht"><span class="hk">Sleep</span><span class="hl">Roteer</span></div>
+  <div class="ht"><span class="hk">Scroll</span><span class="hl">Zoom</span></div>
+  <div class="ht"><span class="hk">Shift+Sleep</span><span class="hl">Pan</span></div>
+</div>
 <script>
 if(/Android|iPhone|iPad/i.test(navigator.userAgent)){
   document.getElementById('hints').innerHTML =
@@ -948,7 +939,7 @@ function resize(){
   if(isMobLayout) {
     // Mobiel: volledige breedte, hoogte = 52vh
     w = window.innerWidth;
-    h = window.innerWidth; // vierkant
+    h = window.innerWidth; // vierkant = breedte
   } else {
     const pad = 48;
     const avW = wrap.clientWidth  - pad;
@@ -969,8 +960,26 @@ function resize(){
   if(composer) composer.setSize(w, h);
   if(window._edgeOccPass) window._edgeOccPass.uniforms.uRes.value.set(w, h);
 
-  // Mobile: layout handled by CSS flow — no JS positioning needed
-  if(!isMobLayout) {
+  // Mobiel: vbar direct onder canvas
+  if(isMobLayout) {
+    const vbar = document.querySelector('.vbar');
+    if(vbar) {
+      vbar.style.top = h + 'px';
+      vbar.style.bottom = 'auto';
+    }
+    // Zorg dat mob-bar ook direct aansluit
+    const mobBar = document.getElementById('mobBar');
+    if(mobBar) mobBar.style.top = h + 'px';
+    // vbar ook
+    const vbar2 = document.querySelector('.vbar');
+    if(vbar2) { vbar2.style.top = (h - 56) + 'px'; vbar2.style.bottom = 'auto'; }
+    // Panel ook
+    const panel = document.getElementById('panel');
+    if(panel) {
+      const mbH = document.getElementById('mobBar')?.offsetHeight || 64;
+      panel.style.top = (h + mbH) + 'px';
+    }
+  } else {
     const vbar = document.querySelector('.vbar');
     if(vbar) { vbar.style.top = ''; vbar.style.bottom = ''; }
   }
@@ -1532,24 +1541,33 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   });
   updateSelectionOutline();
 
-  // kapGlow + LP in het midden van de kap (peertje zit daarbinnen)
-  const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
-  if(_peerGrp) {
-    const kb = new THREE.Box3();
-    // expandByObject werkt met world matrix — forceert update eerst
-    _peerGrp.updateWorldMatrix(true, true);
-    _peerGrp.traverse(o => {
-      if(o.isMesh && !o.userData.isOutline) {
+  // lamp_pos empty als authoritative lichtpositie
+  let _lampPosSet = false;
+  if(LAMP) {
+    LAMP.traverse(o => {
+      if(_lampPosSet) return;
+      if(o.name === 'lamp_pos') {
         o.updateWorldMatrix(true, false);
-        kb.expandByObject(o);
+        const wp = new THREE.Vector3();
+        o.getWorldPosition(wp);
+        LP.position.copy(wp);
+        kapGlow.position.copy(wp);
+        console.log('[Rhombi] lamp_pos:', wp.x.toFixed(2), wp.y.toFixed(2), wp.z.toFixed(2));
+        _lampPosSet = true;
       }
     });
-    if(!kb.isEmpty()) {
-      const kc = kb.getCenter(new THREE.Vector3());
-      kapGlow.position.copy(kc);
-      LP.position.set(kc.x, kc.y, kc.z);
-      console.log('[Rhombi] lamp pos', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
-      kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
+  }
+  if(!_lampPosSet) {
+    const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
+    if(_peerGrp) {
+      const kb = new THREE.Box3();
+      _peerGrp.updateWorldMatrix(true, true);
+      _peerGrp.traverse(o => { if(o.isMesh && !o.userData.isOutline) { o.updateWorldMatrix(true,false); kb.expandByObject(o); }});
+      if(!kb.isEmpty()) {
+        const kc = kb.getCenter(new THREE.Vector3());
+        kapGlow.position.copy(kc); LP.position.set(kc.x,kc.y,kc.z);
+        kapGlow.distance = Math.max(1.0,(kb.max.y-kb.min.y)*1.5);
+      }
     }
   }
   updateKapGlow();
@@ -1566,7 +1584,7 @@ function swapLocal(varId){
   updateSwActive();
   window._rhombiCurrentVariant = v;
 
-  const glbFile = v.glb ? GLB_BASE + v.glb + GLB_VER : null;
+  const glbFile = v.glb ? GLB_BASE + v.glb : null;
   const mySeq = ++_swapSeq; // hogere seq = vorige _animate ticks stoppen meteen
 
   if(glbFile){
@@ -1929,7 +1947,6 @@ if (typeof THREE.GLTFLoader !== 'undefined') {
   }
 }
 const GLB_BASE = 'https://cdn.jsdelivr.net/gh/vhectory/Rhombi@master/glb/';
-const GLB_VER = '?v=20260321'; // cache-bust
 const _glbCache = new Map(); // url → ArrayBuffer cache
 let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na laden
 
@@ -2002,7 +2019,7 @@ function loadGLBParts(url) {
 function preloadAllGLBs() {
   VARIANTS.forEach(v => {
     if(!v.glb) return;
-    const url = GLB_BASE + v.glb + GLB_VER;
+    const url = GLB_BASE + v.glb;
     if(_glbCache.has(url)) return;
     console.log('[Rhombi] preloading', v.id, url);
     fetch(url)
@@ -3080,39 +3097,37 @@ function notifyParentHeight() {
 window.addEventListener('resize', notifyParentHeight);
 setTimeout(notifyParentHeight, 500);
 
-window.addEventListener('message', function(e){ if(e.data&&e.data.type==='rhombi-setvariant'){const v=VARIANTS&&VARIANTS.find(v=>v.id===e.data.variant);if(v)swapLocal(v.id);} });
-
 // ════════════ AR — WebXR + iOS Quick Look ════════════
-let arSession = null, arHitTestSource = null, arReticle = null, arPlaced = false, arOverlayEl = null;
+let arSession=null, arHitTestSource=null, arReticle=null, arPlaced=false, arOverlayEl=null;
 
-function isIOS() { return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
+function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
 
 async function checkARSupport() {
-  const b1 = document.getElementById('arBtn');
-  const b2 = document.getElementById('arBtnMob');
-  const show = () => { if(b1){b1.style.display='flex';} if(b2){b2.style.display='flex';} };
-  if (isIOS()) {
+  const show = () => {
+    const b = document.getElementById('arBtnMob');
+    if(b) b.style.display='flex';
+  };
+  if(isIOS()) {
     fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{if(r.ok)show();}).catch(()=>{});
     return;
   }
-  if (!navigator.xr) return;
-  try { const ok = await navigator.xr.isSessionSupported('immersive-ar'); if(ok) show(); } catch(e) {}
+  if(!navigator.xr) return;
+  try { if(await navigator.xr.isSessionSupported('immersive-ar')) show(); } catch(e){}
 }
 
 async function startAR() {
-  if (isIOS()) {
-    const usdz = (curV?.id==='accent') ? 'rhombi_accent.usdz' : 'rhombi_tafel.usdz';
-    const a = document.getElementById('qlAnchor') || document.createElement('a');
-    a.id='qlAnchor'; a.rel='ar'; a.href=usdz; a.style.display='none';
-    if(!a.parentNode) { const img=document.createElement('img'); a.appendChild(img); document.body.appendChild(a); }
-    a.click(); return;
+  if(isIOS()) {
+    const usdz = (curV&&curV.id==='accent') ? 'rhombi_accent.usdz' : 'rhombi_tafel.usdz';
+    let a = document.getElementById('qlAnchor');
+    if(!a){ a=document.createElement('a'); a.id='qlAnchor'; a.rel='ar'; a.style.display='none'; const img=document.createElement('img'); a.appendChild(img); document.body.appendChild(a); }
+    a.href=usdz; a.click(); return;
   }
-  if (arSession) { arSession.end(); return; }
+  if(arSession){arSession.end();return;}
   try {
-    const geo = new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2);
-    arReticle = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide}));
-    arReticle.matrixAutoUpdate = false; arReticle.visible = false; SC.add(arReticle);
-    arOverlayEl = document.createElement('div');
+    const geo=new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2);
+    arReticle=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide}));
+    arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
+    arOverlayEl=document.createElement('div');
     arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
     arOverlayEl.innerHTML=`<div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:12px">
       <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(237,228,208,.8);text-align:center">Richt op een vlak</div>
@@ -3120,17 +3135,13 @@ async function startAR() {
       <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.8);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">✕ Sluiten</button>
     </div>`;
     document.body.appendChild(arOverlayEl);
-    arSession = await navigator.xr.requestSession('immersive-ar',{
-      requiredFeatures:['hit-test'], optionalFeatures:['dom-overlay'],
-      domOverlay:{root:arOverlayEl}
-    });
-    R.xr.enabled = true;
-    await R.xr.setSession(arSession);
-    const refSpace = await arSession.requestReferenceSpace('local');
-    arHitTestSource = await arSession.requestHitTestSource({space:refSpace});
-    SC.background = null;
+    arSession=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay'],domOverlay:{root:arOverlayEl}});
+    R.xr.enabled=true; await R.xr.setSession(arSession);
+    const refSpace=await arSession.requestReferenceSpace('local');
+    arHitTestSource=await arSession.requestHitTestSource({space:refSpace});
+    SC.background=null;
     arSession.addEventListener('end',()=>{
-      arSession=null; arHitTestSource=null; arPlaced=false;
+      arSession=null;arHitTestSource=null;arPlaced=false;
       if(arReticle){SC.remove(arReticle);arReticle=null;}
       if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
       R.xr.enabled=false; SC.background=new THREE.Color(0x0C0E12);
@@ -3151,9 +3162,7 @@ async function startAR() {
       if(composer)composer.render(); else R.render(SC,CAM);
     });
   } catch(err) {
-    console.warn('AR niet beschikbaar:', err.message);
-    if(document.getElementById('arBtnMob')) document.getElementById('arBtnMob').style.display='none';
-    if(document.getElementById('arBtn')) document.getElementById('arBtn').style.display='none';
+    console.warn('AR niet beschikbaar:',err.message);
     if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
   }
 }
@@ -3167,8 +3176,15 @@ function arPlaceModel() {
   document.getElementById('arHint').textContent='Geplaatst';
   document.getElementById('arPlaceBtn').style.display='none';
 }
-
 checkARSupport();
+
+// Luister naar variant-wissel van parent pagina
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'rhombi-setvariant') {
+    const v = VARIANTS && VARIANTS.find(v => v.id === e.data.variant);
+    if (v) swapLocal(v.id);
+  }
+});
 
 </script>
 
