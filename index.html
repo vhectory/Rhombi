@@ -2479,7 +2479,9 @@ function openLightbox(src, alt) {
   document.body.style.overflow = 'hidden';
 }
 function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
+  const lb = document.getElementById('lightbox');
+  lb.classList.remove('open');
+  lb.style.display = 'none';
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
@@ -3474,9 +3476,9 @@ window.addEventListener('resize', () => {
 
 </script>
 
-<div id="lightbox" onclick="if(event.target===this)closeLightbox()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,12,16,.92);backdrop-filter:blur(12px);cursor:zoom-out;align-items:center;justify-content:center;padding:40px">
+<div id="lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,12,16,.92);backdrop-filter:blur(12px);cursor:zoom-out;align-items:center;justify-content:center;padding:40px">
   <button onclick="closeLightbox()" style="position:absolute;top:24px;right:28px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#606870;background:none;border:1px solid rgba(255,255,255,.1);padding:6px 12px;cursor:pointer" data-i18n="lb-close">&#10005; Sluiten</button>
-  <div id="lightbox-frame"><img decoding="async" id="lightbox-img" src="" alt=""></div>
+  <div id="lightbox-frame" onclick="event.stopPropagation()"><img decoding="async" id="lightbox-img" src="" alt="" onclick="event.stopPropagation()"></div>
 </div>
 
 

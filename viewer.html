@@ -1608,7 +1608,7 @@ function swapLocal(varId){
   updateSwActive();
   window._rhombiCurrentVariant = v;
 
-  const glbFile = v.glb ? GLB_BASE + v.glb : null;
+  const glbFile = v.glb ? GLB_BASE + v.glb + GLB_BUST : null;
   const mySeq = ++_swapSeq; // hogere seq = vorige _animate ticks stoppen meteen
 
   if(glbFile){
@@ -1971,6 +1971,7 @@ if (typeof THREE.GLTFLoader !== 'undefined') {
   }
 }
 const GLB_BASE = 'glb/';
+const GLB_BUST = '?v=' + Date.now().toString(36).slice(-4); // cache bust
 const _glbCache = new Map(); // url → ArrayBuffer cache
 let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na laden
 Object.defineProperty(window, "activeGLBGroups", { get: () => activeGLBGroups, set: v => { activeGLBGroups = v; } });
@@ -2054,7 +2055,7 @@ function loadGLBParts(url) {
 function preloadAllGLBs() {
   VARIANTS.forEach(v => {
     if(!v.glb) return;
-    const url = GLB_BASE + v.glb;
+    const url = GLB_BASE + v.glb + GLB_BUST;
     if(_glbCache.has(url)) return;
     console.log('[Rhombi] preloading', v.id, url);
     fetch(url)
@@ -3143,7 +3144,12 @@ let arSession=null,arHitTestSource=null,arReticle=null,arPlaced=false,arOverlayE
 function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
 async function checkARSupport() {
   const show=()=>{ const b=document.getElementById('arBtnMob'); if(b)b.style.display='flex'; };
-  if(isIOS()){ fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{if(r.ok)show();}).catch(()=>{}); return; }
+  if(isIOS()){
+    fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{if(r.ok)show();}).catch(()=>{});
+    return;
+  }
+  // Android: toon altijd AR knop op mobiel, check pas bij klikken
+  if(/Android/i.test(navigator.userAgent)) { show(); return; }
   if(!navigator.xr) return;
   try{ if(await navigator.xr.isSessionSupported('immersive-ar')) show(); }catch(e){}
 }
@@ -3198,7 +3204,16 @@ async function startAR() {
       }
       if(composer)composer.render();else R.render(SC,CAM);
     });
-  }catch(err){console.warn('AR:',err.message);if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}}
+  }catch(err){
+    console.warn('AR:',err.message);
+    if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
+    // Toon vriendelijke foutmelding
+    const toast=document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 20px;z-index:9999;text-align:center';
+    toast.textContent='AR niet beschikbaar op dit apparaat';
+    document.body.appendChild(toast);
+    setTimeout(()=>toast.remove(),3000);
+  }
 }
 function arPlaceModel(){
   if(!arReticle||!arReticle.visible)return;
