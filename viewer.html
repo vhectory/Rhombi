@@ -648,7 +648,7 @@ const wrap=document.getElementById("c");
 const canvasFrame=document.getElementById("canvas-frame");
 // Detecteer mobiel voor adaptieve kwaliteit
 const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
-const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-performance", preserveDrawingBuffer:true});
+const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-performance", preserveDrawingBuffer:true, alpha:true});
 // Lagere pixelRatio op mobiel — 80k tris kost anders te veel
 R.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio,1.5) : Math.min(window.devicePixelRatio,2));
 R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -822,6 +822,7 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
         new THREE.MeshBasicMaterial({map:occTex, side:THREE.BackSide, transparent:true, depthWrite:false, opacity:1.0})
       );
       occSphere.renderOrder=-5;
+      window._occSphere = occSphere;
       SC.add(occSphere);
     })();
 
@@ -3179,7 +3180,11 @@ async function startAR() {
     SC.background=null;
     if(window._bgSphere) window._bgSphere.visible=false;
     if(window._vignetteSphere) window._vignetteSphere.visible=false;
-    arSession.addEventListener('end',()=>{arSession=null;arHitTestSource=null;arPlaced=false;if(arReticle){SC.remove(arReticle);arReticle=null;}if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}R.xr.enabled=false;SC.background=new THREE.Color(0x0C0E12);if(window._bgSphere)window._bgSphere.visible=true;if(window._vignetteSphere)window._vignetteSphere.visible=true;});
+    if(window._occSphere) window._occSphere.visible=false;
+    // Transparante renderer voor AR pass-through
+    R.setClearColor(0x000000, 0);
+    R.alpha = true;
+    arSession.addEventListener('end',()=>{arSession=null;arHitTestSource=null;arPlaced=false;if(arReticle){SC.remove(arReticle);arReticle=null;}if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}R.xr.enabled=false;SC.background=new THREE.Color(0x0C0E12);if(window._bgSphere)window._bgSphere.visible=true;if(window._vignetteSphere)window._vignetteSphere.visible=true;if(window._occSphere)window._occSphere.visible=true;R.setClearColor(0x0C0E12,1);});
     R.setAnimationLoop((t,frame)=>{
       if(frame&&arHitTestSource&&!arPlaced){
         const hits=frame.getHitTestResults(arHitTestSource);
