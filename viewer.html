@@ -3150,10 +3150,22 @@ async function checkARSupport() {
     fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{if(r.ok)show();}).catch(()=>{});
     return;
   }
-  // Android: toon altijd AR knop op mobiel, check pas bij klikken
-  if(/Android/i.test(navigator.userAgent)) { show(); return; }
-  if(!navigator.xr) return;
-  try{ if(await navigator.xr.isSessionSupported('immersive-ar')) show(); }catch(e){}
+  // Android/mobiel: check eerst echt of AR ondersteund wordt
+  if(!navigator.xr) {
+    console.log('[AR] navigator.xr niet beschikbaar');
+    return;
+  }
+  try {
+    const supported = await navigator.xr.isSessionSupported('immersive-ar');
+    console.log('[AR] immersive-ar supported:', supported);
+    if(supported) show();
+    else if(/Android/i.test(navigator.userAgent)) {
+      // Toon toch de knop maar met waarschuwing bij klik
+      show();
+    }
+  } catch(e) {
+    console.warn('[AR] isSessionSupported fout:', e);
+  }
 }
 async function startAR() {
   // HTTPS vereist voor WebXR
@@ -3250,7 +3262,7 @@ async function startAR() {
       if(composer)composer.render();else R.render(SC,CAM);
     });
   }catch(err){
-    console.warn('AR:',err.message);
+    console.warn('AR error:', err.name, err.message);
     if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
     // Toon vriendelijke foutmelding
     const toast=document.createElement('div');

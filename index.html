@@ -2797,7 +2797,7 @@ let _confWin = null;
 
 function openConfigurator(varId) {
   const v = varId || 'tafel';
-  window.open('viewer.html?variant=' + v, '_blank');
+  window.location.href = 'viewer.html?variant=' + v;
 }
 
 
