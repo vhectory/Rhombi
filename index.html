@@ -1380,6 +1380,40 @@ nav.scrolled {
 }
 .contact-map-frame:hover img { transform: none !important; }
 
+
+/* ── CONFIGURATOR VARIANT NAV ── */
+.conf-variant-nav {
+  display: flex;
+  gap: 4px;
+  padding: 0 48px 40px;
+  background: var(--dark);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.conf-variant-nav::-webkit-scrollbar { display: none; }
+.conf-vbtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.conf-vbtn:hover { border-color: rgba(200,136,74,.4); color: var(--cream); }
+.conf-vbtn.active { border-color: var(--amber); color: var(--amber); background: rgba(200,136,74,.08); }
+@media (max-width: 768px) {
+  .conf-variant-nav { padding: 0 0 0; }
+}
+
 /* ── CAROUSEL HEIGHT LIMIT ── */
 .carousel-section {
   overflow: hidden;
@@ -1896,11 +1930,20 @@ input, textarea, select {
       <h2 class="section-title reveal" ><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
       <p style="font-size:14px;line-height:1.7;color:var(--text-dim);margin-top:12px;letter-spacing:.01em" data-i18n="conf-sub">Kies variant, materiaal en kleur.</p>
     </div>
-    <p style="font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;color:var(--text-dim);text-transform:uppercase" data-i18n="conf-types">Tafel · Wand · Plafond · Accent · Hang</p>
   </div>
   <div class="configurator-frame-wrap">
     <iframe src="viewer.html" class="configurator-frame" id="configuratorFrame"
       title="Rhombi 3D Configurator" allowfullscreen loading="lazy"></iframe>
+  </div>
+  <div class="conf-variant-nav">
+    <button class="conf-vbtn active" data-variant="tafel" onclick="setConfigVariant('tafel')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="10" rx="1"/><line x1="12" y1="14" x2="12" y2="20"/><line x1="7" y1="20" x2="17" y2="20"/></svg>
+      <span data-i18n="type-tafel">Tafellamp</span>
+    </button>
+      <button class="conf-vbtn" data-variant="accent" onclick="setConfigVariant('accent')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,3 15,9 21,9 16,14 18,21 12,17 6,21 8,14 3,9 9,9"/></svg>
+      <span data-i18n="type-accent">Accentlamp</span>
+    </button>
   </div>
 </section>
 
@@ -2673,6 +2716,16 @@ track.querySelectorAll('img').forEach(img => {
   startAuto();
 }
 window.addEventListener('resize', () => { if(typeof setOffset==='function' && track) setOffset(centerOffset(carIdx), false); });
+
+
+// ── Variant knoppen configurator ──
+function setConfigVariant(varId) {
+  document.querySelectorAll('.conf-vbtn').forEach(b => b.classList.toggle('active', b.dataset.variant === varId));
+  const frame = document.getElementById('configuratorFrame');
+  if (frame && frame.contentWindow) {
+    frame.contentWindow.postMessage({ type: 'rhombi-setvariant', variant: varId }, '*');
+  }
+}
 
 // ── Viewer iframe hoogte aanpassen ──
 window.addEventListener('message', function(e) {
