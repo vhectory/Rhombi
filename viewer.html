@@ -1,4 +1,11 @@
-<!DOCTYPE html>
+<!DOC
+<!-- MOBIEL: bottom bar met model-naam + instellingen-knop -->
+<div class="hints" id="hints">
+  <div class="ht"><span class="hk">Sleep</span><span class="hl">Roteer</span></div>
+  <div class="ht"><span class="hk">Scroll</span><span class="hl">Zoom</span></div>
+  <div class="ht"><span class="hk">Shift+Sleep</span><span class="hl">Pan</span></div>
+</div>
+TYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -395,6 +402,21 @@ canvas{ touch-action:none; cursor:crosshair }
   </svg>
 </button></div></div>
 
+<div class="mob-bar-bottom" id="mobBar">
+  <div class="mob-model-name">
+    <h2 class="pt" id="vtitMob">Rhombi Tafel</h2>
+    <p class="pp" id="vsubMob">Tafellamp · E14 fitting</p>
+  </div>
+  <button id="arBtnMob" class="mob-open-sheet" onclick="startAR()" style="display:none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+    <span>AR</span>
+  </button>
+  <button class="mob-open-sheet" onclick="togglePanel()">
+    <span>☰</span><span>Opties</span>
+  </button>
+</div>
+
+
 <div class="bar">
   <a href="index.html" class="logo">Rhombi</a>
   <span class="bartit">◆ 3D Configurator</span>
@@ -478,26 +500,6 @@ canvas{ touch-action:none; cursor:crosshair }
   </div>
 </div>
 
-<!-- MOBIEL: bottom bar met model-naam + instellingen-knop -->
-<div class="mob-bar-bottom" id="mobBar">
-  <div class="mob-model-name">
-    <h2 class="pt" id="vtitMob">Rhombi Tafel</h2>
-    <p class="pp" id="vsubMob">Tafellamp · E14 fitting</p>
-  </div>
-  <button id="arBtnMob" class="mob-open-sheet" onclick="startAR()" style="display:none">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
-    <span>AR</span>
-  </button>
-  <button class="mob-open-sheet" onclick="togglePanel()">
-    <span>☰</span><span>Opties</span>
-  </button>
-</div>
-
-<div class="hints" id="hints">
-  <div class="ht"><span class="hk">Sleep</span><span class="hl">Roteer</span></div>
-  <div class="ht"><span class="hk">Scroll</span><span class="hl">Zoom</span></div>
-  <div class="ht"><span class="hk">Shift+Sleep</span><span class="hl">Pan</span></div>
-</div>
 <script>
 if(/Android|iPhone|iPad/i.test(navigator.userAgent)){
   document.getElementById('hints').innerHTML =
@@ -3122,7 +3124,7 @@ async function startAR() {
     });
     R.xr.enabled = true;
     await R.xr.setSession(arSession);
-    const refSpace = await arSession.requestReferenceSpace('viewer');
+    const refSpace = await arSession.requestReferenceSpace('local');
     arHitTestSource = await arSession.requestHitTestSource({space:refSpace});
     SC.background = null;
     arSession.addEventListener('end',()=>{
@@ -3147,7 +3149,9 @@ async function startAR() {
       if(composer)composer.render(); else R.render(SC,CAM);
     });
   } catch(err) {
-    alert('AR niet beschikbaar: '+err.message);
+    console.warn('AR niet beschikbaar:', err.message);
+    if(document.getElementById('arBtnMob')) document.getElementById('arBtnMob').style.display='none';
+    if(document.getElementById('arBtn')) document.getElementById('arBtn').style.display='none';
     if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
   }
 }
