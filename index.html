@@ -501,8 +501,10 @@ nav {
 .configurator-frame-wrap {
   position: relative;
   width: 100%;
-  padding-bottom: min(100%, 90vh);
+  aspect-ratio: 1 / 1;
+  max-height: 90vh;
   border-top: 1px solid rgba(255,255,255,.05);
+  overflow: visible;
 }
 .configurator-frame {
   position: absolute;
@@ -514,7 +516,23 @@ nav {
 }
 @media (max-width: 768px) {
   .configurator-header { padding: 60px 24px 28px; flex-direction: column; align-items: flex-start; }
-  .configurator-frame-wrap { padding-bottom: 100vw; }
+  .configurator-frame-wrap {
+    width: 100vw;
+    height: 100vw; /* initial square */
+    min-height: 100vw;
+    max-height: none;
+    aspect-ratio: unset;
+    overflow: visible;
+    margin-left: -48px;
+    transition: height .4s ease;
+  }
+  .configurator-frame {
+    position: relative !important;
+    inset: auto !important;
+    width: 100vw;
+    height: 100%;
+    min-height: 100vw;
+  }
 }
 
 /* ── FOOTER ── */
@@ -1411,7 +1429,8 @@ nav.scrolled {
 .conf-vbtn:hover { border-color: rgba(200,136,74,.4); color: var(--cream); }
 .conf-vbtn.active { border-color: var(--amber); color: var(--amber); background: rgba(200,136,74,.08); }
 @media (max-width: 768px) {
-  .conf-variant-nav { padding: 0 0 0; }
+  .conf-variant-nav { padding: 0; background: var(--dark2); margin: 0 -48px; }
+  .conf-vbtn { flex: 1; padding: 14px 8px; }
 }
 
 /* ── CAROUSEL HEIGHT LIMIT ── */
@@ -2727,28 +2746,27 @@ function setConfigVariant(varId) {
   }
 }
 
-// ── Viewer iframe hoogte aanpassen ──
+// ── Viewer iframe hoogte aanpassen (panel open/dicht) ──
 window.addEventListener('message', function(e) {
   if (!e.data || (e.data.type !== 'rhombi-height' && e.data.type !== 'rhombi-resize')) return;
-  const wrap = document.querySelector('.configurator-frame-wrap');
+  const wrap  = document.querySelector('.configurator-frame-wrap');
   const frame = document.getElementById('configuratorFrame');
   if (!wrap || !frame) return;
-  const isMob = window.innerWidth <= 768;
-  if (isMob && e.data.height) {
-    // Switch from padding-bottom trick to explicit height
-    wrap.style.paddingBottom = '0';
-    wrap.style.height = e.data.height + 'px';
-    frame.style.height = e.data.height + 'px';
+  if (window.innerWidth > 768) return; // desktop: CSS regelt het
+  const h = e.data.height;
+  if (h && h > 0) {
+    wrap.style.height  = h + 'px';
+    frame.style.height = h + 'px';
   }
 });
 
-// Reset iframe height on resize to desktop
+// Reset bij orientatie/resize
 window.addEventListener('resize', function() {
   if (window.innerWidth > 768) {
-    const wrap = document.querySelector('.configurator-frame-wrap');
+    const wrap  = document.querySelector('.configurator-frame-wrap');
     const frame = document.getElementById('configuratorFrame');
-    if (wrap) { wrap.style.height = ''; wrap.style.paddingBottom = ''; }
-    if (frame) { frame.style.height = ''; }
+    if (wrap)  wrap.style.height  = '';
+    if (frame) frame.style.height = '';
   }
 });
 
