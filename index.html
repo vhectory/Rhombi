@@ -1988,7 +1988,7 @@ input, textarea, select {
       <h2 class="section-title reveal"><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
       <p style="font-size:14px;line-height:1.7;color:var(--text-dim);margin-top:12px;letter-spacing:.01em" data-i18n="conf-sub">Kies variant, materiaal en kleur.</p>
     </div>
-  <a href="viewer.html?variant=tafel" target="_blank" class="configurator-preview rhombi-frame" style="display:block;text-decoration:none">
+  <a href="viewer.html?variant=tafel" target="_blank" class="configurator-preview rhombi-frame" data-no-lightbox="1" style="display:block;text-decoration:none">
     <img decoding="async" id="confPreviewImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
       alt="Rhombi configurator" class="configurator-preview-img" style="opacity:0;transition:opacity .6s">
     <div class="configurator-preview-overlay">
@@ -2487,13 +2487,15 @@ document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox
 // Wire up all rhombi-frame imgs
 function wireFrames() {
   document.querySelectorAll('.rhombi-frame').forEach(frame => {
+    if(frame.dataset.noLightbox) return; // skip configurator preview etc.
     const img = frame.querySelector('img');
     if(!img) return;
     if(frame.dataset.wired) return;
     frame.dataset.wired = '1';
     frame.style.cursor = 'zoom-in';
     frame.addEventListener('click', e => {
-      if(e.target.tagName === 'BUTTON') return;
+      if(e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+      if(frame.tagName === 'A') return; // skip anchor frames
       e.preventDefault();
       e.stopPropagation();
       openLightbox(img.src, img.alt);
