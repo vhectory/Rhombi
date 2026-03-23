@@ -3074,36 +3074,29 @@ setTimeout(notifyParentHeight, 500);
 </script>
 
 <script>
-// ── Variant-wissel van parent pagina ──
+// ── Variant-wissel ──
 window.addEventListener('message', function(e) {
-  if (e.data && e.data.type === 'rhombi-setvariant') {
-    const v = VARIANTS && VARIANTS.find(v => v.id === e.data.variant);
-    if (v) swapLocal(v.id);
+  if(e.data && e.data.type==='rhombi-setvariant') {
+    const v = VARIANTS && VARIANTS.find(v=>v.id===e.data.variant);
+    if(v) swapLocal(v.id);
   }
 });
 
-// ════════════ AR — WebXR + iOS Quick Look ════════════
+// ════════════ AR ════════════
 let arSession=null, arHitTestSource=null, arReticle=null;
 let arPlaced=false, arOverlayEl=null, _arLocalSpace=null;
-let _arT={}, _arAng=null;
+let _arOccPlane=null, _arTickId=null;
+let _arMove={n:0,s:0,w:0,e:0,l:0,r:0};
 
 function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
 
-async function checkARSupport() {
-  const show = () => {
-    ['arBtnMob','arBtnVbar'].forEach(id => {
-      const b = document.getElementById(id); if(b) b.style.display='flex';
-    });
-  };
-  if(isIOS()){
-    fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{if(r.ok)show();}).catch(()=>{});
-    return;
-  }
-  if(!navigator.xr) return;
-  try{ if(await navigator.xr.isSessionSupported('immersive-ar')) show(); }catch(e){}
+function checkARSupport(){
+  ['arBtnMob','arBtnVbar'].forEach(id=>{
+    const b=document.getElementById(id); if(b) b.style.display='flex';
+  });
 }
 
-async function startAR() {
+async function startAR(){
   if(isIOS()){
     const usdz=(curV&&curV.id==='accent')?'rhombi_accent.usdz':'rhombi_tafel.usdz';
     let a=document.getElementById('qlAnchor');
@@ -3113,6 +3106,45 @@ async function startAR() {
   if(arSession){arSession.end();return;}
 
   try{
+    // Maak overlay
+    arOverlayEl=document.createElement('div');
+    arOverlayEl.id='arOverlayEl';
+    arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
+    arOverlayEl.innerHTML=`
+      <div style="position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none">
+        <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#fff;text-shadow:0 1px 8px #000;text-align:center;padding:0 12px">Richt op een vlak</div>
+      </div>
+      <div style="position:absolute;top:70px;left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:all">
+        <button id="arPlaceBtn" style="display:none;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:14px 28px;cursor:pointer;touch-action:manipulation">Hier plaatsen</button>
+        <button id="arResetBtn" style="display:none;background:rgba(12,14,18,.9);border:1px solid rgba(200,136,74,.5);color:#C8884A;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 18px;cursor:pointer;touch-action:manipulation">↺ Opnieuw</button>
+        <button id="arCloseBtn" style="background:rgba(12,14,18,.9);border:1px solid rgba(255,255,255,.2);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 18px;cursor:pointer;touch-action:manipulation">✕</button>
+      </div>
+      <!-- Verplaats D-pad links -->
+      <div id="arMovepad" style="display:none;position:absolute;bottom:40px;left:24px;pointer-events:all">
+        <div style="position:relative;width:120px;height:120px">
+          <button id="arMN" style="position:absolute;top:0;left:40px;width:40px;height:40px;background:rgba(200,136,74,.2);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:16px;cursor:pointer;touch-action:manipulation;border-radius:3px">▲</button>
+          <button id="arMS" style="position:absolute;bottom:0;left:40px;width:40px;height:40px;background:rgba(200,136,74,.2);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:16px;cursor:pointer;touch-action:manipulation;border-radius:3px">▼</button>
+          <button id="arMW" style="position:absolute;top:40px;left:0;width:40px;height:40px;background:rgba(200,136,74,.2);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:16px;cursor:pointer;touch-action:manipulation;border-radius:3px">◀</button>
+          <button id="arME" style="position:absolute;top:40px;right:0;width:40px;height:40px;background:rgba(200,136,74,.2);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:16px;cursor:pointer;touch-action:manipulation;border-radius:3px">▶</button>
+        </div>
+      </div>
+      <!-- Roteer rechts -->
+      <div id="arRotpad" style="display:none;position:absolute;bottom:40px;right:24px;pointer-events:all">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <span style="font-family:Space Mono,monospace;font-size:7px;letter-spacing:.1em;color:rgba(200,136,74,.6);text-transform:uppercase">Draai</span>
+          <div style="display:flex;gap:6px">
+            <button id="arRL" style="width:48px;height:48px;background:rgba(200,136,74,.2);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;touch-action:manipulation;border-radius:3px">↺</button>
+            <button id="arRR" style="width:48px;height:48px;background:rgba(200,136,74,.2);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;touch-action:manipulation;border-radius:3px">↻</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(arOverlayEl);
+
+    // Button events — gebruik onclick voor maximale compatibiliteit in WebXR
+    document.getElementById('arPlaceBtn').onclick = ()=>arPlaceModel();
+    document.getElementById('arResetBtn').onclick = ()=>arResetPlacement();
+    document.getElementById('arCloseBtn').onclick = ()=>{if(arSession)arSession.end();};
+
     // Reticle
     arReticle=new THREE.Mesh(
       new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),
@@ -3120,52 +3152,12 @@ async function startAR() {
     );
     arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
 
-    // Overlay UI
-    arOverlayEl=document.createElement('div');
-    arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:all;touch-action:none';
-    arOverlayEl.innerHTML=`
-    <!-- Top bar: hint + knoppen -->
-    <div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:all">
-      <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.95);text-shadow:0 1px 8px rgba(0,0,0,1);text-align:center">Richt op een vlak</div>
-      <div style="display:flex;gap:8px">
-        <button id="arPlaceBtn" onclick="arPlaceModel()" style="display:none;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:14px 32px;cursor:pointer;-webkit-tap-highlight-color:transparent">Hier plaatsen</button>
-        <button id="arResetBtn" onclick="arResetPlacement()" style="display:none;background:rgba(12,14,18,.85);border:1px solid rgba(200,136,74,.4);color:var(--amber,#C8884A);font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 20px;cursor:pointer;-webkit-tap-highlight-color:transparent">↺ Opnieuw</button>
-        <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.85);border:1px solid rgba(255,255,255,.2);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 20px;cursor:pointer;-webkit-tap-highlight-color:transparent">✕</button>
-      </div>
-    </div>
-
-    <!-- Verplaats joystick: linksonder -->
-    <div id="arMovepad" style="display:none;position:absolute;bottom:40px;left:30px;pointer-events:all;user-select:none;-webkit-user-select:none">
-      <div style="position:relative;width:130px;height:130px">
-        <button id="arMoveN" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:44px;height:44px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">▲</button>
-        <button id="arMoveS" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:44px;height:44px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">▼</button>
-        <button id="arMoveW" style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:44px;height:44px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">◀</button>
-        <button id="arMoveE" style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;height:44px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">▶</button>
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Space Mono,monospace;font-size:7px;letter-spacing:.08em;color:rgba(200,136,74,.5);text-transform:uppercase;text-align:center;line-height:1.3">SLEEP</div>
-      </div>
-    </div>
-
-    <!-- Roteer knoppen: rechtsonder -->
-    <div id="arRotpad" style="display:none;position:absolute;bottom:40px;right:30px;pointer-events:all;user-select:none;-webkit-user-select:none;display:none">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <div style="font-family:Space Mono,monospace;font-size:7px;letter-spacing:.08em;color:rgba(200,136,74,.5);text-transform:uppercase">DRAAI</div>
-        <div style="display:flex;gap:8px">
-          <button id="arRotL" style="width:56px;height:56px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:24px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">↺</button>
-          <button id="arRotR" style="width:56px;height:56px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:24px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">↻</button>
-        </div>
-      </div>
-    </div>
-    `;
-    document.body.appendChild(arOverlayEl);
-
-    // Sessie — hit-test OPTIONEEL zodat sessie altijd start
-    arSession = await navigator.xr.requestSession('immersive-ar', {
-      optionalFeatures: ['hit-test','dom-overlay','local-floor','bounded-floor'],
-      domOverlay: {root: arOverlayEl}
+    // Sessie
+    arSession=await navigator.xr.requestSession('immersive-ar',{
+      optionalFeatures:['hit-test','dom-overlay','local-floor','bounded-floor'],
+      domOverlay:{root:arOverlayEl}
     });
-
-    R.xr.enabled=true;
-    await R.xr.setSession(arSession);
+    R.xr.enabled=true; await R.xr.setSession(arSession);
 
     // Transparantie
     R.setClearColor(0x000000,0);
@@ -3173,63 +3165,66 @@ async function startAR() {
     SC.traverse(o=>{if(o.isMesh&&o.material&&o.material.side===THREE.BackSide){o.visible=false;o.userData._arHide=true;}});
 
     // Reference spaces
-    // local = voor lamp plaatsing (wereld coördinaten)
-    // viewer = voor hit-test (camera perspectief)
-    try { _arLocalSpace = await arSession.requestReferenceSpace('local-floor'); console.log('[AR] local:local-floor'); }
-    catch(e) {
-      try { _arLocalSpace = await arSession.requestReferenceSpace('local'); console.log('[AR] local:local'); }
-      catch(e2) { console.warn('[AR] geen local space'); }
-    }
+    try{ _arLocalSpace=await arSession.requestReferenceSpace('local-floor'); console.log('[AR] local-floor'); }
+    catch(e){ try{ _arLocalSpace=await arSession.requestReferenceSpace('local'); console.log('[AR] local'); }catch(e2){} }
 
-    // Hit-test source
-    try {
-      // viewer space is altijd beschikbaar voor hit-test in WebXR
-      const viewerSpace = await arSession.requestReferenceSpace('viewer');
-      arHitTestSource = await arSession.requestHitTestSource({space: viewerSpace});
-      console.log('[AR] hit-test: OK');
-    } catch(e) {
-      console.warn('[AR] hit-test niet beschikbaar:', e.message);
-      arHitTestSource = null;
-      // Toon plaats-knop direct als fallback
+    // Hit-test
+    try{
+      const vs=await arSession.requestReferenceSpace('viewer');
+      arHitTestSource=await arSession.requestHitTestSource({space:vs});
+      console.log('[AR] hit-test OK');
+    }catch(e){
+      console.warn('[AR] no hit-test:',e.message);
+      arHitTestSource=null;
       document.getElementById('arPlaceBtn').style.display='block';
-      document.getElementById('arHint').textContent='Tik Hier plaatsen om te starten';
+      document.getElementById('arHint').textContent='Tik Hier plaatsen';
     }
 
-    // Session end handler
-    arSession.addEventListener('end', () => {
+    // Einde sessie
+    arSession.addEventListener('end',()=>{
       arSession=null; arHitTestSource=null; arPlaced=false; _arLocalSpace=null;
       if(arReticle){SC.remove(arReticle);arReticle=null;}
       if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
-      R.xr.enabled=false;
-      R.setClearColor(0x0C0E12,1);
+      if(_arOccPlane){SC.remove(_arOccPlane);_arOccPlane=null;}
+      if(_arTickId){cancelAnimationFrame(_arTickId);_arTickId=null;}
+      R.xr.enabled=false; R.setClearColor(0x0C0E12,1);
       SC.background=new THREE.Color(0x0C0E12);
       SC.traverse(o=>{if(o.userData._arHide){o.visible=true;delete o.userData._arHide;}});
       LAMP.position.set(0,0,0); LAMP.rotation.set(0,0,0);
-      const tl=document.getElementById('arTouchLayer'); if(tl)tl.remove();
-      if(window._arTickId){clearInterval(window._arTickId);window._arTickId=null;}
-      if(window._arOccPlane){SC.remove(window._arOccPlane);window._arOccPlane=null;}
-      R.setAnimationLoop(null);
-      requestAnimationFrame(animate);
+      R.setAnimationLoop(null); requestAnimationFrame(animate);
       ['arBtnMob','arBtnVbar'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.borderColor='';b.style.color='';}});
     });
 
     // Render loop
     R.setAnimationLoop((t,frame)=>{
-      if(frame && arHitTestSource && !arPlaced){
-        const hits = frame.getHitTestResults(arHitTestSource);
-        const refSpace = _arLocalSpace || R.xr.getReferenceSpace();
-        if(hits.length && refSpace){
-          const pose = hits[0].getPose(refSpace);
+      if(frame&&arHitTestSource){
+        const hits=frame.getHitTestResults(arHitTestSource);
+        const ref=_arLocalSpace||R.xr.getReferenceSpace();
+        const pb=document.getElementById('arPlaceBtn');
+        const ht=document.getElementById('arHint');
+        if(hits.length&&ref){
+          const pose=hits[0].getPose(ref);
           if(pose){
             arReticle.visible=true;
             arReticle.matrix.fromArray(pose.transform.matrix);
-            document.getElementById('arPlaceBtn').style.display='block';
-            document.getElementById('arHint').textContent='Vlak gevonden — tik om te plaatsen';
+            // Lamp volgt reticle zolang niet geplaatst
+            if(!arPlaced){
+              const rp=new THREE.Vector3(),rq=new THREE.Quaternion(),rs=new THREE.Vector3();
+              arReticle.matrix.decompose(rp,rq,rs);
+              LAMP.position.copy(rp);
+              LAMP.updateMatrixWorld(true);
+              const bb=new THREE.Box3().setFromObject(LAMP);
+              LAMP.position.y+=(rp.y-bb.min.y);
+              LAMP.position.x+=(rp.x-(bb.min.x+bb.max.x)/2);
+              LAMP.position.z+=(rp.z-(bb.min.z+bb.max.z)/2);
+              if(pb)pb.style.display='block';
+              if(ht)ht.textContent='Tik Hier plaatsen';
+            }
           }
-        } else {
+        } else if(!arPlaced){
           arReticle.visible=false;
-          document.getElementById('arPlaceBtn').style.display='none';
-          document.getElementById('arHint').textContent='Richt op een vlak';
+          if(pb)pb.style.display='none';
+          if(ht)ht.textContent='Richt op een vlak';
         }
       }
       R.state.buffers.color.setClear(0,0,0,0);
@@ -3242,124 +3237,88 @@ async function startAR() {
     if(arReticle){SC.remove(arReticle);arReticle=null;}
     R.xr.enabled=false; R.setClearColor(0x0C0E12,1); SC.background=new THREE.Color(0x0C0E12);
     const toast=document.createElement('div');
-    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;z-index:9999;max-width:85vw;text-align:center;white-space:pre-wrap';
-    toast.textContent=err.name+':\n'+err.message;
-    document.body.appendChild(toast); setTimeout(()=>toast.remove(),6000);
+    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:12px 20px;z-index:9999;max-width:85vw;text-align:center;white-space:pre-wrap';
+    toast.textContent=err.name+':\n'+err.message; document.body.appendChild(toast); setTimeout(()=>toast.remove(),6000);
   }
 }
-
-let _arOccPlane = null;
 
 function arResetPlacement(){
   arPlaced=false;
   if(arReticle) arReticle.visible=false;
-  if(_arOccPlane){ SC.remove(_arOccPlane); _arOccPlane=null; }
-  const tl=document.getElementById('arTouchLayer'); if(tl) tl.remove();
-  if(window._arTickId){clearInterval(window._arTickId);window._arTickId=null;}
   if(_arOccPlane){SC.remove(_arOccPlane);_arOccPlane=null;}
-  document.getElementById('arPlaceBtn').style.display='none';
-  document.getElementById('arHint').textContent='Richt op een vlak';
-  document.getElementById('arResetBtn').style.display='none';
-  const mp=document.getElementById('arMovepad'); if(mp) mp.style.display='none';
-  const rp=document.getElementById('arRotpad');  if(rp) rp.style.display='none';
+  if(_arTickId){cancelAnimationFrame(_arTickId);_arTickId=null;}
+  _arMove={n:0,s:0,w:0,e:0,l:0,r:0};
+  const mp=document.getElementById('arMovepad'); if(mp)mp.style.display='none';
+  const rp=document.getElementById('arRotpad');  if(rp)rp.style.display='none';
+  const pb=document.getElementById('arPlaceBtn'); if(pb)pb.style.display='none';
+  const rb=document.getElementById('arResetBtn'); if(rb)rb.style.display='none';
+  const ht=document.getElementById('arHint');     if(ht)ht.textContent='Richt op een vlak';
 }
 
 function arPlaceModel(){
-  let planePos = new THREE.Vector3();
-  let planeY = 0;
-
-  if(arReticle && arReticle.visible){
-    const pos=new THREE.Vector3(), quat=new THREE.Quaternion(), scl=new THREE.Vector3();
+  let planePos=new THREE.Vector3(), planeY=0;
+  if(arReticle&&arReticle.visible){
+    const pos=new THREE.Vector3(),quat=new THREE.Quaternion(),scl=new THREE.Vector3();
     arReticle.matrix.decompose(pos,quat,scl);
-    planePos.copy(pos);
-    planeY = pos.y;
+    planePos.copy(pos); planeY=pos.y;
     const euler=new THREE.Euler().setFromQuaternion(quat,'YXZ');
     LAMP.rotation.set(0,euler.y,0);
-  } else {
-    const xrCam = R.xr.getCamera ? R.xr.getCamera() : CAM;
-    const dir = new THREE.Vector3(0,-0.3,-1.2).applyQuaternion(xrCam.quaternion);
-    planePos.copy(xrCam.position).add(dir);
-    planeY = planePos.y;
+  }else{
+    const xrCam=R.xr.getCamera?R.xr.getCamera():CAM;
+    const dir=new THREE.Vector3(0,-0.3,-1.2).applyQuaternion(xrCam.quaternion);
+    planePos.copy(xrCam.position).add(dir); planeY=planePos.y;
   }
+  LAMP.position.copy(planePos); LAMP.updateMatrixWorld(true);
+  const bb=new THREE.Box3().setFromObject(LAMP);
+  LAMP.position.y+=(planeY-bb.min.y);
+  LAMP.position.x+=(planePos.x-(bb.min.x+bb.max.x)/2);
+  LAMP.position.z+=(planePos.z-(bb.min.z+bb.max.z)/2);
 
-  // Bereken bbox en centreer onderkant op marker
-  LAMP.position.copy(planePos);
+  // Occlusie vlak
+  if(_arOccPlane){SC.remove(_arOccPlane);_arOccPlane=null;}
   LAMP.updateMatrixWorld(true);
-  const bb = new THREE.Box3().setFromObject(LAMP);
-  LAMP.position.y += (planeY - bb.min.y);
-  LAMP.position.x += (planePos.x - (bb.min.x+bb.max.x)/2);
-  LAMP.position.z += (planePos.z - (bb.min.z+bb.max.z)/2);
-
-  // Occlusie vlak — depth mask alleen onder het model (geen schaduw/kleur)
-  if(_arOccPlane){ SC.remove(_arOccPlane); _arOccPlane=null; }
-  LAMP.updateMatrixWorld(true);
-  const bb2 = new THREE.Box3().setFromObject(LAMP);
-  const w = (bb2.max.x-bb2.min.x)*1.1;
-  const d = (bb2.max.z-bb2.min.z)*1.1;
-  const occGeo = new THREE.PlaneGeometry(w, d);
-  const occMat = new THREE.MeshBasicMaterial({
-    colorWrite: false,   // geen kleur renderen
-    depthWrite: true     // wel depth schrijven — verbergt wat eronder zit
-  });
-  _arOccPlane = new THREE.Mesh(occGeo, occMat);
-  _arOccPlane.renderOrder = -1; // render voor de lamp
-  _arOccPlane.rotation.x = -Math.PI/2;
-  _arOccPlane.position.set(
-    (bb2.min.x+bb2.max.x)/2,
-    planeY + 0.001,
-    (bb2.min.z+bb2.max.z)/2
-  );
+  const bb2=new THREE.Box3().setFromObject(LAMP);
+  const ow=(bb2.max.x-bb2.min.x)*1.2, od=(bb2.max.z-bb2.min.z)*1.2;
+  _arOccPlane=new THREE.Mesh(new THREE.PlaneGeometry(ow,od),new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:true}));
+  _arOccPlane.renderOrder=-1; _arOccPlane.rotation.x=-Math.PI/2;
+  _arOccPlane.position.set((bb2.min.x+bb2.max.x)/2,planeY+0.001,(bb2.min.z+bb2.max.z)/2);
   SC.add(_arOccPlane);
 
-  arPlaced=true;
-  if(arReticle) arReticle.visible=false;
-  document.getElementById('arHint').textContent='Gebruik de knoppen om te bewegen';
-  document.getElementById('arPlaceBtn').style.display='none';
-  document.getElementById('arResetBtn').style.display='block';
+  arPlaced=true; if(arReticle)arReticle.visible=false;
+  const ht=document.getElementById('arHint');     if(ht)ht.textContent='Gebruik de knoppen';
+  const pb=document.getElementById('arPlaceBtn'); if(pb)pb.style.display='none';
+  const rb=document.getElementById('arResetBtn'); if(rb)rb.style.display='block';
+  const mp=document.getElementById('arMovepad'); if(mp)mp.style.display='block';
+  const rp=document.getElementById('arRotpad');  if(rp)rp.style.display='flex';
 
-  // Toon gamepad knoppen
-  const movepad = document.getElementById('arMovepad');
-  const rotpad  = document.getElementById('arRotpad');
-  if(movepad) movepad.style.display='block';
-  if(rotpad)  rotpad.style.display='flex';
-
-  // Game loop variabelen
-  let _arMove = {n:false,s:false,w:false,e:false,l:false,r:false};
-  const STEP = 0.015, ROT = 0.03;
-
-  function _arTick(){
-    if(!arPlaced || !arSession) return;
-    const xrCam = (R.xr&&R.xr.getCamera) ? R.xr.getCamera() : CAM;
-    const fwd = new THREE.Vector3(); xrCam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
-    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0,1,0)).normalize();
-    let moved = false;
-    if(_arMove.n){ LAMP.position.addScaledVector(fwd,  STEP); moved=true; }
-    if(_arMove.s){ LAMP.position.addScaledVector(fwd, -STEP); moved=true; }
-    if(_arMove.e){ LAMP.position.addScaledVector(right, STEP); moved=true; }
-    if(_arMove.w){ LAMP.position.addScaledVector(right,-STEP); moved=true; }
-    if(_arMove.l){ LAMP.rotation.y += ROT; moved=true; }
-    if(_arMove.r){ LAMP.rotation.y -= ROT; moved=true; }
-    if(moved && _arOccPlane){
-      _arOccPlane.position.x = LAMP.position.x;
-      _arOccPlane.position.z = LAMP.position.z;
-    }
-    }
-  window._arTickId = setInterval(_arTick, 16);
-
-  function _btn(id, key){
-    const el = document.getElementById(id);
-    if(!el) return;
-    const down = ()=>{ _arMove[key]=true; };
-    const up   = ()=>{ _arMove[key]=false; };
-    // WebXR domOverlay: gebruik pointerdown/pointerup (werkt altijd)
-    el.addEventListener('pointerdown',  e=>{ e.preventDefault(); down(); }, {passive:false});
-    el.addEventListener('pointerup',    e=>{ e.preventDefault(); up();   }, {passive:false});
-    el.addEventListener('pointerleave', e=>{ up(); }, {passive:true});
-    el.addEventListener('pointercancel',e=>{ up(); }, {passive:true});
+  // Game loop
+  const STEP=0.015, ROT=0.03;
+  function tick(){
+    if(!arPlaced||!arSession){_arTickId=null;return;}
+    const xrCam=(R.xr&&R.xr.getCamera)?R.xr.getCamera():CAM;
+    const fwd=new THREE.Vector3(); xrCam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
+    const right=new THREE.Vector3().crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
+    let mv=false;
+    if(_arMove.n){LAMP.position.addScaledVector(fwd, STEP);mv=true;}
+    if(_arMove.s){LAMP.position.addScaledVector(fwd,-STEP);mv=true;}
+    if(_arMove.e){LAMP.position.addScaledVector(right, STEP);mv=true;}
+    if(_arMove.w){LAMP.position.addScaledVector(right,-STEP);mv=true;}
+    if(_arMove.l){LAMP.rotation.y+=ROT;mv=true;}
+    if(_arMove.r){LAMP.rotation.y-=ROT;mv=true;}
+    if(mv&&_arOccPlane){_arOccPlane.position.x=LAMP.position.x;_arOccPlane.position.z=LAMP.position.z;}
+    _arTickId=requestAnimationFrame(tick);
   }
-  _btn('arMoveN','n'); _btn('arMoveS','s');
-  _btn('arMoveW','w'); _btn('arMoveE','e');
-  _btn('arRotL','l');  _btn('arRotR','r');
+  _arTickId=requestAnimationFrame(tick);
+
+  // Knoppen — pointerdown/up voor WebXR compatibiliteit
+  function bindBtn(id,key){
+    const el=document.getElementById(id); if(!el)return;
+    el.addEventListener('pointerdown', e=>{e.preventDefault();_arMove[key]=1;},{passive:false});
+    el.addEventListener('pointerup',   e=>{e.preventDefault();_arMove[key]=0;},{passive:false});
+    el.addEventListener('pointerleave',()=>{_arMove[key]=0;});
+  }
+  bindBtn('arMN','n'); bindBtn('arMS','s'); bindBtn('arMW','w'); bindBtn('arME','e');
+  bindBtn('arRL','l'); bindBtn('arRR','r');
 }
 
 checkARSupport();
