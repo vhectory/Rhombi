@@ -193,15 +193,18 @@ canvas{ touch-action:none; cursor:crosshair }
 @media(max-width:768px){
   /* Canvas = volledig scherm */
   #c{
-    right:0 !important;
-    bottom: auto !important;
-    top:0 !important;
-    left:0 !important;
-    height: 100vw !important;
+    position:relative !important;
+    width:100vw !important;
+    height:100vw !important;
+    min-height:100vw;
+    top:auto !important;
+    left:auto !important;
+    right:auto !important;
+    bottom:auto !important;
     padding:0 !important;
-    align-items:flex-start !important;
-    justify-content:center !important;
+    display:block !important;
     overflow:hidden !important;
+    flex-shrink:0;
   }
   canvas{ width:100vw !important; height:100vw !important; border-radius:0 !important; display:block; }
   #c, #canvas-frame, #c canvas{ pointer-events:all !important; touch-action:none !important; z-index:5 }
@@ -217,10 +220,13 @@ canvas{ touch-action:none; cursor:crosshair }
 
   /* Variantenbar onderin — grote vingerzone */
   .vbar{
-    right:0 !important;
+    display: flex !important;
+    position: relative !important;
+    top: auto !important;
     bottom: auto !important;
-    top: calc(100vw - 56px) !important;
-    left:0;
+    left: 0;
+    right: 0;
+    width: 100%;
     padding-bottom: 4px;
     gap: 3px;
     overflow-x: auto;
@@ -631,6 +637,7 @@ const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-per
 // Lagere pixelRatio op mobiel — 80k tris kost anders te veel
 R.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio,1.5) : Math.min(window.devicePixelRatio,2));
 R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
+R.setClearColor(0x0C0E12, 1); // default opaque
 // ── Hover cursor: pointer als over klikbaar part ────────────────────
 (function(){
   const _hRay = new THREE.Raycaster();
@@ -943,17 +950,8 @@ function resize(){
 
   // Mobiel: vbar direct onder canvas
   if(isMobLayout) {
-    const vbar = document.querySelector('.vbar');
-    if(vbar) {
-      vbar.style.top = h + 'px';
-      vbar.style.bottom = 'auto';
-    }
-    // Zorg dat mob-bar ook direct aansluit
-    const mobBar = document.getElementById('mobBar');
-    if(mobBar) mobBar.style.top = h + 'px';
-    // vbar ook
-    const vbar2 = document.querySelector('.vbar');
-    if(vbar2) { vbar2.style.top = (h - 56) + 'px'; vbar2.style.bottom = 'auto'; }
+
+
     // Panel ook
     const panel = document.getElementById('panel');
     if(panel) {
@@ -3223,9 +3221,13 @@ async function startAR() {
     SC.background = null;
     if(window._bgSphere) window._bgSphere.visible=false;
     if(window._occSphere) window._occSphere.visible=false;
-    // Reset LAMP positie voor AR
-    LAMP.position.set(0, 0, -1.5);
+    // Schakel bloom uit in AR (verstoort transparantie)
+    window._arSavedComposer = composer;
+    composer = null;
+    // LAMP zichtbaar in AR — positie wordt elk frame bijgewerkt
+    LAMP.position.set(0, 0, 0);
     LAMP.rotation.set(0, 0, 0);
+    LAMP.visible = true;
 
     arSession.addEventListener('end', ()=>{
       arSession=null; arHitTestSource=null; arPlaced=false;
@@ -3234,8 +3236,10 @@ async function startAR() {
       R.xr.enabled=false;
       // Zet normale renderloop terug
       R.setAnimationLoop(null);
+      if(window._arSavedComposer) composer = window._arSavedComposer;
       requestAnimationFrame(animate);
       // Herstel scene
+      R.setClearColor(0x0C0E12, 1);
       SC.background=new THREE.Color(0x0C0E12);
       if(window._bgSphere)window._bgSphere.visible=true;
       if(window._occSphere)window._occSphere.visible=true;
@@ -3246,21 +3250,32 @@ async function startAR() {
     });
 
     R.setAnimationLoop((t, frame) => {
-      if(frame && arHitTestSource && !arPlaced) {
-        const hits = frame.getHitTestResults(arHitTestSource);
-        if(hits.length) {
-          const pose = hits[0].getPose(R.xr.getReferenceSpace());
-          arReticle.visible = true;
-          arReticle.matrix.fromArray(pose.transform.matrix);
-          document.getElementById('arPlaceBtn').style.display='block';
-          document.getElementById('arHint').textContent='Vlak gevonden — tik om te plaatsen';
-        } else {
-          arReticle.visible = false;
-          document.getElementById('arPlaceBtn').style.display='none';
-          document.getElementById('arHint').textContent='Richt op een vlak oppervlak';
+      if(frame) {
+        if(arHitTestSource && !arPlaced) {
+          const hits = frame.getHitTestResults(arHitTestSource);
+          if(hits.length) {
+            const pose = hits[0].getPose(R.xr.getReferenceSpace());
+            arReticle.visible = true;
+            arReticle.matrix.fromArray(pose.transform.matrix);
+            document.getElementById('arPlaceBtn').style.display='block';
+            document.getElementById('arHint').textContent='Vlak gevonden — tik om te plaatsen';
+          } else {
+            arReticle.visible = false;
+            document.getElementById('arPlaceBtn').style.display='none';
+            document.getElementById('arHint').textContent='Richt op een vlak oppervlak';
+          }
+        } else if(!arHitTestSource && !arPlaced) {
+          // Geen hit-test: zet lamp voor camera
+          const xrCam = R.xr.getCamera();
+          if(xrCam) {
+            const dir = new THREE.Vector3(0, -0.3, -1.2).applyQuaternion(xrCam.quaternion);
+            LAMP.position.copy(xrCam.position).add(dir);
+          }
         }
       }
-      if(composer) composer.render(); else R.render(SC, CAM);
+      // AR: transparante render zonder composer
+      R.state.buffers.color.setClear(0, 0, 0, 0);
+      R.render(SC, CAM);
     });
 
   } catch(err) {
