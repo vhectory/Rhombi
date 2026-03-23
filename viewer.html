@@ -369,7 +369,7 @@ canvas { background: transparent !important; }
   <span class="bartit">◆ 3D Configurator</span>
   <a href="index.html" class="back">← Terug</a>
 </div>
-<div class="vbar" id="vbar"></div>
+<div class="vbar" id="vbar"><button class="vbtn" id="arBtnVbar" onclick="startAR()" style="border-color:rgba(200,136,74,.4);color:var(--amber);display:none"><svg class="vi" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg><span class="vl">AR</span></button></div>
 
 <div class="mob-bar-bottom" id="mobBar">
   <div class="mob-model-name">
@@ -3107,8 +3107,7 @@ async function startAR() {
   if(arSession){ arSession.end(); return; }
   if(!navigator.xr){ showARToast('WebXR niet beschikbaar in deze browser'); return; }
 
-  const _arB = document.getElementById('arBtnMob');
-  if(_arB){ _arB.style.borderColor='var(--amber)'; _arB.style.color='var(--amber)'; }
+  ['arBtnMob','arBtnVbar'].forEach(id => { const b=document.getElementById(id); if(b){ b.style.borderColor='var(--amber)'; b.style.color='var(--amber)'; }});
 
   try {
     // Overlay
@@ -3197,8 +3196,7 @@ async function startAR() {
       R.autoClear = true;
       R.setAnimationLoop(null);
       requestAnimationFrame(animate);
-      const b = document.getElementById('arBtnMob');
-      if(b){ b.style.borderColor=''; b.style.color=''; }
+      ['arBtnMob','arBtnVbar'].forEach(id => { const b=document.getElementById(id); if(b){ b.style.borderColor=''; b.style.color=''; }});
     });
 
     // Render loop
