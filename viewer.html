@@ -3179,6 +3179,7 @@ async function startAR() {
       SC.traverse(o=>{if(o.userData._arHide){o.visible=true;delete o.userData._arHide;}});
       LAMP.position.set(0,0,0); LAMP.rotation.set(0,0,0);
       const tl=document.getElementById('arTouchLayer'); if(tl)tl.remove();
+      if(window._arOccPlane){SC.remove(window._arOccPlane);window._arOccPlane=null;}
       R.setAnimationLoop(null);
       requestAnimationFrame(animate);
       ['arBtnMob','arBtnVbar'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.borderColor='';b.style.color='';}});
@@ -3219,56 +3220,92 @@ async function startAR() {
   }
 }
 
+let _arOccPlane = null;
+
 function arResetPlacement(){
   arPlaced=false;
-  arReticle.visible=false;
+  if(arReticle) arReticle.visible=false;
+  if(_arOccPlane){ SC.remove(_arOccPlane); _arOccPlane=null; }
+  const tl=document.getElementById('arTouchLayer'); if(tl) tl.remove();
   document.getElementById('arPlaceBtn').style.display='none';
   document.getElementById('arHint').textContent='Richt op een vlak';
   document.getElementById('arResetBtn').style.display='none';
 }
 
 function arPlaceModel(){
-  if(!arReticle||!arReticle.visible){
-    const xrCam = R.xr.getCamera ? R.xr.getCamera() : CAM;
-    const dir = new THREE.Vector3(0,-0.3,-1.2).applyQuaternion(xrCam.quaternion);
-    LAMP.position.copy(xrCam.position).add(dir);
-  } else {
-    const pos=new THREE.Vector3(), quat=new THREE.Quaternion();
-    arReticle.matrix.decompose(pos,quat,new THREE.Vector3());
-    LAMP.position.copy(pos);
+  let planePos = new THREE.Vector3();
+  let planeY = 0;
+
+  if(arReticle && arReticle.visible){
+    const pos=new THREE.Vector3(), quat=new THREE.Quaternion(), scl=new THREE.Vector3();
+    arReticle.matrix.decompose(pos,quat,scl);
+    planePos.copy(pos);
+    planeY = pos.y;
     const euler=new THREE.Euler().setFromQuaternion(quat,'YXZ');
     LAMP.rotation.set(0,euler.y,0);
+  } else {
+    const xrCam = R.xr.getCamera ? R.xr.getCamera() : CAM;
+    const dir = new THREE.Vector3(0,-0.3,-1.2).applyQuaternion(xrCam.quaternion);
+    planePos.copy(xrCam.position).add(dir);
+    planeY = planePos.y;
   }
-  // Verschuif omhoog zodat onderkant model het vlak raakt
-  const _bb = new THREE.Box3().setFromObject(LAMP);
-  const _lampBottom = _bb.min.y; // onderkant in world space
-  LAMP.position.y -= _lampBottom; // schuif omhoog met offset
-  arPlaced=true; arReticle.visible=false;
+
+  // Bereken bounding box en centreer onderkant op marker
+  LAMP.position.copy(planePos);
+  LAMP.updateMatrixWorld(true);
+  const bb = new THREE.Box3().setFromObject(LAMP);
+  const modelBottom = bb.min.y;
+  const modelCenterX = (bb.min.x + bb.max.x) / 2;
+  const modelCenterZ = (bb.min.z + bb.max.z) / 2;
+  // Verschuif zodat horizontaal centrum + onderkant op marker zitten
+  LAMP.position.y += (planeY - modelBottom);
+  LAMP.position.x += (planePos.x - modelCenterX);
+  LAMP.position.z += (planePos.z - modelCenterZ);
+
+  // Occlusie vlak op het gedetecteerde oppervlak
+  if(_arOccPlane) SC.remove(_arOccPlane);
+  const occGeo = new THREE.PlaneGeometry(4, 4);
+  const occMat = new THREE.ShadowMaterial({opacity:0.3});
+  _arOccPlane = new THREE.Mesh(occGeo, occMat);
+  _arOccPlane.rotation.x = -Math.PI/2;
+  _arOccPlane.position.set(planePos.x, planeY, planePos.z);
+  _arOccPlane.receiveShadow = true;
+  SC.add(_arOccPlane);
+
+  arPlaced=true;
+  if(arReticle) arReticle.visible=false;
   document.getElementById('arHint').textContent='Sleep: verplaats  ·  2 vingers: draai';
   document.getElementById('arPlaceBtn').style.display='none';
   document.getElementById('arResetBtn').style.display='block';
 
-  // Touch via een dedicated touch-layer bovenop alles
+  // Touch layer — apart element dat XR touch events ontvangt
+  const oldTl = document.getElementById('arTouchLayer');
+  if(oldTl) oldTl.remove();
   const tl = document.createElement('div');
   tl.id = 'arTouchLayer';
-  tl.style.cssText = 'position:fixed;inset:0;z-index:8999;touch-action:none;background:transparent';
+  // Zet boven de XR canvas maar onder de overlay UI knoppen
+  tl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:70%;z-index:8998;touch-action:none;-webkit-user-select:none;user-select:none;background:transparent';
   document.body.appendChild(tl);
 
-  tl.addEventListener('touchstart', function(e){
-    e.preventDefault(); _arT={};
+  function onTS(e){ 
+    e.preventDefault(); e.stopPropagation();
+    _arT={};
     Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
     _arAng=e.touches.length===2?Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX):null;
-  },{passive:false});
-
-  tl.addEventListener('touchmove', function(e){
-    e.preventDefault(); if(!arPlaced) return;
-    const xrCam = (R.xr && R.xr.isPresenting && R.xr.getCamera) ? R.xr.getCamera() : CAM;
+  }
+  function onTM(e){
+    e.preventDefault(); e.stopPropagation();
+    if(!arPlaced) return;
+    const xrCam = (R.xr && R.xr.getCamera) ? R.xr.getCamera() : CAM;
     if(e.touches.length===1){
       const t=e.touches[0], p=_arT[t.identifier]; if(!p) return;
       const dx=(t.clientX-p.x)*0.004, dz=(t.clientY-p.y)*0.004;
-      const dir=new THREE.Vector3(); xrCam.getWorldDirection(dir); dir.y=0; dir.normalize();
-      const right=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
-      LAMP.position.addScaledVector(right,dx); LAMP.position.addScaledVector(dir,-dz);
+      const fwd=new THREE.Vector3(); xrCam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
+      const right=new THREE.Vector3().crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
+      LAMP.position.addScaledVector(right,dx);
+      LAMP.position.addScaledVector(fwd,-dz);
+      // Occlusie vlak meebeweegen
+      if(_arOccPlane){ _arOccPlane.position.x=LAMP.position.x; _arOccPlane.position.z=LAMP.position.z; }
       _arT[t.identifier]={x:t.clientX,y:t.clientY};
     } else if(e.touches.length===2){
       const ang=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX);
@@ -3276,12 +3313,14 @@ function arPlaceModel(){
       _arAng=ang;
       Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
     }
-  },{passive:false});
-
-  tl.addEventListener('touchend', function(e){
+  }
+  function onTE(e){
     Array.from(e.changedTouches).forEach(t=>{delete _arT[t.identifier];});
     if(e.touches.length<2) _arAng=null;
-  },{passive:true});
+  }
+  tl.addEventListener('touchstart', onTS, {passive:false});
+  tl.addEventListener('touchmove',  onTM, {passive:false});
+  tl.addEventListener('touchend',   onTE, {passive:true});
 }
 
 checkARSupport();
