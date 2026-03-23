@@ -3083,14 +3083,26 @@ window.addEventListener('message', function(e) {
 });
 
 // ════════════ AR — WebXR + iOS Quick Look ════════════
-let arSession=null,arHitTestSource=null,arReticle=null,arPlaced=false,arOverlayEl=null;
+let arSession=null, arHitTestSource=null, arReticle=null;
+let arPlaced=false, arOverlayEl=null, _arLocalSpace=null;
+let _arT={}, _arAng=null;
+
 function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
+
 async function checkARSupport() {
-  const show=()=>{ const b=document.getElementById('arBtnMob'); if(b)b.style.display='flex'; const bv=document.getElementById('arBtnVbar'); if(bv)bv.style.display='flex'; };
-  if(isIOS()){ fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{if(r.ok)show();}).catch(()=>{}); return; }
+  const show = () => {
+    ['arBtnMob','arBtnVbar'].forEach(id => {
+      const b = document.getElementById(id); if(b) b.style.display='flex';
+    });
+  };
+  if(isIOS()){
+    fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{if(r.ok)show();}).catch(()=>{});
+    return;
+  }
   if(!navigator.xr) return;
   try{ if(await navigator.xr.isSessionSupported('immersive-ar')) show(); }catch(e){}
 }
+
 async function startAR() {
   if(isIOS()){
     const usdz=(curV&&curV.id==='accent')?'rhombi_accent.usdz':'rhombi_tafel.usdz';
@@ -3099,9 +3111,16 @@ async function startAR() {
     a.href=usdz; a.click(); return;
   }
   if(arSession){arSession.end();return;}
+
   try{
-    arReticle=new THREE.Mesh(new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide}));
+    // Reticle
+    arReticle=new THREE.Mesh(
+      new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),
+      new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide})
+    );
     arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
+
+    // Overlay UI
     arOverlayEl=document.createElement('div');
     arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
     arOverlayEl.innerHTML=`<div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:12px">
@@ -3110,15 +3129,47 @@ async function startAR() {
       <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.85);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">✕ Sluiten</button>
     </div>`;
     document.body.appendChild(arOverlayEl);
-    arSession=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay'],domOverlay:{root:arOverlayEl}});
-    R.xr.enabled=true; await R.xr.setSession(arSession);
-    window._arLocalSpace=await arSession.requestReferenceSpace('local');
-arHitTestSource=await arSession.requestHitTestSource({space:await arSession.requestReferenceSpace('viewer')});
-    SC.background=null;
+
+    // Sessie — hit-test OPTIONEEL zodat sessie altijd start
+    arSession = await navigator.xr.requestSession('immersive-ar', {
+      optionalFeatures: ['hit-test','dom-overlay','local-floor','bounded-floor'],
+      domOverlay: {root: arOverlayEl}
+    });
+
+    R.xr.enabled=true;
+    await R.xr.setSession(arSession);
+
+    // Transparantie
     R.setClearColor(0x000000,0);
+    SC.background=null;
     SC.traverse(o=>{if(o.isMesh&&o.material&&o.material.side===THREE.BackSide){o.visible=false;o.userData._arHide=true;}});
-    arSession.addEventListener('end',()=>{
-      arSession=null;arHitTestSource=null;arPlaced=false;
+
+    // Reference spaces
+    // local = voor lamp plaatsing (wereld coördinaten)
+    // viewer = voor hit-test (camera perspectief)
+    try { _arLocalSpace = await arSession.requestReferenceSpace('local-floor'); console.log('[AR] local:local-floor'); }
+    catch(e) {
+      try { _arLocalSpace = await arSession.requestReferenceSpace('local'); console.log('[AR] local:local'); }
+      catch(e2) { console.warn('[AR] geen local space'); }
+    }
+
+    // Hit-test source
+    try {
+      // viewer space is altijd beschikbaar voor hit-test in WebXR
+      const viewerSpace = await arSession.requestReferenceSpace('viewer');
+      arHitTestSource = await arSession.requestHitTestSource({space: viewerSpace});
+      console.log('[AR] hit-test: OK');
+    } catch(e) {
+      console.warn('[AR] hit-test niet beschikbaar:', e.message);
+      arHitTestSource = null;
+      // Toon plaats-knop direct als fallback
+      document.getElementById('arPlaceBtn').style.display='block';
+      document.getElementById('arHint').textContent='Tik Hier plaatsen om te starten';
+    }
+
+    // Session end handler
+    arSession.addEventListener('end', () => {
+      arSession=null; arHitTestSource=null; arPlaced=false; _arLocalSpace=null;
       if(arReticle){SC.remove(arReticle);arReticle=null;}
       if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
       R.xr.enabled=false;
@@ -3130,14 +3181,20 @@ arHitTestSource=await arSession.requestHitTestSource({space:await arSession.requ
       requestAnimationFrame(animate);
       ['arBtnMob','arBtnVbar'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.borderColor='';b.style.color='';}});
     });
+
+    // Render loop
     R.setAnimationLoop((t,frame)=>{
-      if(frame&&arHitTestSource&&!arPlaced){
-        const hits=frame.getHitTestResults(arHitTestSource);
-        if(hits.length){
-          const pose=hits[0].getPose(window._arLocalSpace||R.xr.getReferenceSpace());
-          arReticle.visible=true;arReticle.matrix.fromArray(pose.transform.matrix);
-          document.getElementById('arPlaceBtn').style.display='block';
-          document.getElementById('arHint').textContent='Vlak gevonden — tik om te plaatsen';
+      if(frame && arHitTestSource && !arPlaced){
+        const hits = frame.getHitTestResults(arHitTestSource);
+        const refSpace = _arLocalSpace || R.xr.getReferenceSpace();
+        if(hits.length && refSpace){
+          const pose = hits[0].getPose(refSpace);
+          if(pose){
+            arReticle.visible=true;
+            arReticle.matrix.fromArray(pose.transform.matrix);
+            document.getElementById('arPlaceBtn').style.display='block';
+            document.getElementById('arHint').textContent='Vlak gevonden — tik om te plaatsen';
+          }
         } else {
           arReticle.visible=false;
           document.getElementById('arPlaceBtn').style.display='none';
@@ -3147,41 +3204,59 @@ arHitTestSource=await arSession.requestHitTestSource({space:await arSession.requ
       R.state.buffers.color.setClear(0,0,0,0);
       R.render(SC,CAM);
     });
+
   }catch(err){
-    console.warn('AR:',err.name, err.message);
+    console.error('[AR]',err.name,err.message);
     if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
     if(arReticle){SC.remove(arReticle);arReticle=null;}
     R.xr.enabled=false; R.setClearColor(0x0C0E12,1); SC.background=new THREE.Color(0x0C0E12);
-    const t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;z-index:9999;max-width:80vw;text-align:center';
-    t.textContent=err.name+': '+err.message; document.body.appendChild(t); setTimeout(()=>t.remove(),5000);
+    const toast=document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;z-index:9999;max-width:85vw;text-align:center;white-space:pre-wrap';
+    toast.textContent=err.name+':\n'+err.message;
+    document.body.appendChild(toast); setTimeout(()=>toast.remove(),6000);
   }
 }
+
 function arPlaceModel(){
-  if(!arReticle||!arReticle.visible) return;
-  const pos=new THREE.Vector3(),quat=new THREE.Quaternion();
-  arReticle.matrix.decompose(pos,quat,new THREE.Vector3());
-  LAMP.position.copy(pos);
-  const euler=new THREE.Euler().setFromQuaternion(quat,'YXZ');
-  LAMP.rotation.set(0,euler.y,0);
+  if(!arReticle||!arReticle.visible){
+    // Geen hit-test: zet voor camera
+    const xrCam = R.xr.getCamera ? R.xr.getCamera() : CAM;
+    const dir = new THREE.Vector3(0,-0.3,-1.2).applyQuaternion(xrCam.quaternion);
+    LAMP.position.copy(xrCam.position).add(dir);
+  } else {
+    const pos=new THREE.Vector3(), quat=new THREE.Quaternion();
+    arReticle.matrix.decompose(pos,quat,new THREE.Vector3());
+    LAMP.position.copy(pos);
+    const euler=new THREE.Euler().setFromQuaternion(quat,'YXZ');
+    LAMP.rotation.set(0,euler.y,0);
+  }
   arPlaced=true; arReticle.visible=false;
-  document.getElementById('arHint').textContent='Sleep: verplaats  ·  2 vingers: draai';
+  document.getElementById('arHint').textContent='1 vinger: verplaats  ·  2 vingers: draai';
   document.getElementById('arPlaceBtn').style.display='none';
 
-  // Touch: verplaatsen + draaien
-  let _arT={}, _arAng=null;
-  const cv=R.domElement;
-  cv.addEventListener('touchstart',function(e){
+  // Touch verplaatsen + draaien via overlay (werkt in AR modus)
+  arOverlayEl.style.pointerEvents='all';
+  arOverlayEl.style.touchAction='none';
+  const closeBtn = arOverlayEl.querySelector('button:last-child');
+  if(closeBtn){ closeBtn.style.pointerEvents='all'; closeBtn.style.touchAction='auto'; }
+  const hint = document.getElementById('arHint');
+  if(hint){ hint.style.pointerEvents='none'; }
+
+  arOverlayEl.addEventListener('touchstart', function(e){
+    if(e.target.tagName==='BUTTON') return;
     e.preventDefault(); _arT={};
     Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
     _arAng=e.touches.length===2?Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX):null;
   },{passive:false});
-  cv.addEventListener('touchmove',function(e){
-    e.preventDefault(); if(!arPlaced)return;
+
+  arOverlayEl.addEventListener('touchmove', function(e){
+    if(e.target.tagName==='BUTTON') return;
+    e.preventDefault(); if(!arPlaced) return;
+    const xrCam = R.xr.getCamera ? R.xr.getCamera() : CAM;
     if(e.touches.length===1){
-      const t=e.touches[0],p=_arT[t.identifier]; if(!p)return;
-      const dx=(t.clientX-p.x)*0.003,dz=(t.clientY-p.y)*0.003;
-      const dir=new THREE.Vector3(); CAM.getWorldDirection(dir); dir.y=0; dir.normalize();
+      const t=e.touches[0], p=_arT[t.identifier]; if(!p) return;
+      const dx=(t.clientX-p.x)*0.004, dz=(t.clientY-p.y)*0.004;
+      const dir=new THREE.Vector3(); xrCam.getWorldDirection(dir); dir.y=0; dir.normalize();
       const right=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
       LAMP.position.addScaledVector(right,dx); LAMP.position.addScaledVector(dir,-dz);
       _arT[t.identifier]={x:t.clientX,y:t.clientY};
@@ -3192,7 +3267,13 @@ function arPlaceModel(){
       Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
     }
   },{passive:false});
+
+  arOverlayEl.addEventListener('touchend', function(e){
+    Array.from(e.changedTouches).forEach(t=>{delete _arT[t.identifier];});
+    if(e.touches.length<2) _arAng=null;
+  },{passive:true});
 }
+
 checkARSupport();
 </script>
 
