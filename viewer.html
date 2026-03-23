@@ -3123,12 +3123,39 @@ async function startAR() {
     // Overlay UI
     arOverlayEl=document.createElement('div');
     arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
-    arOverlayEl.innerHTML=`<div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:12px">
-      <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(237,228,208,.9);text-shadow:0 1px 6px rgba(0,0,0,1)">Richt op een vlak</div>
-      <button id="arPlaceBtn" onclick="arPlaceModel()" style="display:none;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:16px 36px;cursor:pointer">Hier plaatsen</button>
-      <button id="arResetBtn" onclick="arResetPlacement()" style="display:none;background:rgba(12,14,18,.85);border:1px solid rgba(200,136,74,.3);color:var(--amber);font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">↺ Opnieuw plaatsen</button>
-      <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.85);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">✕ Sluiten</button>
-    </div>`;
+    arOverlayEl.innerHTML=`
+    <!-- Top bar: hint + knoppen -->
+    <div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:all">
+      <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.95);text-shadow:0 1px 8px rgba(0,0,0,1);text-align:center">Richt op een vlak</div>
+      <div style="display:flex;gap:8px">
+        <button id="arPlaceBtn" onclick="arPlaceModel()" style="display:none;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:14px 32px;cursor:pointer;-webkit-tap-highlight-color:transparent">Hier plaatsen</button>
+        <button id="arResetBtn" onclick="arResetPlacement()" style="display:none;background:rgba(12,14,18,.85);border:1px solid rgba(200,136,74,.4);color:var(--amber,#C8884A);font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 20px;cursor:pointer;-webkit-tap-highlight-color:transparent">↺ Opnieuw</button>
+        <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.85);border:1px solid rgba(255,255,255,.2);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 20px;cursor:pointer;-webkit-tap-highlight-color:transparent">✕</button>
+      </div>
+    </div>
+
+    <!-- Verplaats joystick: linksonder -->
+    <div id="arMovepad" style="display:none;position:absolute;bottom:40px;left:30px;pointer-events:all;user-select:none;-webkit-user-select:none">
+      <div style="position:relative;width:130px;height:130px">
+        <button id="arMoveN" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:40px;height:40px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">▲</button>
+        <button id="arMoveS" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:40px;height:40px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">▼</button>
+        <button id="arMoveW" style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:40px;height:40px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">◀</button>
+        <button id="arMoveE" style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:40px;height:40px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">▶</button>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Space Mono,monospace;font-size:7px;letter-spacing:.08em;color:rgba(200,136,74,.5);text-transform:uppercase;text-align:center;line-height:1.3">SLEEP</div>
+      </div>
+    </div>
+
+    <!-- Roteer knoppen: rechtsonder -->
+    <div id="arRotpad" style="display:none;position:absolute;bottom:40px;right:30px;pointer-events:all;user-select:none;-webkit-user-select:none;display:none">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="font-family:Space Mono,monospace;font-size:7px;letter-spacing:.08em;color:rgba(200,136,74,.5);text-transform:uppercase">DRAAI</div>
+        <div style="display:flex;gap:8px">
+          <button id="arRotL" style="width:52px;height:52px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:22px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">↺</button>
+          <button id="arRotR" style="width:52px;height:52px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:22px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">↻</button>
+        </div>
+      </div>
+    </div>
+    `;
     document.body.appendChild(arOverlayEl);
 
     // Sessie — hit-test OPTIONEEL zodat sessie altijd start
@@ -3179,6 +3206,7 @@ async function startAR() {
       SC.traverse(o=>{if(o.userData._arHide){o.visible=true;delete o.userData._arHide;}});
       LAMP.position.set(0,0,0); LAMP.rotation.set(0,0,0);
       const tl=document.getElementById('arTouchLayer'); if(tl)tl.remove();
+      if(window._arTickId){cancelAnimationFrame(window._arTickId);window._arTickId=null;}
       if(window._arOccPlane){SC.remove(window._arOccPlane);window._arOccPlane=null;}
       R.setAnimationLoop(null);
       requestAnimationFrame(animate);
@@ -3227,9 +3255,13 @@ function arResetPlacement(){
   if(arReticle) arReticle.visible=false;
   if(_arOccPlane){ SC.remove(_arOccPlane); _arOccPlane=null; }
   const tl=document.getElementById('arTouchLayer'); if(tl) tl.remove();
+  if(window._arTickId){cancelAnimationFrame(window._arTickId);window._arTickId=null;}
+  if(_arOccPlane){SC.remove(_arOccPlane);_arOccPlane=null;}
   document.getElementById('arPlaceBtn').style.display='none';
   document.getElementById('arHint').textContent='Richt op een vlak';
   document.getElementById('arResetBtn').style.display='none';
+  const mp=document.getElementById('arMovepad'); if(mp) mp.style.display='none';
+  const rp=document.getElementById('arRotpad');  if(rp) rp.style.display='none';
 }
 
 function arPlaceModel(){
@@ -3250,77 +3282,86 @@ function arPlaceModel(){
     planeY = planePos.y;
   }
 
-  // Bereken bounding box en centreer onderkant op marker
+  // Bereken bbox en centreer onderkant op marker
   LAMP.position.copy(planePos);
   LAMP.updateMatrixWorld(true);
   const bb = new THREE.Box3().setFromObject(LAMP);
-  const modelBottom = bb.min.y;
-  const modelCenterX = (bb.min.x + bb.max.x) / 2;
-  const modelCenterZ = (bb.min.z + bb.max.z) / 2;
-  // Verschuif zodat horizontaal centrum + onderkant op marker zitten
-  LAMP.position.y += (planeY - modelBottom);
-  LAMP.position.x += (planePos.x - modelCenterX);
-  LAMP.position.z += (planePos.z - modelCenterZ);
+  LAMP.position.y += (planeY - bb.min.y);
+  LAMP.position.x += (planePos.x - (bb.min.x+bb.max.x)/2);
+  LAMP.position.z += (planePos.z - (bb.min.z+bb.max.z)/2);
 
-  // Occlusie vlak op het gedetecteerde oppervlak
-  if(_arOccPlane) SC.remove(_arOccPlane);
-  const occGeo = new THREE.PlaneGeometry(4, 4);
-  const occMat = new THREE.ShadowMaterial({opacity:0.3});
+  // Occlusie vlak — depth mask alleen onder het model (geen schaduw/kleur)
+  if(_arOccPlane){ SC.remove(_arOccPlane); _arOccPlane=null; }
+  LAMP.updateMatrixWorld(true);
+  const bb2 = new THREE.Box3().setFromObject(LAMP);
+  const w = (bb2.max.x-bb2.min.x)*1.1;
+  const d = (bb2.max.z-bb2.min.z)*1.1;
+  const occGeo = new THREE.PlaneGeometry(w, d);
+  const occMat = new THREE.MeshBasicMaterial({
+    colorWrite: false,   // geen kleur renderen
+    depthWrite: true     // wel depth schrijven — verbergt wat eronder zit
+  });
   _arOccPlane = new THREE.Mesh(occGeo, occMat);
+  _arOccPlane.renderOrder = -1; // render voor de lamp
   _arOccPlane.rotation.x = -Math.PI/2;
-  _arOccPlane.position.set(planePos.x, planeY, planePos.z);
-  _arOccPlane.receiveShadow = true;
+  _arOccPlane.position.set(
+    (bb2.min.x+bb2.max.x)/2,
+    planeY + 0.001,
+    (bb2.min.z+bb2.max.z)/2
+  );
   SC.add(_arOccPlane);
 
   arPlaced=true;
   if(arReticle) arReticle.visible=false;
-  document.getElementById('arHint').textContent='Sleep: verplaats  ·  2 vingers: draai';
+  document.getElementById('arHint').textContent='Gebruik de knoppen om te bewegen';
   document.getElementById('arPlaceBtn').style.display='none';
   document.getElementById('arResetBtn').style.display='block';
 
-  // Touch layer — apart element dat XR touch events ontvangt
-  const oldTl = document.getElementById('arTouchLayer');
-  if(oldTl) oldTl.remove();
-  const tl = document.createElement('div');
-  tl.id = 'arTouchLayer';
-  // Zet boven de XR canvas maar onder de overlay UI knoppen
-  tl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:70%;z-index:8998;touch-action:none;-webkit-user-select:none;user-select:none;background:transparent';
-  document.body.appendChild(tl);
+  // Toon gamepad knoppen
+  const movepad = document.getElementById('arMovepad');
+  const rotpad  = document.getElementById('arRotpad');
+  if(movepad) movepad.style.display='block';
+  if(rotpad)  rotpad.style.display='flex';
 
-  function onTS(e){ 
-    e.preventDefault(); e.stopPropagation();
-    _arT={};
-    Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
-    _arAng=e.touches.length===2?Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX):null;
-  }
-  function onTM(e){
-    e.preventDefault(); e.stopPropagation();
-    if(!arPlaced) return;
-    const xrCam = (R.xr && R.xr.getCamera) ? R.xr.getCamera() : CAM;
-    if(e.touches.length===1){
-      const t=e.touches[0], p=_arT[t.identifier]; if(!p) return;
-      const dx=(t.clientX-p.x)*0.004, dz=(t.clientY-p.y)*0.004;
-      const fwd=new THREE.Vector3(); xrCam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
-      const right=new THREE.Vector3().crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
-      LAMP.position.addScaledVector(right,dx);
-      LAMP.position.addScaledVector(fwd,-dz);
-      // Occlusie vlak meebeweegen
-      if(_arOccPlane){ _arOccPlane.position.x=LAMP.position.x; _arOccPlane.position.z=LAMP.position.z; }
-      _arT[t.identifier]={x:t.clientX,y:t.clientY};
-    } else if(e.touches.length===2){
-      const ang=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX);
-      if(_arAng!==null) LAMP.rotation.y+=ang-_arAng;
-      _arAng=ang;
-      Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
+  // Game loop variabelen
+  let _arMove = {n:false,s:false,w:false,e:false,l:false,r:false};
+  const STEP = 0.015, ROT = 0.03;
+
+  function _arTick(){
+    if(!arPlaced || !arSession) return;
+    const xrCam = (R.xr&&R.xr.getCamera) ? R.xr.getCamera() : CAM;
+    const fwd = new THREE.Vector3(); xrCam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
+    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0,1,0)).normalize();
+    let moved = false;
+    if(_arMove.n){ LAMP.position.addScaledVector(fwd,  STEP); moved=true; }
+    if(_arMove.s){ LAMP.position.addScaledVector(fwd, -STEP); moved=true; }
+    if(_arMove.e){ LAMP.position.addScaledVector(right, STEP); moved=true; }
+    if(_arMove.w){ LAMP.position.addScaledVector(right,-STEP); moved=true; }
+    if(_arMove.l){ LAMP.rotation.y += ROT; moved=true; }
+    if(_arMove.r){ LAMP.rotation.y -= ROT; moved=true; }
+    if(moved && _arOccPlane){
+      _arOccPlane.position.x = LAMP.position.x;
+      _arOccPlane.position.z = LAMP.position.z;
     }
+    window._arTickId = requestAnimationFrame(_arTick);
   }
-  function onTE(e){
-    Array.from(e.changedTouches).forEach(t=>{delete _arT[t.identifier];});
-    if(e.touches.length<2) _arAng=null;
+  window._arTickId = requestAnimationFrame(_arTick);
+
+  function _btn(id, key){
+    const el = document.getElementById(id);
+    if(!el) return;
+    const down = ()=>{ _arMove[key]=true; };
+    const up   = ()=>{ _arMove[key]=false; };
+    el.addEventListener('touchstart', e=>{ e.preventDefault(); down(); }, {passive:false});
+    el.addEventListener('touchend',   e=>{ e.preventDefault(); up();   }, {passive:false});
+    el.addEventListener('touchcancel',e=>{ e.preventDefault(); up();   }, {passive:false});
+    el.addEventListener('mousedown',  down);
+    el.addEventListener('mouseup',    up);
+    el.addEventListener('mouseleave', up);
   }
-  tl.addEventListener('touchstart', onTS, {passive:false});
-  tl.addEventListener('touchmove',  onTM, {passive:false});
-  tl.addEventListener('touchend',   onTE, {passive:true});
+  _btn('arMoveN','n'); _btn('arMoveS','s');
+  _btn('arMoveW','w'); _btn('arMoveE','e');
+  _btn('arRotL','l');  _btn('arRotR','r');
 }
 
 checkARSupport();
