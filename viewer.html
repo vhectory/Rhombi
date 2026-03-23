@@ -345,6 +345,10 @@ canvas{ touch-action:none; cursor:crosshair }
   .vbtn{ min-width:58px }
 }
 
+
+/* AR passthrough: canvas transparent */
+canvas { background: transparent !important; }
+#c { background: transparent !important; }
 </style>
 </head>
 <body>
@@ -614,7 +618,8 @@ const wrap=document.getElementById("c");
 const canvasFrame=document.getElementById("canvas-frame");
 // Detecteer mobiel voor adaptieve kwaliteit
 const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
-const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-performance", preserveDrawingBuffer:true});
+const R=new THREE.WebGLRenderer({antialias:!isMobile, powerPreference:"high-performance", preserveDrawingBuffer:true, alpha:true});
+R.setClearColor(0x0C0E12, 1);
 // Lagere pixelRatio op mobiel — 80k tris kost anders te veel
 R.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio,1.5) : Math.min(window.devicePixelRatio,2));
 R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -767,6 +772,7 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
       new THREE.MeshBasicMaterial({map:bgTex,side:THREE.BackSide,depthWrite:false})
     );
     bgSphere.renderOrder=-10;
+    window._bgSphere = bgSphere;
     SC.add(bgSphere);
 
     // Occlusion vignette sphere — transparant, alleen donkere rand
@@ -787,6 +793,7 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
         new THREE.MeshBasicMaterial({map:occTex, side:THREE.BackSide, transparent:true, depthWrite:false, opacity:1.0})
       );
       occSphere.renderOrder=-5;
+      window._occSphere = occSphere;
       SC.add(occSphere);
     })();
 
@@ -3136,10 +3143,23 @@ async function startAR() {
     // Transparante renderer
     R.setClearColor(0x000000, 0);
 
-    // Verberg achtergrond
+    // Verberg achtergrond volledig
     SC.background = null;
+    SC.fog = null;
+    // Verberg alle background-gerelateerde objecten
+    SC.traverse(obj => {
+      if(obj.isMesh) {
+        const mat = obj.material;
+        if(mat && mat.side === THREE.BackSide) {
+          obj.visible = false;
+          obj.userData._arHidden = true;
+        }
+      }
+    });
+    // Expliciet de bekende spheres
     if(window._bgSphere) window._bgSphere.visible = false;
     if(window._occSphere) window._occSphere.visible = false;
+    if(window._vignetteSphere) window._vignetteSphere.visible = false;
 
     // Hit-test
     try {
@@ -3162,17 +3182,27 @@ async function startAR() {
       R.xr.enabled = false;
       R.setClearColor(0x0C0E12, 1);
       SC.background = new THREE.Color(0x0C0E12);
+      // Herstel alle verborgen objecten
+      SC.traverse(obj => {
+        if(obj.userData._arHidden) {
+          obj.visible = true;
+          delete obj.userData._arHidden;
+        }
+      });
       if(window._bgSphere) window._bgSphere.visible = true;
       if(window._occSphere) window._occSphere.visible = true;
+      if(window._vignetteSphere) window._vignetteSphere.visible = true;
       LAMP.position.set(0,0,0);
       LAMP.rotation.set(0,0,0);
+      R.autoClear = true;
       R.setAnimationLoop(null);
       requestAnimationFrame(animate);
       const b=document.getElementById('arBtnMob');
       if(b){ b.style.borderColor=''; b.style.color=''; }
     });
 
-    // AR render loop
+    // AR render loop: autoClear=false zodat XR camera feed zichtbaar blijft
+    R.autoClear = true;
     R.setAnimationLoop((t, frame) => {
       if(frame && arHitTestSource && !arPlaced) {
         const hits = frame.getHitTestResults(arHitTestSource);
@@ -3188,6 +3218,8 @@ async function startAR() {
           document.getElementById('arHint').textContent='Richt op een vlak oppervlak';
         }
       }
+      // Forceer transparante clear elke frame
+      R.state.buffers.color.setClear(0, 0, 0, 0);
       R.render(SC, CAM);
     });
 
@@ -3226,38 +3258,43 @@ function arPlaceModel() {
   if(btn) btn.style.display='none';
   if(hint) hint.textContent='Sleep: verplaats  ·  2 vingers: draai';
 
-  // Touch interactie
-  const cv = R.domElement;
-  cv.addEventListener('touchstart', function(e){
-    e.preventDefault();
-    _arTouches={};
+  // Touch layer over scherm voor verplaatsen/draaien in AR
+  const _tl = document.createElement('div');
+  _tl.style.cssText = 'position:fixed;inset:0;z-index:8999;touch-action:none;background:transparent';
+  document.body.appendChild(_tl);
+  window._arTouchLayer = _tl;
+
+  _tl.addEventListener('touchstart', function(e){
+    e.preventDefault(); e.stopPropagation();
+    _arTouches = {};
     Array.from(e.touches).forEach(t=>{ _arTouches[t.identifier]={x:t.clientX,y:t.clientY}; });
     _arAngle = e.touches.length===2
       ? Math.atan2(e.touches[1].clientY-e.touches[0].clientY, e.touches[1].clientX-e.touches[0].clientX)
       : null;
   },{passive:false});
 
-  cv.addEventListener('touchmove', function(e){
-    e.preventDefault();
+  _tl.addEventListener('touchmove', function(e){
+    e.preventDefault(); e.stopPropagation();
     if(!arPlaced) return;
+    const xrCam = R.xr.getCamera ? R.xr.getCamera() : null;
+    const cam = xrCam || CAM;
     if(e.touches.length===1) {
       const t=e.touches[0], p=_arTouches[t.identifier];
       if(!p) return;
-      const dx=(t.clientX-p.x)*0.003, dz=(t.clientY-p.y)*0.003;
-      const dir=new THREE.Vector3(); CAM.getWorldDirection(dir); dir.y=0; dir.normalize();
-      const right=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
+      const dx=(t.clientX-p.x)*0.004, dz=(t.clientY-p.y)*0.004;
+      const dir=new THREE.Vector3(); cam.getWorldDirection(dir); dir.y=0; dir.normalize();
+      const right=new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0,1,0)).normalize();
       LAMP.position.addScaledVector(right, dx);
       LAMP.position.addScaledVector(dir, -dz);
       _arTouches[t.identifier]={x:t.clientX,y:t.clientY};
     } else if(e.touches.length===2) {
       const ang=Math.atan2(e.touches[1].clientY-e.touches[0].clientY, e.touches[1].clientX-e.touches[0].clientX);
-      if(_arAngle!==null) LAMP.rotation.y += ang-_arAngle;
-      _arAngle=ang;
+      if(_arAngle!==null) LAMP.rotation.y += ang - _arAngle;
+      _arAngle = ang;
       Array.from(e.touches).forEach(t=>{ _arTouches[t.identifier]={x:t.clientX,y:t.clientY}; });
     }
   },{passive:false});
 }
-
 // Variant wissel vanuit parent
 window.addEventListener('message', function(e) {
   if(e.data && e.data.type==='rhombi-setvariant') {
