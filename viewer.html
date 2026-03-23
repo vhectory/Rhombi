@@ -20,7 +20,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--amber:#C8884A;--cream:#EDE4D0;--dark:#12151A;--dark2:#181C23;--dark3:#1E232C;--text:#A8B0B8;--text-dim:#606870}
-html,body{width:100%;height:100%;overflow:hidden;margin:0}
+html{width:100%;height:100%;margin:0}body{width:100%;min-height:100%;overflow-x:hidden;overflow-y:auto;margin:0}
 body{font-family:"Space Grotesk",sans-serif;background:var(--dark);color:var(--cream)}
 #c{z-index:10;position:fixed;top:0;bottom:0;left:0;right:30%;display:flex;align-items:center;justify-content:center;padding:24px 24px 24px 24px}
 canvas{display:block;border-radius:2px}
@@ -192,19 +192,13 @@ canvas{ touch-action:none; cursor:crosshair }
 
 @media(max-width:768px){
   /* Canvas = volledig scherm */
-  #c{
-    position:relative !important;
-    width:100vw !important;
-    height:100vw !important;
-    min-height:100vw;
-    top:auto !important;
-    left:auto !important;
-    right:auto !important;
-    bottom:auto !important;
-    padding:0 !important;
-    display:block !important;
-    overflow:hidden !important;
-    flex-shrink:0;
+    #c{
+    position: relative !important;
+    width: 100vw !important;
+    height: 100vw !important;
+    top: auto !important; left: auto !important;
+    right: auto !important; bottom: auto !important;
+    display: block !important; flex-shrink: 0;
   }
   canvas{ width:100vw !important; height:100vw !important; border-radius:0 !important; display:block; }
   #c, #canvas-frame, #c canvas{ pointer-events:all !important; touch-action:none !important; z-index:5 }
@@ -220,22 +214,21 @@ canvas{ touch-action:none; cursor:crosshair }
 
   /* Variantenbar onderin — grote vingerzone */
   .vbar{
-    display: flex !important;
     position: relative !important;
     top: auto !important;
     bottom: auto !important;
     left: 0;
     right: 0;
     width: 100%;
-    padding-bottom: 4px;
+    padding: 4px calc(8px + var(--sai-left));
     gap: 3px;
     overflow-x: auto;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    padding-left: calc(8px + var(--sai-left));
-    padding-right: calc(8px + var(--sai-right));
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    background: rgba(18,21,26,.96);
+    border-bottom: 1px solid rgba(255,255,255,.05);
   }
   .vbar::-webkit-scrollbar{ display:none }
   .vbtn{
@@ -251,11 +244,12 @@ canvas{ touch-action:none; cursor:crosshair }
   /* ── BOTTOM BAR — instellingen-knop + model-naam ── */
   .mob-bar-bottom{
     display: flex;
-    position: fixed;
-    top: 100vw;
+    position: relative;
+    top: auto;
     bottom: auto;
     left: 0;
     right: 0;
+    width: 100%;
     z-index: 50;
     height: var(--mob-bar-h);
     align-items: flex-start;
@@ -306,23 +300,37 @@ canvas{ touch-action:none; cursor:crosshair }
   }
   .mob-open-sheet:active{ background:rgba(200,136,74,.25) }
 
-  /* ── PANEL — altijd zichtbaar onder mob-bar ── */
+  /* ── PANEL: altijd zichtbaar, scrollbaar onder mob-bar ── */
   .panel{
     position: relative !important;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
     border-left: none;
-    border-top: 1px solid rgba(200,136,74,.25);
+    border-top: 1px solid rgba(200,136,74,.2);
+    border-right: none;
+    border-bottom: none;
     border-radius: 0;
-    overflow-y: visible;
-    display: block !important;
-    padding-bottom: calc(var(--sai-bottom) + 16px);
+    transform: none !important;
+    overflow: visible;
+    padding-bottom: calc(var(--sai-bottom) + 24px);
     z-index: 45;
+    display: block !important;
   }
-  .panel.open{ transform: none; }
+  .panel.open{ transform: none !important; }
 
-  .sheet-handle{ display:none !important; }
+  .sheet-handle{
+    display:none !important;
+    justify-content:flex-end;
+    align-items:center;
+    padding:10px 16px 8px;
+    flex-shrink:0;
+    border-bottom:1px solid rgba(255,255,255,.05);
+  }
   .sheet-close{
     color:var(--text-dim);
     padding:6px 8px;
@@ -352,7 +360,7 @@ canvas{ touch-action:none; cursor:crosshair }
     z-index:29;
     background:rgba(0,0,0,0);
   }
-  
+  .panel-overlay.show{display:block}
 
   /* Kleurengrid groter op mobiel */
   .cgrid{ grid-template-columns:repeat(6,1fr); gap:6px }
@@ -465,11 +473,9 @@ canvas{ touch-action:none; cursor:crosshair }
     <h2 class="pt" id="vtitMob">Rhombi Tafel</h2>
     <p class="pp" id="vsubMob">Tafellamp · E14 fitting</p>
   </div>
-  <button id="arBtnMob" class="mob-open-sheet" onclick="startAR()" style="display:none">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
-    <span>AR</span>
+  <button class="mob-open-sheet" onclick="togglePanel()">
+    <span>☰</span><span>Opties</span>
   </button>
-  <!-- Opties altijd zichtbaar -->
 </div>
 
 <div class="hints" id="hints">
@@ -633,11 +639,10 @@ const wrap=document.getElementById("c");
 const canvasFrame=document.getElementById("canvas-frame");
 // Detecteer mobiel voor adaptieve kwaliteit
 const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
-const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-performance", preserveDrawingBuffer:true, alpha:true});
+const R=new THREE.WebGLRenderer({antialias: !isMobile, powerPreference:"high-performance", preserveDrawingBuffer:true});
 // Lagere pixelRatio op mobiel — 80k tris kost anders te veel
 R.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio,1.5) : Math.min(window.devicePixelRatio,2));
 R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
-R.setClearColor(0x0C0E12, 1); // default opaque
 // ── Hover cursor: pointer als over klikbaar part ────────────────────
 (function(){
   const _hRay = new THREE.Raycaster();
@@ -786,7 +791,6 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
       new THREE.SphereGeometry(22,48,32),
       new THREE.MeshBasicMaterial({map:bgTex,side:THREE.BackSide,depthWrite:false})
     );
-    window._bgSphere=bgSphere;
     bgSphere.renderOrder=-10;
     SC.add(bgSphere);
 
@@ -808,7 +812,6 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
         new THREE.MeshBasicMaterial({map:occTex, side:THREE.BackSide, transparent:true, depthWrite:false, opacity:1.0})
       );
       occSphere.renderOrder=-5;
-      window._occSphere = occSphere;
       SC.add(occSphere);
     })();
 
@@ -950,8 +953,17 @@ function resize(){
 
   // Mobiel: vbar direct onder canvas
   if(isMobLayout) {
-
-
+    const vbar = document.querySelector('.vbar');
+    if(vbar) {
+      vbar.style.top = h + 'px';
+      vbar.style.bottom = 'auto';
+    }
+    // Zorg dat mob-bar ook direct aansluit
+    const mobBar = document.getElementById('mobBar');
+    if(mobBar) mobBar.style.top = h + 'px';
+    // vbar ook
+    const vbar2 = document.querySelector('.vbar');
+    if(vbar2) { vbar2.style.top = (h - 56) + 'px'; vbar2.style.bottom = 'auto'; }
     // Panel ook
     const panel = document.getElementById('panel');
     if(panel) {
@@ -1520,70 +1532,24 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   });
   updateSelectionOutline();
 
-  // lamp_pos: gebruik positie uit GLB __lampPos node, gecorrigeerd voor centering
-  let _lampPosSet = false;
-  const _lpNode = activeGLBGroups && activeGLBGroups.__lampPos;
-  if(_lpNode) {
-    // lamp_pos world pos in originele GLB space
-    const wpOrig = new THREE.Vector3();
-    _lpNode.getWorldPosition(wpOrig);
-
-    // Bereken wat de centering verschuiving was
-    // (centering heeft groups.position.x -= center.x etc. gedaan)
-    // De groups zitten nu al gecentreerd in LAMP/_lampWrap
-    // lamp_pos positie is in dezelfde local space als de GLB meshes voor centering
-    // Centering offset = gemiddeld centrum van alle meshes vóór centering
-    // Dat is wat er van wpOrig afgetrokken moet worden:
-    const _cBox2 = new THREE.Box3();
-    Object.entries(activeGLBGroups).forEach(([k,g]) => {
-      if(k === '__lampPos') return;
-      // Gebruik originele posities (voor centering) - niet mogelijk na het feit
-      // In plaats: neem lamp_pos relatief t.o.v. een mesh centrum
+  // kapGlow + LP in het midden van de kap (peertje zit daarbinnen)
+  const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
+  if(_peerGrp) {
+    const kb = new THREE.Box3();
+    // expandByObject werkt met world matrix — forceert update eerst
+    _peerGrp.updateWorldMatrix(true, true);
+    _peerGrp.traverse(o => {
+      if(o.isMesh && !o.userData.isOutline) {
+        o.updateWorldMatrix(true, false);
+        kb.expandByObject(o);
+      }
     });
-    
-    // Simpelste aanpak: lamp_pos local positie in de GLB = absolute positie
-    // Na centering zijn de meshes verschoven maar lamp_pos niet
-    // Gebruik de local position van lamp_pos direct (x,y,z in GLB coords)
-    // en corrigeer met de huidige group offsets
-    const grpKeys = Object.keys(activeGLBGroups).filter(k => k !== '__lampPos');
-    if(grpKeys.length > 0) {
-      const g0 = activeGLBGroups[grpKeys[0]];
-      // g0.position is de offset na centering = -center
-      // Dus: gecorrigeerde pos = wpOrig + g0.position
-      const corrected = wpOrig.clone().add(g0.position);
-      const _vOff = window._rhombiCurrentVariant;
-      if(_vOff && _vOff.yOffset) corrected.y += _vOff.yOffset;
-      LP.position.copy(corrected);
-      kapGlow.position.copy(corrected);
-      console.log('[Rhombi] lamp_pos gecorrigeerd:', corrected.x.toFixed(2), corrected.y.toFixed(2), corrected.z.toFixed(2));
-      _lampPosSet = true;
-    }
-  }
-  if(!_lampPosSet) {
-    const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
-    if(_peerGrp) {
-      const kb = new THREE.Box3();
-      _peerGrp.updateWorldMatrix(true, true);
-      _peerGrp.traverse(o => { if(o.isMesh && !o.userData.isOutline) { o.updateWorldMatrix(true,false); kb.expandByObject(o); }});
-      if(!kb.isEmpty()) {
-        const kc = kb.getCenter(new THREE.Vector3());
-        kapGlow.position.copy(kc); LP.position.set(kc.x,kc.y,kc.z);
-        kapGlow.distance = Math.max(1.0,(kb.max.y-kb.min.y)*1.5);
-        console.log('[Rhombi] lamp_pos fallback (kap):', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
-      }
-    }
-  }
-  if(!_lampPosSet) { console.log('[Rhombi] lamp_pos not found, using fallback. Groups:', Object.keys(activeGLBGroups||{}));
-    const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
-    if(_peerGrp) {
-      const kb = new THREE.Box3();
-      _peerGrp.updateWorldMatrix(true, true);
-      _peerGrp.traverse(o => { if(o.isMesh && !o.userData.isOutline) { o.updateWorldMatrix(true,false); kb.expandByObject(o); }});
-      if(!kb.isEmpty()) {
-        const kc = kb.getCenter(new THREE.Vector3());
-        kapGlow.position.copy(kc); LP.position.set(kc.x,kc.y,kc.z);
-        kapGlow.distance = Math.max(1.0,(kb.max.y-kb.min.y)*1.5);
-      }
+    if(!kb.isEmpty()) {
+      const kc = kb.getCenter(new THREE.Vector3());
+      kapGlow.position.copy(kc);
+      LP.position.set(kc.x, kc.y, kc.z);
+      console.log('[Rhombi] lamp pos', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
+      kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
     }
   }
   updateKapGlow();
@@ -1600,7 +1566,7 @@ function swapLocal(varId){
   updateSwActive();
   window._rhombiCurrentVariant = v;
 
-  const glbFile = v.glb ? GLB_BASE + v.glb + GLB_BUST : null;
+  const glbFile = v.glb ? GLB_BASE + v.glb : null;
   const mySeq = ++_swapSeq; // hogere seq = vorige _animate ticks stoppen meteen
 
   if(glbFile){
@@ -1962,11 +1928,9 @@ if (typeof THREE.GLTFLoader !== 'undefined') {
     console.warn('[Rhombi] DRACOLoader niet beschikbaar — Draco GLBs worden niet ondersteund');
   }
 }
-const GLB_BASE = 'glb/';
-const GLB_BUST = '?v=20260321'; // cache bust — update bij nieuw model
+const GLB_BASE = 'https://cdn.jsdelivr.net/gh/vhectory/Rhombi@master/glb/';
 const _glbCache = new Map(); // url → ArrayBuffer cache
 let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na laden
-Object.defineProperty(window, "activeGLBGroups", { get: () => activeGLBGroups, set: v => { activeGLBGroups = v; } });
 
 function clearActiveGLB() {
   // Reset zichtbaarheid bij variant wissel
@@ -1989,12 +1953,6 @@ function loadGLBParts(url) {
           function(gltf) {
             var groups = {};
             var excludeList = window._rhombiExcludeNodes || [];
-            // Bewaar lamp_pos empty apart
-            var lampPosNode = null;
-            gltf.scene.traverse(function(obj) {
-              if (obj.name === 'lamp_pos') { lampPosNode = obj; }
-            });
-
             gltf.scene.traverse(function(obj) {
               if (!obj.isMesh) return;
               var rawId = obj.name;
@@ -2019,12 +1977,6 @@ function loadGLBParts(url) {
             });
             var summary = Object.keys(groups).join(', ');
             console.log('[Rhombi GLB] ' + url + ' → ' + summary);
-            if(lampPosNode) console.log('[Rhombi] lamp_pos empty gevonden in GLB');
-            else console.log('[Rhombi] lamp_pos NIET gevonden - beschikbare namen:', Object.keys(groups).join(', '));
-            if(lampPosNode) {
-              lampPosNode.updateWorldMatrix(true, false);
-              groups.__lampPos = lampPosNode;
-            }
             resolve(groups);
           },
           function(err) { reject(err); }
@@ -2049,7 +2001,7 @@ function loadGLBParts(url) {
 function preloadAllGLBs() {
   VARIANTS.forEach(v => {
     if(!v.glb) return;
-    const url = GLB_BASE + v.glb + GLB_BUST;
+    const url = GLB_BASE + v.glb;
     if(_glbCache.has(url)) return;
     console.log('[Rhombi] preloading', v.id, url);
     fetch(url)
@@ -3018,13 +2970,9 @@ function togglePanel(){
   if(p.classList.contains("open")){
     p.classList.remove("open");
     ov.classList.remove("show");
-    setTimeout(notifyParentHeight, 50);
-    setTimeout(notifyParentHeight, 420);
   } else {
     p.classList.add("open");
     ov.classList.add("show");
-    setTimeout(notifyParentHeight, 20);
-    setTimeout(notifyParentHeight, 420);
   }
 }
 function closePanel(){
@@ -3104,302 +3052,45 @@ syncMobBar();
 
 // ── iFrame hoogte communicatie naar parent pagina ──────────────────────
 function notifyParentHeight() {
-  if(window.self === window.top) return;
+  if(window.self === window.top) return; // niet in iframe
   const isMobLayout = window.innerWidth <= 768;
-  if(!isMobLayout) return; // desktop: iframe hoogte via CSS
-
   const panel = document.getElementById('panel');
   const panelOpen = panel && panel.classList.contains('open');
-  const canvasEl = document.getElementById('canvas-frame');
-  const mobBar  = document.getElementById('mobBar');
-
-  const canvasH = canvasEl ? canvasEl.offsetHeight : window.innerWidth;
-  const barH    = mobBar   ? mobBar.offsetHeight   : 64;
-  const panelH  = panelOpen ? (panel.scrollHeight || 300) : 0;
-  const total   = canvasH + barH + panelH + 4; // +4px buffer
-
-  window.parent.postMessage({ type: 'rhombi-height', height: total }, '*');
+  
+  let h;
+  if(isMobLayout) {
+    const canvasH = Math.round(window.innerHeight * 0.52);
+    const mobBarH = document.getElementById('mobBar')?.offsetHeight || 64;
+    if(panelOpen) {
+      // Canvas + mobbar + panel inhoud
+      h = canvasH + mobBarH + (panel?.scrollHeight || 0);
+    } else {
+      // Alleen canvas + mobbar
+      h = canvasH + mobBarH;
+    }
+  } else {
+    h = window.innerHeight; // desktop: iframe volledige hoogte
+  }
+  
+  window.parent.postMessage({ type: 'rhombi-height', height: h }, '*');
 }
 
 // Stuur hoogte bij: load, resize, panel open/close
 window.addEventListener('resize', notifyParentHeight);
 setTimeout(notifyParentHeight, 500);
 
-// ── Variant-wissel van parent pagina ──
-window.addEventListener('message', function(e) {
-  if (e.data && e.data.type === 'rhombi-setvariant') {
-    const v = VARIANTS && VARIANTS.find(v => v.id === e.data.variant);
-    if (v) swapLocal(v.id);
-  }
-});
-
-// ════════════ AR — WebXR + iOS Quick Look ════════════
-let arSession=null,arHitTestSource=null,arReticle=null,arPlaced=false,arOverlayEl=null;
-function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
-async function checkARSupport() {
-  const show=()=>{ const b=document.getElementById('arBtnMob'); if(b)b.style.display='flex'; };
-  if(isIOS()){
-    fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{if(r.ok)show();}).catch(()=>{});
-    return;
-  }
-  // Android/mobiel: check eerst echt of AR ondersteund wordt
-  if(!navigator.xr) {
-    console.log('[AR] navigator.xr niet beschikbaar');
-    return;
-  }
-  try {
-    const supported = await navigator.xr.isSessionSupported('immersive-ar');
-    console.log('[AR] immersive-ar supported:', supported);
-    if(supported) show();
-    else if(/Android/i.test(navigator.userAgent)) {
-      // Toon toch de knop maar met waarschuwing bij klik
-      show();
-    }
-  } catch(e) {
-    console.warn('[AR] isSessionSupported fout:', e);
-  }
-}
-async function startAR() {
-  // iOS: Quick Look
-  if(isIOS()){
-    const usdz=(curV&&curV.id==='accent')?'rhombi_accent.usdz':'rhombi_tafel.usdz';
-    let a=document.getElementById('qlAnchor');
-    if(!a){a=document.createElement('a');a.id='qlAnchor';a.rel='ar';a.style.display='none';a.appendChild(document.createElement('img'));document.body.appendChild(a);}
-    a.href=usdz; a.click(); return;
-  }
-
-  // Toggle: stop als al actief
-  if(arSession){arSession.end();return;}
-
-  // WebXR AR
-  if(!navigator.xr) { showARToast('WebXR niet beschikbaar in deze browser'); return; }
-
-  const _arB = document.getElementById('arBtnMob');
-  if(_arB) { _arB.style.borderColor='var(--amber)'; _arB.style.color='var(--amber)'; }
-
-  try {
-    // Maak overlay
-    arOverlayEl=document.createElement('div');
-    arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
-    arOverlayEl.innerHTML=`<div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:12px">
-      <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(237,228,208,.9);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8)">Richt op een vlak oppervlak</div>
-      <button id="arPlaceBtn" onclick="arPlaceModel()" style="display:none;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:16px 36px;cursor:pointer">Hier plaatsen</button>
-      <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.85);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">✕ Sluiten</button>
-    </div>`;
-    document.body.appendChild(arOverlayEl);
-
-    // Reticle
-    arReticle=new THREE.Mesh(
-      new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),
-      new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide})
-    );
-    arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
-
-    // Probeer sessie — hit-test optioneel
-    const sessionOpts = {
-      optionalFeatures: ['hit-test', 'dom-overlay', 'local-floor'],
-      domOverlay: { root: arOverlayEl }
-    };
-    arSession = await navigator.xr.requestSession('immersive-ar', sessionOpts);
-
-    R.xr.enabled = true;
-    await R.xr.setSession(arSession);
-
-    // Probeer hit-test
-    try {
-      const refSpace = await arSession.requestReferenceSpace('local');
-      arHitTestSource = await arSession.requestHitTestSource({space: refSpace});
-      console.log('[AR] hit-test actief');
-    } catch(e) {
-      console.warn('[AR] hit-test niet beschikbaar:', e.message);
-      arHitTestSource = null;
-      // Toon knop meteen zonder hit-test
-      document.getElementById('arPlaceBtn').style.display='block';
-      document.getElementById('arHint').textContent='Tik op Hier plaatsen om de lamp te zetten';
-    }
-
-    SC.background = null;
-    if(window._bgSphere) window._bgSphere.visible=false;
-    if(window._occSphere) window._occSphere.visible=false;
-    // Schakel bloom uit in AR (verstoort transparantie)
-    window._arSavedComposer = composer;
-    composer = null;
-    // LAMP zichtbaar in AR — positie wordt elk frame bijgewerkt
-    LAMP.position.set(0, 0, 0);
-    LAMP.rotation.set(0, 0, 0);
-    LAMP.visible = true;
-
-    arSession.addEventListener('end', ()=>{
-      arSession=null; arHitTestSource=null; arPlaced=false;
-      if(arReticle){SC.remove(arReticle);arReticle=null;}
-      if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
-      R.xr.enabled=false;
-      // Zet normale renderloop terug
-      R.setAnimationLoop(null);
-      if(window._arSavedComposer) composer = window._arSavedComposer;
-      requestAnimationFrame(animate);
-      // Herstel scene
-      R.setClearColor(0x0C0E12, 1);
-      SC.background=new THREE.Color(0x0C0E12);
-      if(window._bgSphere)window._bgSphere.visible=true;
-      if(window._occSphere)window._occSphere.visible=true;
-      // Herstel LAMP positie
-      LAMP.position.set(0,0,0);
-      const b=document.getElementById('arBtnMob');
-      if(b){b.style.borderColor='';b.style.color='';}
-    });
-
-    R.setAnimationLoop((t, frame) => {
-      if(frame) {
-        if(arHitTestSource && !arPlaced) {
-          const hits = frame.getHitTestResults(arHitTestSource);
-          if(hits.length) {
-            const pose = hits[0].getPose(R.xr.getReferenceSpace());
-            arReticle.visible = true;
-            arReticle.matrix.fromArray(pose.transform.matrix);
-            document.getElementById('arPlaceBtn').style.display='block';
-            document.getElementById('arHint').textContent='Vlak gevonden — tik om te plaatsen';
-          } else {
-            arReticle.visible = false;
-            document.getElementById('arPlaceBtn').style.display='none';
-            document.getElementById('arHint').textContent='Richt op een vlak oppervlak';
-          }
-        } else if(!arHitTestSource && !arPlaced) {
-          // Geen hit-test: zet lamp voor camera
-          const xrCam = R.xr.getCamera();
-          if(xrCam) {
-            const dir = new THREE.Vector3(0, -0.3, -1.2).applyQuaternion(xrCam.quaternion);
-            LAMP.position.copy(xrCam.position).add(dir);
-          }
-        }
-      }
-      // AR: transparante render zonder composer
-      R.state.buffers.color.setClear(0, 0, 0, 0);
-      R.render(SC, CAM);
-    });
-
-  } catch(err) {
-    console.error('[AR] fout:', err.name, err.message);
-    if(arOverlayEl){arOverlayEl.remove();arOverlayEl=null;}
-    if(arReticle){SC.remove(arReticle);arReticle=null;}
-    R.xr.enabled=false;
-    const b=document.getElementById('arBtnMob');
-    if(b){b.style.borderColor='';b.style.color='';}
-    showARToast(err.message || 'AR niet beschikbaar');
-  }
-}
-
-function showARToast(msg) {
-  const t=document.createElement('div');
-  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;z-index:9999;text-align:center;max-width:80vw';
-  t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),4000);
-}
-
-
-function arPlaceModel(){
-  if(!arReticle||!arReticle.visible)return;
-  const pos=new THREE.Vector3(),quat=new THREE.Quaternion();
-  arReticle.matrix.decompose(pos,quat,new THREE.Vector3());
-  LAMP.position.copy(pos);
-  const euler=new THREE.Euler().setFromQuaternion(quat,'YXZ');
-  LAMP.rotation.set(0,euler.y,0);
-  arPlaced=true; arReticle.visible=false;
-  document.getElementById('arHint').textContent='Sleep: verplaats  ·  2 vingers: draai';
-  document.getElementById('arPlaceBtn').style.display='none';
-
-  // Touch: verplaatsen (1 vinger) en draaien (2 vingers)
-  const cv=R.domElement;
-  let _arT={}, _arAng=null;
-
-  cv.addEventListener('touchstart',function(e){
-    e.preventDefault();
-    _arT={};
-    Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
-    if(e.touches.length===2){
-      const a=e.touches[0],b=e.touches[1];
-      _arAng=Math.atan2(b.clientY-a.clientY,b.clientX-a.clientX);
-    } else { _arAng=null; }
-  },{passive:false});
-
-  cv.addEventListener('touchmove',function(e){
-    e.preventDefault();
-    if(!arPlaced)return;
-    if(e.touches.length===1){
-      const t=e.touches[0], p=_arT[t.identifier];
-      if(!p)return;
-      const dx=(t.clientX-p.x)*0.003, dz=(t.clientY-p.y)*0.003;
-      const dir=new THREE.Vector3(); CAM.getWorldDirection(dir); dir.y=0; dir.normalize();
-      const right=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
-      LAMP.position.addScaledVector(right,dx);
-      LAMP.position.addScaledVector(dir,-dz);
-      _arT[t.identifier]={x:t.clientX,y:t.clientY};
-    } else if(e.touches.length===2){
-      const a=e.touches[0],b=e.touches[1];
-      const ang=Math.atan2(b.clientY-a.clientY,b.clientX-a.clientX);
-      if(_arAng!==null) LAMP.rotation.y+=ang-_arAng;
-      _arAng=ang;
-      Array.from(e.touches).forEach(t=>{_arT[t.identifier]={x:t.clientX,y:t.clientY};});
-    }
-  },{passive:false});
-}
-checkARSupport();
-
-// Auto-start AR als geopend via ?ar=1
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  if(params.get('ar') !== '1') return;
-
-  const varId = params.get('variant') || 'tafel';
-  window._arAutoStart = true;
-
-  // Verberg loading screen achtergrond
-  document.documentElement.style.background = 'transparent';
-  document.body.style.background = 'transparent';
-
-  // Laad variant en start AR zodra alles klaar is
-  function doStartAR() {
-    // Kleine delay zodat renderer klaar is
-    setTimeout(function() {
-      startAR();
-    }, 600);
-  }
-
-  // Hook: wacht op swapLocal + model load
-  function waitAndStart() {
-    if(typeof swapLocal !== 'function' || typeof VARIANTS === 'undefined') {
-      setTimeout(waitAndStart, 200);
-      return;
-    }
-    // Swap naar juiste variant
-    swapLocal(varId);
-    // Wacht op GLB load — poll activeGLBGroups
-    let tries = 0;
-    function waitForGLB() {
-      tries++;
-      const grps = window.activeGLBGroups;
-      if(grps && Object.keys(grps).filter(k => k !== '__lampPos').length > 0) {
-        doStartAR();
-      } else if(tries < 30) {
-        setTimeout(waitForGLB, 400);
-      } else {
-        // Timeout — probeer toch
-        doStartAR();
-      }
-    }
-    setTimeout(waitForGLB, 500);
-  }
-
-  if(document.readyState === 'complete') {
-    waitAndStart();
-  } else {
-    window.addEventListener('load', waitAndStart);
-  }
-})();
-
-
 </script>
+
+// ── iframe hoogte communiceren naar parent pagina ──────────────────
+function notifyParentHeight() {
+  if(window.self === window.top) return; // niet in iframe
+  const h = document.body.scrollHeight || document.documentElement.scrollHeight;
+  window.parent.postMessage({ type: 'rhombi-height', height: h }, '*');
+}
+
+// Stuur hoogte bij laden en bij panel open/sluiten
+window.addEventListener('load', notifyParentHeight);
+window.addEventListener('resize', notifyParentHeight);
 
 </body>
 </html>
