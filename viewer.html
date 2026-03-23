@@ -3075,16 +3075,10 @@ let _arTouches={}, _arAngle=null;
 
 function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
 
-async function checkARSupport() {
-  const show = () => { const b=document.getElementById('arBtnMob'); if(b) b.style.display='flex'; };
-  if(isIOS()){
-    fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{ if(r.ok) show(); }).catch(()=>{});
-    return;
-  }
-  if(!navigator.xr) return;
-  try { if(await navigator.xr.isSessionSupported('immersive-ar')) show(); } catch(e){}
-  // Toon ook als Android (check bij klikken)
-  if(/Android/i.test(navigator.userAgent)) show();
+// AR support check - knop altijd zichtbaar op mobiel
+function checkARSupport() {
+  const b = document.getElementById('arBtnMob');
+  if(b) b.style.display = 'flex';
 }
 
 function showARToast(msg) {
@@ -3273,6 +3267,7 @@ window.addEventListener('message', function(e) {
 });
 
 checkARSupport();
+</script>
 
 </body>
 </html>
