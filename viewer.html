@@ -3122,7 +3122,7 @@ async function startAR() {
 
     // Overlay UI
     arOverlayEl=document.createElement('div');
-    arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
+    arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:all;touch-action:none';
     arOverlayEl.innerHTML=`
     <!-- Top bar: hint + knoppen -->
     <div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:all">
@@ -3206,7 +3206,7 @@ async function startAR() {
       SC.traverse(o=>{if(o.userData._arHide){o.visible=true;delete o.userData._arHide;}});
       LAMP.position.set(0,0,0); LAMP.rotation.set(0,0,0);
       const tl=document.getElementById('arTouchLayer'); if(tl)tl.remove();
-      if(window._arTickId){cancelAnimationFrame(window._arTickId);window._arTickId=null;}
+      if(window._arTickId){clearInterval(window._arTickId);window._arTickId=null;}
       if(window._arOccPlane){SC.remove(window._arOccPlane);window._arOccPlane=null;}
       R.setAnimationLoop(null);
       requestAnimationFrame(animate);
@@ -3255,7 +3255,7 @@ function arResetPlacement(){
   if(arReticle) arReticle.visible=false;
   if(_arOccPlane){ SC.remove(_arOccPlane); _arOccPlane=null; }
   const tl=document.getElementById('arTouchLayer'); if(tl) tl.remove();
-  if(window._arTickId){cancelAnimationFrame(window._arTickId);window._arTickId=null;}
+  if(window._arTickId){clearInterval(window._arTickId);window._arTickId=null;}
   if(_arOccPlane){SC.remove(_arOccPlane);_arOccPlane=null;}
   document.getElementById('arPlaceBtn').style.display='none';
   document.getElementById('arHint').textContent='Richt op een vlak';
@@ -3343,9 +3343,8 @@ function arPlaceModel(){
       _arOccPlane.position.x = LAMP.position.x;
       _arOccPlane.position.z = LAMP.position.z;
     }
-    window._arTickId = requestAnimationFrame(_arTick);
-  }
-  window._arTickId = requestAnimationFrame(_arTick);
+    }
+  window._arTickId = setInterval(_arTick, 16);
 
   function _btn(id, key){
     const el = document.getElementById(id);
