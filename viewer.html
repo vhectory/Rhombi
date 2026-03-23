@@ -3153,10 +3153,20 @@ async function startAR(){
     arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
 
     // Sessie
-    arSession=await navigator.xr.requestSession('immersive-ar',{
-      optionalFeatures:['hit-test','dom-overlay','local-floor','bounded-floor'],
-      domOverlay:{root:arOverlayEl}
-    });
+    // Probeer eerst met hit-test required, anders zonder
+    try {
+      arSession=await navigator.xr.requestSession('immersive-ar',{
+        requiredFeatures:['hit-test'],
+        optionalFeatures:['dom-overlay','local-floor','bounded-floor'],
+        domOverlay:{root:arOverlayEl}
+      });
+    } catch(e1) {
+      console.warn('[AR] hit-test required failed, zonder:', e1.message);
+      arSession=await navigator.xr.requestSession('immersive-ar',{
+        optionalFeatures:['dom-overlay','local-floor','bounded-floor'],
+        domOverlay:{root:arOverlayEl}
+      });
+    }
     R.xr.enabled=true; await R.xr.setSession(arSession);
 
     // Transparantie
