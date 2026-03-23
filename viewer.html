@@ -3112,7 +3112,8 @@ async function startAR() {
     document.body.appendChild(arOverlayEl);
     arSession=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test'],optionalFeatures:['dom-overlay'],domOverlay:{root:arOverlayEl}});
     R.xr.enabled=true; await R.xr.setSession(arSession);
-    arHitTestSource=await arSession.requestHitTestSource({space:await arSession.requestReferenceSpace('local')});
+    window._arLocalSpace=await arSession.requestReferenceSpace('local');
+arHitTestSource=await arSession.requestHitTestSource({space:await arSession.requestReferenceSpace('viewer')});
     SC.background=null;
     R.setClearColor(0x000000,0);
     SC.traverse(o=>{if(o.isMesh&&o.material&&o.material.side===THREE.BackSide){o.visible=false;o.userData._arHide=true;}});
@@ -3133,7 +3134,7 @@ async function startAR() {
       if(frame&&arHitTestSource&&!arPlaced){
         const hits=frame.getHitTestResults(arHitTestSource);
         if(hits.length){
-          const pose=hits[0].getPose(R.xr.getReferenceSpace());
+          const pose=hits[0].getPose(window._arLocalSpace||R.xr.getReferenceSpace());
           arReticle.visible=true;arReticle.matrix.fromArray(pose.transform.matrix);
           document.getElementById('arPlaceBtn').style.display='block';
           document.getElementById('arHint').textContent='Vlak gevonden — tik om te plaatsen';
