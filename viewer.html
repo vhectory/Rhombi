@@ -3137,10 +3137,10 @@ async function startAR() {
     <!-- Verplaats joystick: linksonder -->
     <div id="arMovepad" style="display:none;position:absolute;bottom:40px;left:30px;pointer-events:all;user-select:none;-webkit-user-select:none">
       <div style="position:relative;width:130px;height:130px">
-        <button id="arMoveN" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:40px;height:40px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">▲</button>
-        <button id="arMoveS" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:40px;height:40px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">▼</button>
-        <button id="arMoveW" style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:40px;height:40px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">◀</button>
-        <button id="arMoveE" style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:40px;height:40px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">▶</button>
+        <button id="arMoveN" style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:44px;height:44px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">▲</button>
+        <button id="arMoveS" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:44px;height:44px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">▼</button>
+        <button id="arMoveW" style="position:absolute;left:0;top:50%;transform:translateY(-50%);width:44px;height:44px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">◀</button>
+        <button id="arMoveE" style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;height:44px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">▶</button>
         <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Space Mono,monospace;font-size:7px;letter-spacing:.08em;color:rgba(200,136,74,.5);text-transform:uppercase;text-align:center;line-height:1.3">SLEEP</div>
       </div>
     </div>
@@ -3150,8 +3150,8 @@ async function startAR() {
       <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
         <div style="font-family:Space Mono,monospace;font-size:7px;letter-spacing:.08em;color:rgba(200,136,74,.5);text-transform:uppercase">DRAAI</div>
         <div style="display:flex;gap:8px">
-          <button id="arRotL" style="width:52px;height:52px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:22px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">↺</button>
-          <button id="arRotR" style="width:52px;height:52px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:22px;cursor:pointer;border-radius:4px;-webkit-tap-highlight-color:transparent;touch-action:none">↻</button>
+          <button id="arRotL" style="width:56px;height:56px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:24px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">↺</button>
+          <button id="arRotR" style="width:56px;height:56px;background:rgba(200,136,74,.25);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:24px;cursor:pointer;border-radius:4px;touch-action:none;pointer-events:all;-webkit-tap-highlight-color:rgba(200,136,74,.3)">↻</button>
         </div>
       </div>
     </div>
@@ -3352,12 +3352,11 @@ function arPlaceModel(){
     if(!el) return;
     const down = ()=>{ _arMove[key]=true; };
     const up   = ()=>{ _arMove[key]=false; };
-    el.addEventListener('touchstart', e=>{ e.preventDefault(); down(); }, {passive:false});
-    el.addEventListener('touchend',   e=>{ e.preventDefault(); up();   }, {passive:false});
-    el.addEventListener('touchcancel',e=>{ e.preventDefault(); up();   }, {passive:false});
-    el.addEventListener('mousedown',  down);
-    el.addEventListener('mouseup',    up);
-    el.addEventListener('mouseleave', up);
+    // WebXR domOverlay: gebruik pointerdown/pointerup (werkt altijd)
+    el.addEventListener('pointerdown',  e=>{ e.preventDefault(); down(); }, {passive:false});
+    el.addEventListener('pointerup',    e=>{ e.preventDefault(); up();   }, {passive:false});
+    el.addEventListener('pointerleave', e=>{ up(); }, {passive:true});
+    el.addEventListener('pointercancel',e=>{ up(); }, {passive:true});
   }
   _btn('arMoveN','n'); _btn('arMoveS','s');
   _btn('arMoveW','w'); _btn('arMoveE','e');
