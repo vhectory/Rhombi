@@ -367,6 +367,17 @@ canvas{ touch-action:none; cursor:crosshair }
 </div>
 <div class="vbar" id="vbar"></div>
 
+<div class="mob-bar-bottom" id="mobBar">
+  <div class="mob-model-name">
+    <h2 class="pt" id="vtitMob">Rhombi Tafel</h2>
+    <p class="pp" id="vsubMob">Tafellamp · E14 fitting</p>
+  </div>
+  <button id="arBtnMob" class="mob-open-sheet" onclick="startAR()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+    <span>AR</span>
+  </button>
+</div>
+
 <div class="panel" id="panel">
   <!-- Handle voor bottom sheet swipe (mobiel) -->
   <div class="sheet-handle" onclick="closePanel()"><span class="sheet-close">✕</span></div>
@@ -440,16 +451,7 @@ canvas{ touch-action:none; cursor:crosshair }
 </div>
 
 <!-- MOBIEL: bottom bar met model-naam + instellingen-knop -->
-<div class="mob-bar-bottom" id="mobBar">
-  <div class="mob-model-name">
-    <h2 class="pt" id="vtitMob">Rhombi Tafel</h2>
-    <p class="pp" id="vsubMob">Tafellamp · E14 fitting</p>
-  </div>
-  <button id="arBtnMob" class="mob-open-sheet" onclick="startAR()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
-    <span>AR</span>
-  </button>
-</div>
+
 
 <div class="hints" id="hints">
   <div class="ht"><span class="hk">Sleep</span><span class="hl">Roteer</span></div>
