@@ -191,180 +191,133 @@ canvas{ touch-action:none; cursor:crosshair }
 
 
 @media(max-width:768px){
-  /* Canvas = volledig scherm */
-    #c{
+  /* ── MOBILE LAYOUT: flow van boven naar beneden ── */
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100%;
+  }
+
+  /* Canvas: vierkant bovenaan */
+  #c {
     position: relative !important;
     width: 100vw !important;
     height: 100vw !important;
     top: auto !important; left: auto !important;
     right: auto !important; bottom: auto !important;
-    display: block !important; flex-shrink: 0;
+    display: block !important;
+    flex-shrink: 0;
+    overflow: hidden;
   }
-  canvas{ width:100vw !important; height:100vw !important; border-radius:0 !important; display:block; }
-  #c, #canvas-frame, #c canvas{ pointer-events:all !important; touch-action:none !important; z-index:5 }
-  .bar{
-    right:0 !important;
-    padding-top: calc(12px + var(--sai-top));
-    padding-left: calc(16px + var(--sai-left));
-    padding-right: calc(16px + var(--sai-right));
+  #canvas-frame {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    clip-path: none !important;
+    border-radius: 0 !important;
   }
-  #transit{ right:0 !important; bottom: var(--mob-bar-h) !important; }
-  #loading{ right:0 !important; }
-  .hints{ display:none }
+  canvas {
+    width: 100vw !important;
+    height: 100vw !important;
+    border-radius: 0 !important;
+    display: block !important;
+  }
+  #c, #canvas-frame, #c canvas { pointer-events:all !important; touch-action:none !important; }
 
-  /* Variantenbar onderin — grote vingerzone */
-  .vbar{
+  /* Topbar verbergen */
+  .bar { display: none !important; }
+  .hints { display: none !important; }
+  #transit { display: none !important; }
+  #loading { right: 0 !important; width: 100vw; height: 100vw; }
+
+  /* Variantbar: direct onder canvas */
+  .vbar {
     position: relative !important;
-    top: auto !important;
-    bottom: auto !important;
-    left: 0;
-    right: 0;
-    width: 100%;
-    padding: 4px calc(8px + var(--sai-left));
-    gap: 3px;
+    top: auto !important; bottom: auto !important;
+    left: 0; right: 0; width: 100%;
+    display: flex !important;
     overflow-x: auto;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    -webkit-overflow-scrolling: touch;
+    gap: 2px;
+    padding: 4px calc(8px + var(--sai-left));
+    background: rgba(18,21,26,.97);
+    border-bottom: 1px solid rgba(255,255,255,.06);
     scrollbar-width: none;
-    background: rgba(18,21,26,.96);
-    border-bottom: 1px solid rgba(255,255,255,.05);
+    -webkit-overflow-scrolling: touch;
   }
-  .vbar::-webkit-scrollbar{ display:none }
-  .vbtn{
+  .vbar::-webkit-scrollbar { display: none; }
+  .vbtn {
     min-width: 72px;
-    padding: 14px 12px;
+    padding: 12px 10px;
     flex-shrink: 0;
-    gap: 5px;
+    gap: 4px;
   }
-  /* Grotere touch target */
-  .vi{ font-size:24px }
-  .vl{ font-size:10px; letter-spacing:.12em }
+  .vi { font-size: 22px; line-height: 1; }
+  .vl { font-size: 9px; letter-spacing: .1em; }
 
-  /* ── BOTTOM BAR — instellingen-knop + model-naam ── */
-  .mob-bar-bottom{
-    display: flex;
-    position: relative;
-    top: auto;
-    bottom: auto;
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: 50;
-    height: var(--mob-bar-h);
-    align-items: flex-start;
-    padding-top: 10px;
-    padding-left:  calc(16px + var(--sai-left));
-    padding-right: calc(16px + var(--sai-right));
-    padding-bottom: 0;
-    background: rgba(18,21,26,.96);
+  /* Mob-bar: naam + AR knop */
+  .mob-bar-bottom {
+    display: flex !important;
+    position: relative !important;
+    top: auto !important; bottom: auto !important;
+    left: 0; right: 0; width: 100%;
+    z-index: 10;
+    height: auto;
+    min-height: var(--mob-bar-h);
+    align-items: center;
+    padding: 10px calc(16px + var(--sai-left)) 10px calc(16px + var(--sai-right));
+    background: rgba(18,21,26,.97);
     backdrop-filter: blur(16px);
     border-top: 1px solid rgba(255,255,255,.07);
     gap: 10px;
   }
-  .mob-model-name{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    gap:2px;
-  }
-  .mob-model-name .pt{
-    font-size:15px;
-    font-weight:400;
-    line-height:1;
-    color:var(--cream);
-  }
-  .mob-model-name .pp{
-    font-size:9px;
-    color:var(--text-dim);
-  }
-  .mob-open-sheet{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-width:48px;
-    height:44px;
-    background:rgba(200,136,74,.12);
-    border:1px solid rgba(200,136,74,.35);
-    color:var(--amber);
-    font-family:"Space Mono",monospace;
-    font-size:11px;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    cursor:pointer;
-    flex-shrink:0;
-    gap:6px;
+  .mob-model-name { flex: 1; }
+  .mob-model-name .pt { font-size: 15px; font-weight: 400; line-height: 1.2; color: var(--cream); }
+  .mob-model-name .pp { font-size: 9px; color: var(--text-dim); }
+  .mob-open-sheet {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    height: 44px;
+    background: rgba(200,136,74,.12);
+    border: 1px solid rgba(200,136,74,.35);
+    color: var(--amber);
+    font-family: "Space Mono", monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    flex-shrink: 0;
+    gap: 6px;
     padding: 0 14px;
-    transition: background .2s;
   }
-  .mob-open-sheet:active{ background:rgba(200,136,74,.25) }
 
-  /* ── PANEL: altijd zichtbaar, scrollbaar onder mob-bar ── */
-  .panel{
+  /* Panel: altijd zichtbaar, in flow */
+  .panel {
     position: relative !important;
-    left: auto;
-    right: auto;
-    top: auto;
-    bottom: auto;
     width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
+    max-height: none !important;
+    top: auto !important; right: auto !important;
+    bottom: auto !important; left: auto !important;
     border-left: none;
     border-top: 1px solid rgba(200,136,74,.2);
-    border-right: none;
-    border-bottom: none;
     border-radius: 0;
     transform: none !important;
     overflow: visible;
-    padding-bottom: calc(var(--sai-bottom) + 24px);
-    z-index: 45;
     display: block !important;
+    padding-bottom: calc(var(--sai-bottom) + 32px);
   }
-  .panel.open{ transform: none !important; }
+  .panel.open { transform: none !important; }
+  .sheet-handle { display: none !important; }
+  .panel-overlay { display: none !important; }
 
-  .sheet-handle{
-    display:none !important;
-    justify-content:flex-end;
-    align-items:center;
-    padding:10px 16px 8px;
-    flex-shrink:0;
-    border-bottom:1px solid rgba(255,255,255,.05);
-  }
-  .sheet-close{
-    color:var(--text-dim);
-    padding:6px 8px;
-    cursor:pointer;
-    transition:color .15s;
-    font-family:Space Mono,monospace;
-    font-size:10px;
-    letter-spacing:.1em;
-  }
-  .sheet-close:active{ color:var(--cream); }
-  .sheet-close-bottom{
-    display:flex;
-    justify-content:center;
-    padding:12px 16px;
-    padding-bottom:calc(var(--sai-bottom) + 12px);
-    flex-shrink:0;
-    border-top:1px solid rgba(255,255,255,.05);
-    margin-top:4px;
-  }
-
-  /* Overlay */
-  .panel-overlay{
-    display:none;
-    position:fixed;
-    top: 100vw;
-    left:0;right:0;bottom:0;
-    z-index:29;
-    background:rgba(0,0,0,0);
-  }
-  .panel-overlay.show{display:block}
-
-  /* Kleurengrid groter op mobiel */
-  .cgrid{ grid-template-columns:repeat(6,1fr); gap:6px }
-  .sw{ min-height:36px }
+  /* Swatches groter voor touch */
+  .sw { min-height: 36px !important; }
 }
 
 /* Extra kleine schermen */
@@ -961,7 +914,8 @@ function resize(){
   if(composer) composer.setSize(w, h);
   if(window._edgeOccPass) window._edgeOccPass.uniforms.uRes.value.set(w, h);
 
-  // Mobiel: vbar direct onder canvas
+  // Layout via CSS
+
   if(isMobLayout) {
     const vbar = document.querySelector('.vbar');
     if(vbar) {
