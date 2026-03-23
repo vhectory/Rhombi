@@ -473,8 +473,9 @@ canvas{ touch-action:none; cursor:crosshair }
     <h2 class="pt" id="vtitMob">Rhombi Tafel</h2>
     <p class="pp" id="vsubMob">Tafellamp · E14 fitting</p>
   </div>
-  <button class="mob-open-sheet" onclick="togglePanel()">
-    <span>☰</span><span>Opties</span>
+  <button id="arBtnMob" class="mob-open-sheet" onclick="startAR()" style="display:none">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+    <span>AR</span>
   </button>
 </div>
 
@@ -925,10 +926,11 @@ try {
 }
 
 function resize(){
-  const isMobLayout = window.innerWidth <= 768;
+  const isEmbedded = window.self !== window.top;
+  const isMobLayout = window.innerWidth <= 768 || isEmbedded;
   let w, h;
   if(isMobLayout) {
-    // Mobiel: volledige breedte, hoogte = 52vh
+    // Mobiel: vierkant
     w = window.innerWidth;
     h = window.innerWidth; // vierkant = breedte
   } else {
@@ -943,6 +945,14 @@ function resize(){
   cv.style.height = h + 'px';
   canvasFrame.style.width  = w + 'px';
   canvasFrame.style.height = h + 'px';
+  // Mobiel: zorg dat #c ook de juiste grootte heeft
+  if(isMobLayout) {
+    wrap.style.width  = w + 'px';
+    wrap.style.height = h + 'px';
+  } else {
+    wrap.style.width  = '';
+    wrap.style.height = '';
+  }
   canvasFrame.style.position = isMobLayout ? 'relative' : '';
   canvasFrame.style.transform = isMobLayout ? '' : '';
   R.setSize(w, h, false);
@@ -3082,15 +3092,212 @@ setTimeout(notifyParentHeight, 500);
 </script>
 
 // ── iframe hoogte communiceren naar parent pagina ──────────────────
-function notifyParentHeight() {
-  if(window.self === window.top) return; // niet in iframe
-  const h = document.body.scrollHeight || document.documentElement.scrollHeight;
-  window.parent.postMessage({ type: 'rhombi-height', height: h }, '*');
+// ══════════════════════════════════════════════
+// AR — WebXR + iOS Quick Look
+// ══════════════════════════════════════════════
+let arSession=null, arHitTestSource=null, arReticle=null, arPlaced=false, arOverlayEl=null;
+let _arTouches={}, _arAngle=null;
+
+function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
+
+async function checkARSupport() {
+  const show = () => { const b=document.getElementById('arBtnMob'); if(b) b.style.display='flex'; };
+  if(isIOS()){
+    fetch('rhombi_tafel.usdz',{method:'HEAD'}).then(r=>{ if(r.ok) show(); }).catch(()=>{});
+    return;
+  }
+  if(!navigator.xr) return;
+  try { if(await navigator.xr.isSessionSupported('immersive-ar')) show(); } catch(e){}
+  // Toon ook als Android (check bij klikken)
+  if(/Android/i.test(navigator.userAgent)) show();
 }
 
-// Stuur hoogte bij laden en bij panel open/sluiten
-window.addEventListener('load', notifyParentHeight);
-window.addEventListener('resize', notifyParentHeight);
+function showARToast(msg) {
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;z-index:9999;text-align:center;max-width:80vw';
+  t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 4000);
+}
+
+async function startAR() {
+  // iOS Quick Look
+  if(isIOS()){
+    const usdz=(window.curV&&window.curV.id==='accent')?'rhombi_accent.usdz':'rhombi_tafel.usdz';
+    let a=document.getElementById('qlAnchor');
+    if(!a){ a=document.createElement('a'); a.id='qlAnchor'; a.rel='ar'; a.style.display='none'; a.appendChild(document.createElement('img')); document.body.appendChild(a); }
+    a.href=usdz; a.click(); return;
+  }
+
+  if(arSession){ arSession.end(); return; }
+  if(!navigator.xr){ showARToast('WebXR niet beschikbaar'); return; }
+
+  const _arB = document.getElementById('arBtnMob');
+  if(_arB){ _arB.style.borderColor='var(--amber)'; _arB.style.color='var(--amber)'; }
+
+  try {
+    // Overlay UI
+    arOverlayEl = document.createElement('div');
+    arOverlayEl.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
+    arOverlayEl.innerHTML=`
+      <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:12px;min-width:200px">
+        <div id="arHint" style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.9);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.9)">Richt op een vlak oppervlak</div>
+        <button id="arPlaceBtn" onclick="arPlaceModel()" style="display:none;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:16px 36px;cursor:pointer;border-radius:0">Hier plaatsen</button>
+        <button onclick="arSession&&arSession.end()" style="background:rgba(12,14,18,.85);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 24px;cursor:pointer">✕ Sluiten</button>
+      </div>`;
+    document.body.appendChild(arOverlayEl);
+
+    // Reticle
+    arReticle = new THREE.Mesh(
+      new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),
+      new THREE.MeshBasicMaterial({color:0xC8884A, side:THREE.DoubleSide})
+    );
+    arReticle.matrixAutoUpdate = false;
+    arReticle.visible = false;
+    SC.add(arReticle);
+
+    // Start sessie — hit-test optioneel
+    arSession = await navigator.xr.requestSession('immersive-ar', {
+      optionalFeatures: ['hit-test','dom-overlay','local-floor'],
+      domOverlay: { root: arOverlayEl }
+    });
+
+    R.xr.enabled = true;
+    await R.xr.setSession(arSession);
+
+    // Transparante renderer
+    R.setClearColor(0x000000, 0);
+
+    // Verberg achtergrond
+    SC.background = null;
+    if(window._bgSphere) window._bgSphere.visible = false;
+    if(window._occSphere) window._occSphere.visible = false;
+
+    // Hit-test
+    try {
+      const ref = await arSession.requestReferenceSpace('local');
+      arHitTestSource = await arSession.requestHitTestSource({space: ref});
+      console.log('[AR] hit-test actief');
+    } catch(e) {
+      console.warn('[AR] hit-test niet beschikbaar:', e.message);
+      arHitTestSource = null;
+      // Direct plaatsknop tonen
+      document.getElementById('arPlaceBtn').style.display='block';
+      document.getElementById('arHint').textContent='Tik Hier plaatsen om te beginnen';
+    }
+
+    // Herstel bij einde
+    arSession.addEventListener('end', () => {
+      arSession=null; arHitTestSource=null; arPlaced=false;
+      if(arReticle){ SC.remove(arReticle); arReticle=null; }
+      if(arOverlayEl){ arOverlayEl.remove(); arOverlayEl=null; }
+      R.xr.enabled = false;
+      R.setClearColor(0x0C0E12, 1);
+      SC.background = new THREE.Color(0x0C0E12);
+      if(window._bgSphere) window._bgSphere.visible = true;
+      if(window._occSphere) window._occSphere.visible = true;
+      LAMP.position.set(0,0,0);
+      LAMP.rotation.set(0,0,0);
+      R.setAnimationLoop(null);
+      requestAnimationFrame(animate);
+      const b=document.getElementById('arBtnMob');
+      if(b){ b.style.borderColor=''; b.style.color=''; }
+    });
+
+    // AR render loop
+    R.setAnimationLoop((t, frame) => {
+      if(frame && arHitTestSource && !arPlaced) {
+        const hits = frame.getHitTestResults(arHitTestSource);
+        if(hits.length) {
+          const pose = hits[0].getPose(R.xr.getReferenceSpace());
+          arReticle.visible = true;
+          arReticle.matrix.fromArray(pose.transform.matrix);
+          document.getElementById('arPlaceBtn').style.display='block';
+          document.getElementById('arHint').textContent='Vlak gevonden — tik om te plaatsen';
+        } else {
+          arReticle.visible = false;
+          document.getElementById('arPlaceBtn').style.display='none';
+          document.getElementById('arHint').textContent='Richt op een vlak oppervlak';
+        }
+      }
+      R.render(SC, CAM);
+    });
+
+  } catch(err) {
+    console.error('[AR]', err.name, err.message);
+    if(arOverlayEl){ arOverlayEl.remove(); arOverlayEl=null; }
+    if(arReticle){ SC.remove(arReticle); arReticle=null; }
+    R.xr.enabled = false;
+    R.setClearColor(0x0C0E12, 1);
+    SC.background = new THREE.Color(0x0C0E12);
+    const b=document.getElementById('arBtnMob');
+    if(b){ b.style.borderColor=''; b.style.color=''; }
+    showARToast(err.message || 'AR niet beschikbaar');
+  }
+}
+
+function arPlaceModel() {
+  if(!arPlaced && arReticle && arReticle.visible) {
+    // Plaats op reticle positie
+    const pos=new THREE.Vector3(), quat=new THREE.Quaternion(), scl=new THREE.Vector3();
+    arReticle.matrix.decompose(pos, quat, scl);
+    LAMP.position.copy(pos);
+    const euler = new THREE.Euler().setFromQuaternion(quat,'YXZ');
+    LAMP.rotation.set(0, euler.y, 0);
+  } else if(!arPlaced) {
+    // Geen hit-test: zet voor camera
+    const xrCam = R.xr.getCamera();
+    if(xrCam) {
+      const dir = new THREE.Vector3(0, -0.4, -1.5).applyQuaternion(xrCam.quaternion);
+      LAMP.position.copy(xrCam.position).add(dir);
+    }
+  }
+  arPlaced = true;
+  if(arReticle) arReticle.visible = false;
+  const btn=document.getElementById('arPlaceBtn'), hint=document.getElementById('arHint');
+  if(btn) btn.style.display='none';
+  if(hint) hint.textContent='Sleep: verplaats  ·  2 vingers: draai';
+
+  // Touch interactie
+  const cv = R.domElement;
+  cv.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    _arTouches={};
+    Array.from(e.touches).forEach(t=>{ _arTouches[t.identifier]={x:t.clientX,y:t.clientY}; });
+    _arAngle = e.touches.length===2
+      ? Math.atan2(e.touches[1].clientY-e.touches[0].clientY, e.touches[1].clientX-e.touches[0].clientX)
+      : null;
+  },{passive:false});
+
+  cv.addEventListener('touchmove', function(e){
+    e.preventDefault();
+    if(!arPlaced) return;
+    if(e.touches.length===1) {
+      const t=e.touches[0], p=_arTouches[t.identifier];
+      if(!p) return;
+      const dx=(t.clientX-p.x)*0.003, dz=(t.clientY-p.y)*0.003;
+      const dir=new THREE.Vector3(); CAM.getWorldDirection(dir); dir.y=0; dir.normalize();
+      const right=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
+      LAMP.position.addScaledVector(right, dx);
+      LAMP.position.addScaledVector(dir, -dz);
+      _arTouches[t.identifier]={x:t.clientX,y:t.clientY};
+    } else if(e.touches.length===2) {
+      const ang=Math.atan2(e.touches[1].clientY-e.touches[0].clientY, e.touches[1].clientX-e.touches[0].clientX);
+      if(_arAngle!==null) LAMP.rotation.y += ang-_arAngle;
+      _arAngle=ang;
+      Array.from(e.touches).forEach(t=>{ _arTouches[t.identifier]={x:t.clientX,y:t.clientY}; });
+    }
+  },{passive:false});
+}
+
+// Variant wissel vanuit parent
+window.addEventListener('message', function(e) {
+  if(e.data && e.data.type==='rhombi-setvariant') {
+    const v = typeof VARIANTS!=='undefined' && VARIANTS.find(v=>v.id===e.data.variant);
+    if(v) swapLocal(v.id);
+  }
+});
+
+checkARSupport();
 
 </body>
 </html>
