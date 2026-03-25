@@ -1523,15 +1523,16 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     }
     // Sla rustpositie op per group (nodig voor explode)
     Object.entries(activeGLBGroups).forEach(([k,g]) => {
-      if(k !== '__lampPos' && g.isObject3D) g.userData._centerOffset = g.position.clone();
+      if(k !== '__lampPos' && g.isObject3D) {
+        g.userData._centerOffset = g.position.clone();
+        console.log('[Rhombi] group '+k+' centerOffset: '+g.position.x.toFixed(3)+','+g.position.y.toFixed(3)+','+g.position.z.toFixed(3));
+      }
     });
   }
 
   buildPList(); updateSwActive(); buildColorGrid(); buildMatList(); if(!skipCamera) fitCameraToGLB();
   _clickableMeshes = [];
-  Object.values(activeGLBGroups).forEach(g => {
-    g.traverse(o => { if(o.isMesh) _clickableMeshes.push(o); });
-  });
+  Object.entries(activeGLBGroups).forEach(([k,g]) => { if(k==='__lampPos'||!g.isObject3D) return; g.traverse(o => { if(o.isMesh) _clickableMeshes.push(o); }); });
   updateSelectionOutline();
 
   // Lichtpositie: gebruik lamp_pos Empty als aanwezig, anders kap centrum
@@ -1593,6 +1594,7 @@ function swapLocal(varId){
       _cacheBaseOpacity();
       exP = 1.1;
       Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
+        if(pid==='__lampPos'||!grp.isObject3D) return;
         const off = GLB_EX_OFFSETS[pid] || [0,0,0];
         const _base1 = grp.userData._centerOffset || new THREE.Vector3();
         grp.position.set(_base1.x + off[0]*1.1, _base1.y + off[1]*1.1, _base1.z + off[2]*1.1);
@@ -1604,6 +1606,7 @@ function swapLocal(varId){
           _setAllOpacity(t);
           const cur = 1.1 * (1 - t);
           Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
+            if(pid==='__lampPos'||!grp.isObject3D) return;
             const off = GLB_EX_OFFSETS[pid] || [0,0,0];
             const _base2 = grp.userData._centerOffset || new THREE.Vector3();
             grp.position.set(_base2.x + off[0]*cur, _base2.y + off[1]*cur, _base2.z + off[2]*cur);
@@ -1620,6 +1623,7 @@ function swapLocal(varId){
           _setAllOpacity(t);
           const cur = (1 - t) * 0.15; // klein beetje uitwaaieren
           Object.entries(prevGroups).forEach(([pid, grp]) => {
+            if(pid==='__lampPos'||!grp.isObject3D) return;
             const off = GLB_EX_OFFSETS[pid] || [0,0,0];
             const _base0 = grp.userData._centerOffset || new THREE.Vector3();
             grp.position.set(_base0.x + off[0]*cur, _base0.y + off[1]*cur, _base0.z + off[2]*cur);
@@ -1668,10 +1672,14 @@ function applyExplode(){
   const t = exP;
   if (activeGLBGroups) {
     Object.entries(activeGLBGroups).forEach(([partId, grp]) => {
-      if(partId === '__lampPos') return;
+      if(partId === '__lampPos' || !grp.isObject3D) return;
       const off = GLB_EX_OFFSETS[partId] || [0, 0, 0];
       const base = grp.userData._centerOffset;
-      if(!base) return; // nog niet gecentreerd
+      if(!base) {
+        // Fallback: gebruik huidige positie als base
+        grp.userData._centerOffset = grp.position.clone();
+        return;
+      }
       grp.position.set(base.x + off[0]*t, base.y + off[1]*t, base.z + off[2]*t);
     });
   }
@@ -1925,7 +1933,7 @@ function syncGLBPart(partId) {
 
 function syncAllGLBParts() {
   if (!activeGLBGroups) return;
-  Object.keys(activeGLBGroups).forEach(id => syncGLBPart(id));
+  Object.keys(activeGLBGroups).forEach(id => { if(id !== '__lampPos') syncGLBPart(id); });
 }
 
 // ── GLTFLoader + Draco ───────────────────────────────────────────────
@@ -2061,7 +2069,7 @@ function preloadAllGLBs() {
 function fitCameraToGLB() {
   if (!activeGLBGroups) return;
   const box = new THREE.Box3();
-  Object.entries(activeGLBGroups).forEach(([pid,g]) => { if(PART_VIS[pid]!==false) { g.traverse(o => { if(!o.userData.isOutline) box.expandByObject(o); }); } });
+  Object.entries(activeGLBGroups).forEach(([pid,g]) => { if(pid==='__lampPos'||!g.isObject3D) return; if(PART_VIS[pid]!==false) { g.traverse(o => { if(!o.userData.isOutline) box.expandByObject(o); }); } });
   if (box.isEmpty()) return;
   const size   = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
@@ -2104,6 +2112,7 @@ function switchVar(v){
   const prevPositions = {};
   if(prevGroups){
     Object.entries(prevGroups).forEach(([id, g]) => {
+      if(id === '__lampPos' || !g.isObject3D) return;
       prevPositions[id] = g.position.clone();
     });
   }
@@ -2369,7 +2378,7 @@ function setColorScope(scope) {
 function applyColor(hex){
   const allTargets = new Set();
   if(window._colorScope === 'all' && activeGLBGroups) {
-    Object.keys(activeGLBGroups).forEach(pid => allTargets.add(pid));
+    Object.keys(activeGLBGroups).forEach(pid => { if(pid !== '__lampPos') allTargets.add(pid); });
   } else {
     selParts.forEach(sid => getAffectedIds(sid).forEach(pid => allTargets.add(pid)));
   }
