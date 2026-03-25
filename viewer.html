@@ -2078,8 +2078,8 @@ function fitCameraToGLB() {
   // Fit hele lamp in vierkant canvas met kleine marge
   const diagSize = Math.sqrt(size.x*size.x + size.y*size.y) * 1.15; // diagonaal + 15% marge
   camR  = Math.max(0.5, diagSize / (2 * Math.tan(CAM.fov * Math.PI / 360)));
-  camTh = 0.0;        // recht van voren
-  camPh = 0.25;       // bijna recht erop, klein beetje boven
+  camTh = 0.4;        // licht van de hoek
+  camPh = 0.52;       // aangenaam 3/4 aanzicht
   panX  = center.x;
   panY  = center.y; // camera kijkt naar het midden van het model
   console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2) + ' center=' + center.y.toFixed(2));
@@ -2422,11 +2422,11 @@ function kapLightProps(matId) {
     case 'pla-translucent':
       return { transparent:true,  opacity:0.72, emissiveIntensity:1.4,  emissive:'#5A2800' };
     case 'pla-basic':
-      return { transparent:true,  opacity:0.985, emissiveIntensity:0.85, emissive:'#3A1800' };
+      return { transparent:true,  opacity:0.965, emissiveIntensity:0.55, emissive:'#3A1800' };
     case 'pla-mat':
-      return { transparent:true,  opacity:0.99, emissiveIntensity:0.65, emissive:'#2E1200' };
+      return { transparent:true,  opacity:0.975, emissiveIntensity:0.45, emissive:'#2E1200' };
     case 'pla-nebula':
-      return { transparent:true,  opacity:0.997, emissiveIntensity:0.75, emissive:'#3A2000' };
+      return { transparent:true,  opacity:0.97, emissiveIntensity:0.50, emissive:'#3A2000' };
     case 'pla-cf':
       return { transparent:false, opacity:1.0,    emissiveIntensity:0.06, emissive:'#0A0400' };
     default:
@@ -2704,11 +2704,11 @@ function setPeerIntensity(v){
     mat.opacity           = 0.35 + peerIntensity * 0.2;
     mat.needsUpdate = true;
   }
-  LP.intensity         = lampOn ? peerIntensity * 1.0 : 0;
-  bounceDown.intensity = lampOn ? peerIntensity * 0.5 : 0;
-  bounceSide.intensity = lampOn ? peerIntensity * 0.25 : 0;
-  kapGlow.intensity    = lampOn ? peerIntensity * 1.8 : 0;
-  kapGlow.distance     = 1.8;
+  LP.intensity         = lampOn ? peerIntensity * 1.4 : 0;
+  bounceDown.intensity = lampOn ? peerIntensity * 0.6 : 0;
+  bounceSide.intensity = lampOn ? peerIntensity * 0.3 : 0;
+  kapGlow.intensity    = lampOn ? peerIntensity * 1.2 : 0;
+  kapGlow.distance     = 2.0;
   updateKapGlow();
 }
 
@@ -2726,7 +2726,7 @@ function updateKapGlow() {
   const isCF = (partMat['kap'] || 'pla-mat') === 'pla-cf';
   if(!isCF) {
     const opBase = kp.opacity;
-    const opGlow = Math.max(0.84, opBase - 0.12);
+    const opGlow = Math.max(0.88, opBase - 0.08);
     kapMat.opacity = opBase - (opBase - opGlow) * t;
     kapMat.transparent = kp.transparent;
   } else {
