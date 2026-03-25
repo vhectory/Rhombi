@@ -1520,6 +1520,10 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
       window._arCenterOffset.y += _vOff.yOffset;
       Object.values(activeGLBGroups).forEach(g => { g.position.y += _vOff.yOffset; });
     }
+    // Sla rustpositie op per group (nodig voor explode)
+    Object.values(activeGLBGroups).forEach(g => {
+      g.userData._centerOffset = g.position.clone();
+    });
   }
 
   buildPList(); updateSwActive(); buildColorGrid(); buildMatList(); if(!skipCamera) fitCameraToGLB();
@@ -1589,7 +1593,8 @@ function swapLocal(varId){
       exP = 1.1;
       Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
         const off = GLB_EX_OFFSETS[pid] || [0,0,0];
-        grp.position.set(off[0]*1.1, off[1]*1.1, off[2]*1.1);
+        const _base1 = grp.userData._centerOffset || new THREE.Vector3();
+        grp.position.set(_base1.x + off[0]*1.1, _base1.y + off[1]*1.1, _base1.z + off[2]*1.1);
       });
       _setAllOpacity(0);
       _animate(750, 0, 1,
@@ -1597,10 +1602,10 @@ function swapLocal(varId){
           if(_swapSeq !== mySeq) return;
           _setAllOpacity(t);
           const cur = 1.1 * (1 - t);
-          const _co2 = window._arCenterOffset || new THREE.Vector3();
           Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
             const off = GLB_EX_OFFSETS[pid] || [0,0,0];
-            grp.position.set(_co2.x + off[0]*cur, _co2.y + off[1]*cur, _co2.z + off[2]*cur);
+            const _base2 = grp.userData._centerOffset || new THREE.Vector3();
+            grp.position.set(_base2.x + off[0]*cur, _base2.y + off[1]*cur, _base2.z + off[2]*cur);
           });
         },
         () => { if(_swapSeq === mySeq) exP = exT; }
@@ -1612,10 +1617,11 @@ function swapLocal(varId){
         t => {
           if(_swapSeq !== mySeq) return;
           _setAllOpacity(t);
-          const cur = (1 - t) * 1.1;
+          const cur = (1 - t) * 0.15; // klein beetje uitwaaieren
           Object.entries(prevGroups).forEach(([pid, grp]) => {
             const off = GLB_EX_OFFSETS[pid] || [0,0,0];
-            grp.position.set(off[0]*cur, off[1]*cur, off[2]*cur);
+            const _base0 = grp.userData._centerOffset || new THREE.Vector3();
+            grp.position.set(_base0.x + off[0]*cur, _base0.y + off[1]*cur, _base0.z + off[2]*cur);
           });
         },
         () => { loadPromise.then(doShow).catch(e => console.error(e)); }
@@ -1665,7 +1671,8 @@ function applyExplode(){
     const _co = window._arCenterOffset || new THREE.Vector3();
     Object.entries(activeGLBGroups).forEach(([partId, grp]) => {
       const off = GLB_EX_OFFSETS[partId] || [0, 0, 0];
-      grp.position.set(_co.x + off[0]*t, _co.y + off[1]*t, _co.z + off[2]*t);
+      const base = grp.userData._centerOffset || new THREE.Vector3();
+      grp.position.set(base.x + off[0]*t, base.y + off[1]*t, base.z + off[2]*t);
     });
   }
 }
