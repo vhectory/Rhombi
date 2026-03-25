@@ -2043,9 +2043,9 @@ function fitCameraToGLB() {
   camR  = Math.max(0.5, maxDim * 2.2);
   camTh = 0;          // voorkant
   camPh = 0.42;       // lichte bovenaanzicht
-  panX  = 0;
-  panY  = 0; // model is al gecentreerd
-  console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2));
+  panX  = center.x;
+  panY  = center.y; // camera kijkt naar het midden van het model
+  console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2) + ' center=' + center.y.toFixed(2));
 }
 
 // ═══════════════════════════════════════════
@@ -3219,9 +3219,11 @@ async function startAR(){
           if(pose){
             arReticle.visible=true;
             arReticle.matrix.fromArray(pose.transform.matrix);
-            arLastPos=new THREE.Vector3(); arLastQuat=new THREE.Quaternion();
-            new THREE.Matrix4().fromArray(pose.transform.matrix)
-              .decompose(arLastPos,arLastQuat,new THREE.Vector3());
+            // Bevriest niet na plaatsing - altijd bijwerken voor herplaatsing
+            const _m4=new THREE.Matrix4().fromArray(pose.transform.matrix);
+            if(!arLastPos) arLastPos=new THREE.Vector3();
+            if(!arLastQuat) arLastQuat=new THREE.Quaternion();
+            _m4.decompose(arLastPos, arLastQuat, new THREE.Vector3());
             document.getElementById('arPlace').style.display='block';
             document.getElementById('arHint').textContent='Vlak gevonden — tik Hier plaatsen';
           }
@@ -3242,9 +3244,11 @@ async function startAR(){
 }
 
 function _arPlace(){
-  if(!arLastPos) return; // wacht op reticle hit
-  const pos=arLastPos;
-  const quat=arLastQuat||new THREE.Quaternion();
+  if(!arLastPos||!arReticle||!arReticle.visible) return;
+  // Bevries positie direct — stop render loop van verder updaten
+  const pos=arLastPos.clone();
+  const quat=(arLastQuat||new THREE.Quaternion()).clone();
+  arPlaced=true; // stop hit-test updates in render loop
   // Bereken bbox in neutrale positie
   LAMP.position.set(0,0,0);
   LAMP.rotation.set(0,0,0);
@@ -3264,7 +3268,7 @@ function _arPlace(){
     pos.y - bbBot,
     pos.z - bbCZ
   );
-  arPlaced=true;
+  // arPlaced al true, reticle al onzichtbaar via render loop
   if(arReticle) arReticle.visible=false;
   document.getElementById('arPlace').style.display='none';
   document.getElementById('arReset').style.display='block';
@@ -3277,7 +3281,9 @@ function _arPlace(){
 function _arReset(){
   arPlaced=false; arLastPos=null; arLastQuat=null;
   LAMP.visible=false;
-  arKeys.l=false; arKeys.r=false;
+  LAMP.position.set(0,0,0);
+  LAMP.rotation.set(0,0,0);
+  Object.keys(arKeys).forEach(k=>arKeys[k]=false);
   if(arTickId){cancelAnimationFrame(arTickId);arTickId=null;}
   document.getElementById('arReset').style.display='none';
   document.getElementById('arControls').style.display='none';
