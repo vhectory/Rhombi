@@ -563,7 +563,7 @@ const VARIANTS=[
   // ── Gereed ───────────────────────────────────────────────────────
   {id:"tafel", icon:"▢", lbl:"Tafel",
    tit:"Rhombi Tafel", sub:"Tafellamp · E14 fitting",
-   glb:"rhombi-tafel.glb",
+   glb:"rhombi-tafel.glb", yOffset:0,
    excludeNodes:["voet_a"],  // alleen voet_t gebruiken
    shade:{p:[0,0,0], r:[0,0,0]},
    frame:{p:[0,0,0], r:[0,0,0]},
@@ -1507,6 +1507,12 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     const _cCenter = _cBox.getCenter(new THREE.Vector3());
     // Centreer X en Z op midden, Y op onderkant bbox (zodat voet op y=0 staat)
     const _yOffset = _cBox.min.y;
+    console.log('[Rhombi] bbox min.y='+_yOffset.toFixed(3)+' max.y='+_cBox.max.y.toFixed(3)+' center.x='+_cCenter.x.toFixed(3)+' center.z='+_cCenter.z.toFixed(3));
+    // Log per group
+    Object.entries(activeGLBGroups).forEach(([id,g])=>{
+      const gb=new THREE.Box3().setFromObject(g);
+      if(!gb.isEmpty()) console.log('[Rhombi] group '+id+' y: '+gb.min.y.toFixed(3)+' to '+gb.max.y.toFixed(3));
+    });
     Object.values(activeGLBGroups).forEach(g => {
       g.position.x -= _cCenter.x;
       g.position.y -= _yOffset;  // onderkant op y=0, niet midden
@@ -1515,6 +1521,7 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     // Variant yOffset NA centering (Y = omhoog in Three.js)
     const _vOff = window._rhombiCurrentVariant;
     if(_vOff && _vOff.yOffset) {
+      window._arCenterOffset.y += _vOff.yOffset;
       Object.values(activeGLBGroups).forEach(g => { g.position.y += _vOff.yOffset; });
     }
   }
@@ -1584,9 +1591,10 @@ function swapLocal(varId){
           if(_swapSeq !== mySeq) return;
           _setAllOpacity(t);
           const cur = 1.1 * (1 - t);
+          const _co2 = window._arCenterOffset || new THREE.Vector3();
           Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
             const off = GLB_EX_OFFSETS[pid] || [0,0,0];
-            grp.position.set(off[0]*cur, off[1]*cur, off[2]*cur);
+            grp.position.set(_co2.x + off[0]*cur, _co2.y + off[1]*cur, _co2.z + off[2]*cur);
           });
         },
         () => { if(_swapSeq === mySeq) exP = exT; }
@@ -1648,9 +1656,10 @@ function applyExplode(){
 
   if (activeGLBGroups) {
     // GLB modus: verschuif elke group op basis van offset tabel
+    const _co = window._arCenterOffset || new THREE.Vector3();
     Object.entries(activeGLBGroups).forEach(([partId, grp]) => {
       const off = GLB_EX_OFFSETS[partId] || [0, 0, 0];
-      grp.position.set(off[0]*t, off[1]*t, off[2]*t);
+      grp.position.set(_co.x + off[0]*t, _co.y + off[1]*t, _co.z + off[2]*t);
     });
   }
 }
@@ -3103,7 +3112,7 @@ window.addEventListener('message', function(e) {
 let arSess=null, arHitSrc=null, arReticle=null;
 let arPlaced=false, arOverlay=null, arLocalSp=null;
 let arLastPos=null, arLastQuat=null;
-let arKeys={l:false,r:false,n:false,s:false,e:false,w:false};
+let arKeys={l:false,r:false};
 let arTickId=null;
 
 function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
@@ -3142,28 +3151,10 @@ async function startAR(){
       </div>
       <!-- Midden: plaatsen knop -->
       <button id="arPlace" style="display:none;flex:1;height:48px;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase">Hier plaatsen</button>
-      <!-- Move kruis -->
-      <div id="arControls" style="display:none;gap:6px;align-items:center;flex-shrink:0">
-        <div style="display:grid;grid-template-columns:repeat(3,42px);grid-template-rows:repeat(3,42px);gap:2px">
-          <div></div>
-          <button id="arN" style="background:rgba(12,14,18,.8);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:14px;touch-action:none">▲</button>
-          <div></div>
-          <button id="arW" style="background:rgba(12,14,18,.8);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:14px;touch-action:none">◀</button>
-          <div style="background:rgba(200,136,74,.06);border:1px solid rgba(200,136,74,.15);display:flex;align-items:center;justify-content:center;font-size:7px;font-family:Space Mono,monospace;color:rgba(200,136,74,.4);letter-spacing:.04em">SLEEP</div>
-          <button id="arE" style="background:rgba(12,14,18,.8);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:14px;touch-action:none">▶</button>
-          <div></div>
-          <button id="arS" style="background:rgba(12,14,18,.8);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:14px;touch-action:none">▼</button>
-          <div></div>
-        </div>
-        <div style="width:1px;height:72px;background:rgba(255,255,255,.08)"></div>
-        <!-- Draai -->
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
-          <div style="font-family:Space Mono,monospace;font-size:7px;letter-spacing:.08em;color:rgba(200,136,74,.5);text-transform:uppercase">Draai</div>
-          <div style="display:flex;gap:4px">
-            <button id="arL" style="width:42px;height:42px;background:rgba(200,136,74,.12);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-size:20px;touch-action:none">↺</button>
-            <button id="arR" style="width:42px;height:42px;background:rgba(200,136,74,.12);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-size:20px;touch-action:none">↻</button>
-          </div>
-        </div>
+      <!-- Draai knoppen -->
+      <div id="arControls" style="display:none;gap:8px;align-items:center;flex-shrink:0">
+        <button id="arL" style="width:52px;height:52px;background:rgba(200,136,74,.12);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:22px;border-radius:3px;touch-action:none">↺</button>
+        <button id="arR" style="width:52px;height:52px;background:rgba(200,136,74,.12);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:22px;border-radius:3px;touch-action:none">↻</button>
       </div>
     </div>`;
   document.body.appendChild(arOverlay);
@@ -3189,7 +3180,7 @@ async function startAR(){
     R.xr.enabled=true; await R.xr.setSession(arSess);
 
     // Hold knoppen koppelen NA setSession — dan werkt touch in domOverlay context
-    ['N','S','E','W','L','R'].forEach(k=>{
+    ['L','R'].forEach(k=>{
       const el=document.getElementById('ar'+k); if(!el) return;
       const key=k.toLowerCase();
       el.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();arKeys[key]=true;},{passive:false});
@@ -3251,25 +3242,28 @@ async function startAR(){
 }
 
 function _arPlace(){
-  let pos=arLastPos||(()=>{
-    const cam=R.xr.getCamera?R.xr.getCamera():CAM;
-    const d=new THREE.Vector3(0,-0.3,-1.2).applyQuaternion(cam.quaternion);
-    return cam.position.clone().add(d);
-  })();
+  if(!arLastPos) return; // wacht op reticle hit
+  const pos=arLastPos;
   const quat=arLastQuat||new THREE.Quaternion();
-  // Reset lamp naar neutraal voor correcte bbox
+  // Bereken bbox in neutrale positie
   LAMP.position.set(0,0,0);
   LAMP.rotation.set(0,0,0);
+  LAMP.scale.set(1,1,1);
   LAMP.visible=true;
   LAMP.updateMatrixWorld(true);
   const bb=new THREE.Box3().setFromObject(LAMP);
   const bbCX=(bb.min.x+bb.max.x)/2;
   const bbCZ=(bb.min.z+bb.max.z)/2;
   const bbBot=bb.min.y;
-  // Nu rotatie en positie instellen
+  // Rotatie alleen Y-as
   const euler=new THREE.Euler().setFromQuaternion(quat,'YXZ');
-  LAMP.rotation.set(0,euler.y,0);
-  LAMP.position.set(pos.x-bbCX, pos.y-bbBot, pos.z-bbCZ);
+  LAMP.rotation.y=euler.y;
+  // Zet onderkant op reticle hoogte, horizontaal gecentreerd op reticle XZ
+  LAMP.position.set(
+    pos.x - bbCX,
+    pos.y - bbBot,
+    pos.z - bbCZ
+  );
   arPlaced=true;
   if(arReticle) arReticle.visible=false;
   document.getElementById('arPlace').style.display='none';
@@ -3283,7 +3277,7 @@ function _arPlace(){
 function _arReset(){
   arPlaced=false; arLastPos=null; arLastQuat=null;
   LAMP.visible=false;
-  Object.keys(arKeys).forEach(k=>arKeys[k]=false);
+  arKeys.l=false; arKeys.r=false;
   if(arTickId){cancelAnimationFrame(arTickId);arTickId=null;}
   document.getElementById('arReset').style.display='none';
   document.getElementById('arControls').style.display='none';
@@ -3293,20 +3287,12 @@ function _arReset(){
 
 function _arStartTick(){
   if(arTickId) cancelAnimationFrame(arTickId);
-  const ROT=0.03, STEP=0.018;
+  const ROT=0.03;
   function tick(){
     if(!arPlaced||!arSess){arTickId=null;return;}
     if(arKeys.l) LAMP.rotation.y+=ROT;
     if(arKeys.r) LAMP.rotation.y-=ROT;
-    if(arKeys.n||arKeys.s||arKeys.e||arKeys.w){
-      const cam=R.xr.getCamera?R.xr.getCamera():CAM;
-      const fwd=new THREE.Vector3(); cam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
-      const right=new THREE.Vector3().crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
-      if(arKeys.n) LAMP.position.addScaledVector(fwd,   STEP);
-      if(arKeys.s) LAMP.position.addScaledVector(fwd,  -STEP);
-      if(arKeys.e) LAMP.position.addScaledVector(right,  STEP);
-      if(arKeys.w) LAMP.position.addScaledVector(right, -STEP);
-    }
+
     arTickId=requestAnimationFrame(tick);
   }
   arTickId=requestAnimationFrame(tick);
@@ -3316,7 +3302,7 @@ function _arEnd(){
   // Stop alles
   arSess=null; arHitSrc=null; arPlaced=false; arLocalSp=null;
   arLastPos=null; arLastQuat=null;
-  Object.keys(arKeys).forEach(k=>arKeys[k]=false);
+  arKeys.l=false; arKeys.r=false;
   if(arTickId){cancelAnimationFrame(arTickId);arTickId=null;}
   if(arReticle){SC.remove(arReticle);arReticle=null;}
   if(arOverlay){arOverlay.remove();arOverlay=null;}
