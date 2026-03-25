@@ -1971,6 +1971,27 @@ function loadGLBParts(url) {
               obj.updateWorldMatrix(true, false);
               mesh.geometry = mesh.geometry.clone();
               mesh.geometry.applyMatrix4(obj.matrixWorld);
+              // Gespiegelde mesh: negatieve determinant = geflipt normaal
+              if(obj.matrixWorld.determinant() < 0) {
+                mesh.geometry.index
+                  ? mesh.geometry.index.array.reverse && (() => {
+                      const idx = mesh.geometry.index.array;
+                      for(let i=0;i<idx.length;i+=3){
+                        const t=idx[i]; idx[i]=idx[i+2]; idx[i+2]=t;
+                      }
+                      mesh.geometry.index.needsUpdate=true;
+                    })()
+                  : (() => {
+                      const pos = mesh.geometry.attributes.position;
+                      for(let i=0;i<pos.count;i+=3){
+                        const ax=pos.getX(i),ay=pos.getY(i),az=pos.getZ(i);
+                        pos.setXYZ(i,   pos.getX(i+2), pos.getY(i+2), pos.getZ(i+2));
+                        pos.setXYZ(i+2, ax, ay, az);
+                      }
+                      pos.needsUpdate=true;
+                    })();
+                if(mesh.geometry.attributes.normal) mesh.geometry.computeVertexNormals();
+              }
               // mesh blijft op positie 0,0,0 — centering via group
               groups[partId].add(mesh);
             });
@@ -3246,14 +3267,19 @@ function _arPlace(){
     return cam.position.clone().add(d);
   })();
   const quat=arLastQuat||new THREE.Quaternion();
+  // Reset lamp naar neutraal voor correcte bbox
+  LAMP.position.set(0,0,0);
+  LAMP.rotation.set(0,0,0);
+  LAMP.visible=true;
+  LAMP.updateMatrixWorld(true);
+  const bb=new THREE.Box3().setFromObject(LAMP);
+  const bbCX=(bb.min.x+bb.max.x)/2;
+  const bbCZ=(bb.min.z+bb.max.z)/2;
+  const bbBot=bb.min.y;
+  // Nu rotatie en positie instellen
   const euler=new THREE.Euler().setFromQuaternion(quat,'YXZ');
   LAMP.rotation.set(0,euler.y,0);
-  LAMP.position.copy(pos);
-  LAMP.visible=true; LAMP.updateMatrixWorld(true);
-  const bb=new THREE.Box3().setFromObject(LAMP);
-  LAMP.position.y+=pos.y-bb.min.y;
-  LAMP.position.x+=pos.x-(bb.min.x+bb.max.x)/2;
-  LAMP.position.z+=pos.z-(bb.min.z+bb.max.z)/2;
+  LAMP.position.set(pos.x-bbCX, pos.y-bbBot, pos.z-bbCZ);
   arPlaced=true;
   if(arReticle) arReticle.visible=false;
   document.getElementById('arPlace').style.display='none';
