@@ -2075,9 +2075,11 @@ function fitCameraToGLB() {
   const center = box.getCenter(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
   // Zet camera op 2.2x de grootste dimensie, minimum 2.5
-  camR  = Math.max(0.5, maxDim * 1.4);
-  camTh = 0.3;        // licht van de hoek
-  camPh = 0.38;       // lichte bovenaanzicht
+  // Fit hele lamp in vierkant canvas met kleine marge
+  const diagSize = Math.sqrt(size.x*size.x + size.y*size.y) * 1.15; // diagonaal + 15% marge
+  camR  = Math.max(0.5, diagSize / (2 * Math.tan(CAM.fov * Math.PI / 360)));
+  camTh = 0.0;        // recht van voren
+  camPh = 0.25;       // bijna recht erop, klein beetje boven
   panX  = center.x;
   panY  = center.y; // camera kijkt naar het midden van het model
   console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2) + ' center=' + center.y.toFixed(2));
