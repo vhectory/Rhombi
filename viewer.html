@@ -3224,7 +3224,13 @@ async function startAR(){
         if(b){b.style.borderColor='';b.style.color='';}
       });
       R.setAnimationLoop(null);
-      setTimeout(()=>{ requestAnimationFrame(animate); if(typeof fitCameraToGLB==="function") fitCameraToGLB(); },150);
+      setTimeout(()=>{
+        // Reset renderer size voor normale weergave
+        if(typeof resize==='function') resize();
+        requestAnimationFrame(animate);
+        // Camera terugzetten op lamp
+        if(typeof fitCameraToGLB==='function') fitCameraToGLB();
+      }, 200);
     });
 
     // Render loop
@@ -3298,30 +3304,20 @@ function arDoPlace(){
   document.getElementById('arRot').style.display='flex';
   document.getElementById('arHint').textContent='↺↻ Draaiknoppen rechts';
 
-  // Game loop: rotatie om eigen centrum + verplaatsen
+  // Game loop: rotatie + verplaatsen
   const ROT=0.028, STEP=0.016;
   function rotTick(){
     if(!arPlaced||!arSess){arRotTick=null;return;}
-    // Rotatie om het centrum van de lamp (niet world origin)
-    if(arRotMove.l||arRotMove.r){
-      const center=new THREE.Vector3();
-      new THREE.Box3().setFromObject(LAMP).getCenter(center);
-      // Verschuif naar centrum, roteer, terug
-      LAMP.position.sub(center);
-      if(arRotMove.l) LAMP.rotation.y+=ROT;
-      if(arRotMove.r) LAMP.rotation.y-=ROT;
-      LAMP.position.applyEuler(new THREE.Euler(0,arRotMove.l?ROT:-ROT,0));
-      LAMP.position.add(center);
-    }
-    // Verplaatsen relatief aan camera richting
+    if(arRotMove.l) LAMP.rotation.y+=ROT;
+    if(arRotMove.r) LAMP.rotation.y-=ROT;
     if(arRotMove.n||arRotMove.s||arRotMove.e||arRotMove.w){
       const cam=R.xr.getCamera?R.xr.getCamera():CAM;
       const fwd=new THREE.Vector3(); cam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
       const right=new THREE.Vector3().crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
-      if(arRotMove.n) LAMP.position.addScaledVector(fwd,  STEP);
-      if(arRotMove.s) LAMP.position.addScaledVector(fwd, -STEP);
-      if(arRotMove.e) LAMP.position.addScaledVector(right, STEP);
-      if(arRotMove.w) LAMP.position.addScaledVector(right,-STEP);
+      if(arRotMove.n) LAMP.position.addScaledVector(fwd,   STEP);
+      if(arRotMove.s) LAMP.position.addScaledVector(fwd,  -STEP);
+      if(arRotMove.e) LAMP.position.addScaledVector(right,  STEP);
+      if(arRotMove.w) LAMP.position.addScaledVector(right, -STEP);
     }
     arRotTick=requestAnimationFrame(rotTick);
   }
