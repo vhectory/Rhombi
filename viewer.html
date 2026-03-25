@@ -1961,38 +1961,28 @@ function loadGLBParts(url) {
                 groups[partId].name = 'glb_' + partId;
               }
               obj.updateWorldMatrix(true, false);
-              var mesh = new THREE.Mesh(obj.geometry, getOrCreateMat(partId));
+              var mesh = new THREE.Mesh(obj.geometry.clone(), getOrCreateMat(partId));
               mesh.name = obj.name;
               mesh.castShadow = true;
               mesh.receiveShadow = true;
               mesh.userData.partId = partId;
-              // Bak de world matrix in de geometry zodat mesh zelf op 0,0,0 staat
-              // Hierdoor werkt centering via group.position correct
-              obj.updateWorldMatrix(true, false);
-              mesh.geometry = mesh.geometry.clone();
+              // Bak world matrix in geometry — mesh staat op 0,0,0
+              // Centering via group.position werkt dan correct
               mesh.geometry.applyMatrix4(obj.matrixWorld);
-              // Gespiegelde mesh: negatieve determinant = geflipt normaal
+              // Gespiegelde mesh (negatieve determinant = mirrored):
+              // winding order omkeren zodat normals kloppen
               if(obj.matrixWorld.determinant() < 0) {
-                mesh.geometry.index
-                  ? mesh.geometry.index.array.reverse && (() => {
-                      const idx = mesh.geometry.index.array;
-                      for(let i=0;i<idx.length;i+=3){
-                        const t=idx[i]; idx[i]=idx[i+2]; idx[i+2]=t;
-                      }
-                      mesh.geometry.index.needsUpdate=true;
-                    })()
-                  : (() => {
-                      const pos = mesh.geometry.attributes.position;
-                      for(let i=0;i<pos.count;i+=3){
-                        const ax=pos.getX(i),ay=pos.getY(i),az=pos.getZ(i);
-                        pos.setXYZ(i,   pos.getX(i+2), pos.getY(i+2), pos.getZ(i+2));
-                        pos.setXYZ(i+2, ax, ay, az);
-                      }
-                      pos.needsUpdate=true;
-                    })();
+                var idx = mesh.geometry.index;
+                if(idx) {
+                  var arr = idx.array;
+                  for(var i=0; i<arr.length; i+=3) {
+                    var tmp=arr[i+1]; arr[i+1]=arr[i+2]; arr[i+2]=tmp;
+                  }
+                  idx.needsUpdate = true;
+                }
                 if(mesh.geometry.attributes.normal) mesh.geometry.computeVertexNormals();
+                mesh.userData.mirrored = true;
               }
-              // mesh blijft op positie 0,0,0 — centering via group
               groups[partId].add(mesh);
             });
             var summary = Object.keys(groups).join(', ');
@@ -3178,22 +3168,10 @@ async function startAR(){
     </div>`;
   document.body.appendChild(arOverlay);
 
-  // Knop events direct koppelen
+  // Basis knoppen (onclick werkt altijd)
   document.getElementById('arClose').onclick=()=>{if(arSess)arSess.end();};
   document.getElementById('arPlace').onclick=()=>_arPlace();
   document.getElementById('arReset').onclick=()=>_arReset();
-
-  // Hold knoppen
-  ['N','S','E','W','L','R'].forEach(k=>{
-    const el=document.getElementById('ar'+k); if(!el) return;
-    const key=k.toLowerCase();
-    el.addEventListener('touchstart',e=>{e.preventDefault();arKeys[key]=true;},{passive:false});
-    el.addEventListener('touchend',  e=>{e.preventDefault();arKeys[key]=false;},{passive:false});
-    el.addEventListener('touchcancel',()=>arKeys[key]=false,{passive:true});
-    el.addEventListener('mousedown', ()=>arKeys[key]=true);
-    el.addEventListener('mouseup',   ()=>arKeys[key]=false);
-    el.addEventListener('mouseleave',()=>arKeys[key]=false);
-  });
 
   // Reticle
   arReticle=new THREE.Mesh(
@@ -3209,6 +3187,18 @@ async function startAR(){
       domOverlay:{root:arOverlay}
     });
     R.xr.enabled=true; await R.xr.setSession(arSess);
+
+    // Hold knoppen koppelen NA setSession — dan werkt touch in domOverlay context
+    ['N','S','E','W','L','R'].forEach(k=>{
+      const el=document.getElementById('ar'+k); if(!el) return;
+      const key=k.toLowerCase();
+      el.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();arKeys[key]=true;},{passive:false});
+      el.addEventListener('touchend',  e=>{e.preventDefault();e.stopPropagation();arKeys[key]=false;},{passive:false});
+      el.addEventListener('touchcancel',()=>arKeys[key]=false,{passive:true});
+      el.addEventListener('mousedown', ()=>arKeys[key]=true);
+      el.addEventListener('mouseup',   ()=>arKeys[key]=false);
+      el.addEventListener('mouseleave',()=>arKeys[key]=false);
+    });
     R.setClearColor(0x000000,0);
     SC.background=null;
     SC.traverse(o=>{if(o.isMesh&&o.material&&o.material.side===THREE.BackSide){o.visible=false;o.userData._arH=true;}});
