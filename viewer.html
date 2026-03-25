@@ -1485,11 +1485,11 @@ function _animate(durationMs, fromVal, toVal, onTick, onDone) {
 
 function _finishLoad(groups, prevGroups, skipCamera=false) {
   // Verwijder oude groepen uit wrapper
-  if(prevGroups) Object.values(prevGroups).forEach(g => _lampWrap.remove(g));
+  if(prevGroups) Object.entries(prevGroups).forEach(([k,g]) => { if(k !== '__lampPos' && g.isObject3D) _lampWrap.remove(g); });
   activeGLBGroups = groups;
-  Object.values(groups).forEach(g => _lampWrap.add(g));
+  Object.entries(groups).forEach(([k,g]) => { if(k !== '__lampPos' && g.isObject3D) _lampWrap.add(g); });
 
-  curV.parts = Object.keys(groups).map(id => partInfo(id));
+  curV.parts = Object.keys(groups).filter(k => k !== '__lampPos').map(id => partInfo(id));
   if(!curV.parts.find(p => p.id === selP)) selP = curV.parts[0].id;
 
   if(window._pendingColors) {
@@ -1502,14 +1502,15 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
 
   // Centreer model — bbox midden op 0,0,0
   const _cBox = new THREE.Box3();
-  Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh && !o.userData.isOutline) _cBox.expandByObject(o); }));
+  Object.entries(activeGLBGroups).forEach(([k,g]) => { if(k !== '__lampPos' && g.isObject3D) g.traverse(o => { if(o.isMesh && !o.userData.isOutline) _cBox.expandByObject(o); }); });
   if(!_cBox.isEmpty()) {
     const _cCenter = _cBox.getCenter(new THREE.Vector3());
     const _yOffset = _cBox.min.y;
     // Sla centering offset op voor lamp_pos correctie
     window._arCenterOffset = new THREE.Vector3(-_cCenter.x, -_yOffset, -_cCenter.z);
     console.log('[Rhombi] bbox min.y='+_yOffset.toFixed(3)+' max.y='+_cBox.max.y.toFixed(3)+' center.x='+_cCenter.x.toFixed(3)+' center.z='+_cCenter.z.toFixed(3));
-    Object.values(activeGLBGroups).forEach(g => {
+    Object.entries(activeGLBGroups).forEach(([k,g]) => {
+      if(k === '__lampPos' || !g.isObject3D) return;
       g.position.x -= _cCenter.x;
       g.position.y -= _yOffset;
       g.position.z -= _cCenter.z;
@@ -1518,11 +1519,11 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     const _vOff = window._rhombiCurrentVariant;
     if(_vOff && _vOff.yOffset) {
       window._arCenterOffset.y += _vOff.yOffset;
-      Object.values(activeGLBGroups).forEach(g => { g.position.y += _vOff.yOffset; });
+      Object.entries(activeGLBGroups).forEach(([k,g]) => { if(k !== '__lampPos' && g.isObject3D) g.position.y += _vOff.yOffset; });
     }
     // Sla rustpositie op per group (nodig voor explode)
-    Object.values(activeGLBGroups).forEach(g => {
-      g.userData._centerOffset = g.position.clone();
+    Object.entries(activeGLBGroups).forEach(([k,g]) => {
+      if(k !== '__lampPos' && g.isObject3D) g.userData._centerOffset = g.position.clone();
     });
   }
 
@@ -1665,13 +1666,12 @@ const GLB_EX_OFFSETS = {
 
 function applyExplode(){
   const t = exP;
-
   if (activeGLBGroups) {
-    // GLB modus: verschuif elke group op basis van offset tabel
-    const _co = window._arCenterOffset || new THREE.Vector3();
     Object.entries(activeGLBGroups).forEach(([partId, grp]) => {
+      if(partId === '__lampPos') return;
       const off = GLB_EX_OFFSETS[partId] || [0, 0, 0];
-      const base = grp.userData._centerOffset || new THREE.Vector3();
+      const base = grp.userData._centerOffset;
+      if(!base) return; // nog niet gecentreerd
       grp.position.set(base.x + off[0]*t, base.y + off[1]*t, base.z + off[2]*t);
     });
   }
@@ -1952,7 +1952,8 @@ function clearActiveGLB() {
   // Reset zichtbaarheid bij variant wissel
   Object.keys(PART_VIS).forEach(k => delete PART_VIS[k]);
   if (!activeGLBGroups) return;
-  Object.values(activeGLBGroups).forEach(g => {
+  Object.entries(activeGLBGroups).forEach(([k,g]) => {
+    if(k === '__lampPos' || !g.isObject3D) return;
     _lampWrap.remove(g);
     g.traverse(o => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
   });
@@ -2066,9 +2067,9 @@ function fitCameraToGLB() {
   const center = box.getCenter(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
   // Zet camera op 2.2x de grootste dimensie, minimum 2.5
-  camR  = Math.max(0.5, maxDim * 2.2);
-  camTh = 0;          // voorkant
-  camPh = 0.42;       // lichte bovenaanzicht
+  camR  = Math.max(0.5, maxDim * 1.4);
+  camTh = 0.3;        // licht van de hoek
+  camPh = 0.38;       // lichte bovenaanzicht
   panX  = center.x;
   panY  = center.y; // camera kijkt naar het midden van het model
   console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2) + ' center=' + center.y.toFixed(2));
