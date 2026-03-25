@@ -1670,7 +1670,7 @@ function applyExplode(){
 // Uitbreiden: voeg een entry toe. Bij een nieuw GLB-mesh zonder entry hier
 // krijgt het automatisch een standaard naam en materiaal.
 const PART_GROUPS = [
-  { id: 'kap',          nm: 'Lichtkap',     sh: true  },
+  { id: 'kap',          nm: 'Lichtkap',     sh: true,  aliases: ['kap_1','kap_2','kap_3','kap_4'] },
   { id: 'voet',         nm: 'Voet',         aliases: ['voet_t','voet_a','voet_w'] },
   { id: 'kader_l',      nm: 'Kader Links'              },
   { id: 'kader_r',      nm: 'Kader Rechts'             },
@@ -3084,7 +3084,7 @@ window.addEventListener('message', function(e) {
 // ═══════════════ AR ═══════════════
 let arSess=null, arHitSrc=null, arReticle=null;
 let arPlaced=false, arOverlay=null, arLocalSp=null;
-let arRotMove={l:false,r:false}, arRotTick=null;
+let arRotMove={l:false,r:false,n:false,s:false,e:false,w:false}, arRotTick=null;
 let arLastPos=null, arLastQuat=null;
 const _origLampVisible = true;
 
@@ -3129,13 +3129,29 @@ async function startAR(){
       <button id="arPlace" style="display:none;flex:1;background:rgba(200,136,74,.95);border:none;
         color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;
         text-transform:uppercase;padding:14px 0">Hier plaatsen</button>
-      <div id="arRot" style="display:none;gap:8px;flex-shrink:0">
-        <button id="arRotL" style="width:52px;height:52px;background:rgba(200,136,74,.12);
-          border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:22px;
-          border-radius:3px;touch-action:none">↺</button>
-        <button id="arRotR" style="width:52px;height:52px;background:rgba(200,136,74,.12);
-          border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:22px;
-          border-radius:3px;touch-action:none">↻</button>
+      <div id="arRot" style="display:none;gap:6px;flex-shrink:0;align-items:center">
+        <!-- Verplaats kruis -->
+        <div style="display:grid;grid-template-columns:44px 44px 44px;grid-template-rows:44px 44px 44px;gap:3px">
+          <div></div>
+          <button id="arMoveN" style="width:44px;height:44px;background:rgba(12,14,18,.8);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:16px;border-radius:3px;touch-action:none">▲</button>
+          <div></div>
+          <button id="arMoveW" style="width:44px;height:44px;background:rgba(12,14,18,.8);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:16px;border-radius:3px;touch-action:none">◀</button>
+          <div style="width:44px;height:44px;background:rgba(200,136,74,.06);border:1px solid rgba(200,136,74,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-family:Space Mono,monospace;letter-spacing:.06em;color:rgba(200,136,74,.5)">SLEEP</div>
+          <button id="arMoveE" style="width:44px;height:44px;background:rgba(12,14,18,.8);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:16px;border-radius:3px;touch-action:none">▶</button>
+          <div></div>
+          <button id="arMoveS" style="width:44px;height:44px;background:rgba(12,14,18,.8);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:16px;border-radius:3px;touch-action:none">▼</button>
+          <div></div>
+        </div>
+        <!-- Scheiding -->
+        <div style="width:1px;height:80px;background:rgba(255,255,255,.08);margin:0 2px"></div>
+        <!-- Draai knoppen -->
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+          <div style="font-family:Space Mono,monospace;font-size:7px;letter-spacing:.1em;color:rgba(200,136,74,.5);text-transform:uppercase">Draai</div>
+          <div style="display:flex;gap:6px">
+            <button id="arRotL" style="width:44px;height:44px;background:rgba(200,136,74,.12);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;border-radius:3px;touch-action:none">↺</button>
+            <button id="arRotR" style="width:44px;height:44px;background:rgba(200,136,74,.12);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:20px;border-radius:3px;touch-action:none">↻</button>
+          </div>
+        </div>
       </div>
     </div>`;
   document.body.appendChild(arOverlay);
@@ -3196,7 +3212,7 @@ async function startAR(){
       if(arReticle){SC.remove(arReticle);arReticle=null;}
       if(arOverlay){arOverlay.remove();arOverlay=null;}
       if(arRotTick){cancelAnimationFrame(arRotTick);arRotTick=null;}
-      arRotMove={l:false,r:false};
+      arRotMove={l:false,r:false,n:false,s:false,e:false,w:false};
       R.xr.enabled=false;
       R.setClearColor(0x0C0E12,1);
       SC.background=new THREE.Color(0x0C0E12);
@@ -3208,7 +3224,7 @@ async function startAR(){
         if(b){b.style.borderColor='';b.style.color='';}
       });
       R.setAnimationLoop(null);
-      setTimeout(()=>requestAnimationFrame(animate),150);
+      setTimeout(()=>{ requestAnimationFrame(animate); if(typeof fitCameraToGLB==="function") fitCameraToGLB(); },150);
     });
 
     // Render loop
@@ -3282,12 +3298,31 @@ function arDoPlace(){
   document.getElementById('arRot').style.display='flex';
   document.getElementById('arHint').textContent='↺↻ Draaiknoppen rechts';
 
-  // Draai game loop
-  const ROT=0.028;
+  // Game loop: rotatie om eigen centrum + verplaatsen
+  const ROT=0.028, STEP=0.016;
   function rotTick(){
     if(!arPlaced||!arSess){arRotTick=null;return;}
-    if(arRotMove.l) LAMP.rotation.y+=ROT;
-    if(arRotMove.r) LAMP.rotation.y-=ROT;
+    // Rotatie om het centrum van de lamp (niet world origin)
+    if(arRotMove.l||arRotMove.r){
+      const center=new THREE.Vector3();
+      new THREE.Box3().setFromObject(LAMP).getCenter(center);
+      // Verschuif naar centrum, roteer, terug
+      LAMP.position.sub(center);
+      if(arRotMove.l) LAMP.rotation.y+=ROT;
+      if(arRotMove.r) LAMP.rotation.y-=ROT;
+      LAMP.position.applyEuler(new THREE.Euler(0,arRotMove.l?ROT:-ROT,0));
+      LAMP.position.add(center);
+    }
+    // Verplaatsen relatief aan camera richting
+    if(arRotMove.n||arRotMove.s||arRotMove.e||arRotMove.w){
+      const cam=R.xr.getCamera?R.xr.getCamera():CAM;
+      const fwd=new THREE.Vector3(); cam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
+      const right=new THREE.Vector3().crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
+      if(arRotMove.n) LAMP.position.addScaledVector(fwd,  STEP);
+      if(arRotMove.s) LAMP.position.addScaledVector(fwd, -STEP);
+      if(arRotMove.e) LAMP.position.addScaledVector(right, STEP);
+      if(arRotMove.w) LAMP.position.addScaledVector(right,-STEP);
+    }
     arRotTick=requestAnimationFrame(rotTick);
   }
   if(arRotTick) cancelAnimationFrame(arRotTick);
@@ -3303,13 +3338,15 @@ function arDoPlace(){
     el.addEventListener('mouseleave',()=>arRotMove[key]=false);
   }
   hold('arRotL','l'); hold('arRotR','r');
+  hold('arMoveN','n'); hold('arMoveS','s');
+  hold('arMoveE','e'); hold('arMoveW','w');
 }
 
 function arDoReset(){
   arPlaced=false; arLastPos=null; arLastQuat=null;
   LAMP.visible=false;
   if(arRotTick){cancelAnimationFrame(arRotTick);arRotTick=null;}
-  arRotMove={l:false,r:false};
+  arRotMove={l:false,r:false,n:false,s:false,e:false,w:false};
   document.getElementById('arReset').style.display='none';
   document.getElementById('arRot').style.display='none';
   document.getElementById('arPlace').style.display='none';
