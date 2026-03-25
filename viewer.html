@@ -1966,7 +1966,12 @@ function loadGLBParts(url) {
               mesh.castShadow = true;
               mesh.receiveShadow = true;
               mesh.userData.partId = partId;
-              mesh.applyMatrix4(obj.matrixWorld);
+              // Bak de world matrix in de geometry zodat mesh zelf op 0,0,0 staat
+              // Hierdoor werkt centering via group.position correct
+              obj.updateWorldMatrix(true, false);
+              mesh.geometry = mesh.geometry.clone();
+              mesh.geometry.applyMatrix4(obj.matrixWorld);
+              // mesh blijft op positie 0,0,0 — centering via group
               groups[partId].add(mesh);
             });
             var summary = Object.keys(groups).join(', ');
