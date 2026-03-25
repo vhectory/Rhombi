@@ -3084,47 +3084,16 @@ window.addEventListener('message', function(e) {
 // ═══════════════ AR ═══════════════
 let arSess=null, arHitSrc=null, arReticle=null;
 let arPlaced=false, arOverlay=null, arLocalSp=null;
-let arLastPos=null, arLastQuat=null, arRotTick=null;
-const AR = {l:false,r:false,n:false,s:false,e:false,w:false};
+// Move/rotatie state — gelezen BINNEN de XR render loop
+const arKeys={l:false,r:false,n:false,s:false,e:false,w:false};
+let arLastPos=null, arLastQuat=null;
 
 function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent); }
+
 function checkARSupport(){
-  ['arBtnMob','arBtnVbar'].forEach(id=>{const b=document.getElementById(id);if(b)b.style.display='flex';});
-}
-
-function _arToast(msg){
-  const t=document.createElement('div');
-  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;z-index:9999;max-width:85vw;text-align:center;white-space:pre-wrap';
-  t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),6000);
-}
-
-// Game loop — loopt zolang AR actief
-function _arTick(){
-  if(!arSess){ arRotTick=null; return; }
-  if(AR.l) LAMP.rotation.y += 0.028;
-  if(AR.r) LAMP.rotation.y -= 0.028;
-  if(AR.n||AR.s||AR.e||AR.w){
-    const cam = R.xr.getCamera ? R.xr.getCamera() : CAM;
-    const fwd = new THREE.Vector3(); cam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
-    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0,1,0)).normalize();
-    if(AR.n) LAMP.position.addScaledVector(fwd,   0.016);
-    if(AR.s) LAMP.position.addScaledVector(fwd,  -0.016);
-    if(AR.e) LAMP.position.addScaledVector(right,  0.016);
-    if(AR.w) LAMP.position.addScaledVector(right, -0.016);
-  }
-  arRotTick = requestAnimationFrame(_arTick);
-}
-
-function _hold(id, key){
-  const el = document.getElementById(id); if(!el) return;
-  const dn = ()=>{ AR[key]=true; };
-  const up = ()=>{ AR[key]=false; };
-  el.addEventListener('touchstart', e=>{ e.preventDefault(); dn(); }, {passive:false});
-  el.addEventListener('touchend',   e=>{ e.preventDefault(); up(); }, {passive:false});
-  el.addEventListener('touchcancel',()=>up(), {passive:true});
-  el.addEventListener('mousedown',  dn);
-  el.addEventListener('mouseup',    up);
-  el.addEventListener('mouseleave', up);
+  ['arBtnMob','arBtnVbar'].forEach(id=>{
+    const b=document.getElementById(id); if(b) b.style.display='flex';
+  });
 }
 
 async function startAR(){
@@ -3138,79 +3107,98 @@ async function startAR(){
   if(arSess){arSess.end();return;}
   if(!navigator.xr){_arToast('WebXR niet beschikbaar');return;}
 
-  // Bouw overlay
+  // Overlay UI
   arOverlay=document.createElement('div');
-  arOverlay.id='arOverlay';
   arOverlay.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
   arOverlay.innerHTML=`
-    <div id="arHint" style="position:absolute;top:20px;left:50%;transform:translateX(-50%);
+    <div id="arHint" style="position:absolute;top:24px;left:50%;transform:translateX(-50%);
       font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
       color:#fff;text-shadow:0 2px 8px #000;padding:6px 14px;background:rgba(0,0,0,.5);
       white-space:nowrap;pointer-events:none">Richt op een vlak</div>
-
     <div style="position:absolute;bottom:0;left:0;right:0;
       padding:12px 16px calc(12px + env(safe-area-inset-bottom));
       background:rgba(12,14,18,.92);backdrop-filter:blur(10px);
       border-top:1px solid rgba(255,255,255,.08);
-      display:flex;align-items:center;gap:10px;pointer-events:all">
-
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        <button id="arClose" style="background:none;border:1px solid rgba(255,255,255,.2);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 14px;-webkit-tap-highlight-color:transparent;cursor:pointer">✕</button>
-        <button id="arReset" style="display:none;background:none;border:1px solid rgba(200,136,74,.4);color:#C8884A;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 14px;-webkit-tap-highlight-color:transparent;cursor:pointer">↺</button>
-      </div>
-
-      <button id="arPlace" style="display:none;flex:1;background:rgba(200,136,74,.95);border:none;
-        color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;
-        text-transform:uppercase;padding:14px 0;-webkit-tap-highlight-color:transparent;cursor:pointer">Hier plaatsen</button>
-
+      display:flex;align-items:center;gap:8px;pointer-events:all;flex-wrap:wrap">
+      <button id="arClose" style="background:none;border:1px solid rgba(255,255,255,.2);
+        color:#EDE4D0;font-family:Space Mono,monospace;font-size:9px;letter-spacing:.12em;
+        text-transform:uppercase;padding:10px 14px;flex-shrink:0">✕</button>
+      <button id="arReset" style="display:none;background:none;border:1px solid rgba(200,136,74,.4);
+        color:#C8884A;font-family:Space Mono,monospace;font-size:9px;letter-spacing:.12em;
+        text-transform:uppercase;padding:10px 14px;flex-shrink:0">↺</button>
+      <button id="arPlace" style="display:none;flex:1;min-width:120px;background:rgba(200,136,74,.95);
+        border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;
+        text-transform:uppercase;padding:13px 0">Hier plaatsen</button>
       <!-- Verplaats kruis -->
-      <div id="arControls" style="display:none;align-items:center;gap:8px;flex-shrink:0">
-        <div style="display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);gap:3px">
+      <div id="arMovepad" style="display:none;flex-shrink:0">
+        <div style="display:grid;grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px 40px;gap:2px">
           <div></div>
-          <button id="arN" style="width:48px;height:48px;background:rgba(12,14,18,.85);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:18px;border-radius:3px;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:pointer">▲</button>
+          <button id="arMN" style="${_arBtnS()}">▲</button>
           <div></div>
-          <button id="arW" style="width:48px;height:48px;background:rgba(12,14,18,.85);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:18px;border-radius:3px;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:pointer">◀</button>
-          <div style="display:flex;align-items:center;justify-content:center;background:rgba(200,136,74,.06);border:1px solid rgba(200,136,74,.15);border-radius:3px;font-family:Space Mono,monospace;font-size:6px;color:rgba(200,136,74,.4);text-align:center;line-height:1.3">MOVE</div>
-          <button id="arE" style="width:48px;height:48px;background:rgba(12,14,18,.85);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:18px;border-radius:3px;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:pointer">▶</button>
+          <button id="arMW" style="${_arBtnS()}">◀</button>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+            background:rgba(255,255,255,.03);font-size:6px;font-family:Space Mono,monospace;
+            color:rgba(255,255,255,.2)">✛</div>
+          <button id="arME" style="${_arBtnS()}">▶</button>
           <div></div>
-          <button id="arS" style="width:48px;height:48px;background:rgba(12,14,18,.85);border:1px solid rgba(255,255,255,.15);color:#EDE4D0;font-size:18px;border-radius:3px;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:pointer">▼</button>
+          <button id="arMS" style="${_arBtnS()}">▼</button>
           <div></div>
         </div>
-        <div style="width:1px;height:80px;background:rgba(255,255,255,.08)"></div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-          <div style="font-family:Space Mono,monospace;font-size:7px;letter-spacing:.1em;color:rgba(200,136,74,.5);text-transform:uppercase">Draai</div>
-          <div style="display:flex;gap:6px">
-            <button id="arL" style="width:48px;height:48px;background:rgba(200,136,74,.12);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;border-radius:3px;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:pointer">↺</button>
-            <button id="arR" style="width:48px;height:48px;background:rgba(200,136,74,.12);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:18px;border-radius:3px;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:pointer">↻</button>
-          </div>
+      </div>
+      <!-- Scheiding -->
+      <div id="arSep" style="display:none;width:1px;height:60px;background:rgba(255,255,255,.1);flex-shrink:0"></div>
+      <!-- Draai -->
+      <div id="arRotpad" style="display:none;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+        <div style="font-family:Space Mono,monospace;font-size:7px;letter-spacing:.1em;
+          color:rgba(200,136,74,.5);text-transform:uppercase">Draai</div>
+        <div style="display:flex;gap:6px">
+          <button id="arRL" style="${_arBtnS('amber')}">↺</button>
+          <button id="arRR" style="${_arBtnS('amber')}">↻</button>
         </div>
       </div>
     </div>`;
   document.body.appendChild(arOverlay);
 
   // Knop events
-  document.getElementById('arClose').onclick = ()=>{ if(arSess) arSess.end(); };
-  document.getElementById('arPlace').onclick = ()=>arDoPlace();
-  document.getElementById('arReset').onclick = ()=>arDoReset();
+  document.getElementById('arClose').onclick=()=>{ if(arSess) arSess.end(); };
+  document.getElementById('arPlace').onclick=()=>arDoPlace();
+  document.getElementById('arReset').onclick=()=>arDoReset();
+
+  // Hold knoppen — zetten arKeys flag, XR loop leest ze
+  function hold(id,key){
+    const el=document.getElementById(id); if(!el) return;
+    el.addEventListener('touchstart',e=>{e.preventDefault();arKeys[key]=true;},{passive:false});
+    el.addEventListener('touchend',  e=>{e.preventDefault();arKeys[key]=false;},{passive:false});
+    el.addEventListener('touchcancel',()=>arKeys[key]=false,{passive:true});
+    el.addEventListener('mousedown',()=>arKeys[key]=true);
+    el.addEventListener('mouseup',  ()=>arKeys[key]=false);
+    el.addEventListener('mouseleave',()=>arKeys[key]=false);
+  }
+  hold('arRL','l'); hold('arRR','r');
+  hold('arMN','n'); hold('arMS','s');
+  hold('arME','e'); hold('arMW','w');
 
   // Reticle
-  arReticle = new THREE.Mesh(
+  arReticle=new THREE.Mesh(
     new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),
     new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide,depthWrite:false})
   );
   arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
-  LAMP.visible=false; arPlaced=false; arLastPos=null; arLastQuat=null;
-  Object.keys(AR).forEach(k=>AR[k]=false);
+
+  LAMP.visible=false;
+  arPlaced=false; arLastPos=null; arLastQuat=null;
+  Object.keys(arKeys).forEach(k=>arKeys[k]=false);
 
   try{
-    arSess = await navigator.xr.requestSession('immersive-ar',{
+    arSess=await navigator.xr.requestSession('immersive-ar',{
       optionalFeatures:['hit-test','dom-overlay','local-floor','bounded-floor'],
       domOverlay:{root:arOverlay}
     });
-    R.xr.enabled=true; await R.xr.setSession(arSess);
+    R.xr.enabled=true;
+    await R.xr.setSession(arSess);
     R.setClearColor(0x000000,0);
     SC.background=null;
-    SC.traverse(o=>{if(o.isMesh&&o.material&&o.material.side===THREE.BackSide){o.visible=false;o.userData._arH=true;}  });
+    SC.traverse(o=>{if(o.isMesh&&o.material&&o.material.side===THREE.BackSide){o.visible=false;o.userData._arH=true;}});
 
     try{ arLocalSp=await arSess.requestReferenceSpace('local-floor'); }
     catch(e){ try{ arLocalSp=await arSess.requestReferenceSpace('local'); }catch(e2){} }
@@ -3219,32 +3207,18 @@ async function startAR(){
       const vs=await arSess.requestReferenceSpace('viewer');
       arHitSrc=await arSess.requestHitTestSource({space:vs});
     }catch(e){
-      console.warn('[AR] hit-test:',e.message); arHitSrc=null;
+      arHitSrc=null;
       document.getElementById('arPlace').style.display='block';
       document.getElementById('arHint').textContent='Tik Hier plaatsen';
     }
 
-    arSess.addEventListener('end',()=>{
-      arSess=null; arHitSrc=null; arPlaced=false; arLocalSp=null;
-      arLastPos=null; arLastQuat=null;
-      Object.keys(AR).forEach(k=>AR[k]=false);
-      if(arRotTick){cancelAnimationFrame(arRotTick);arRotTick=null;}
-      if(arReticle){SC.remove(arReticle);arReticle=null;}
-      if(arOverlay){arOverlay.remove();arOverlay=null;}
-      R.xr.enabled=false; R.setClearColor(0x0C0E12,1);
-      SC.background=new THREE.Color(0x0C0E12);
-      SC.traverse(o=>{if(o.userData._arH){o.visible=true;delete o.userData._arH;}  });
-      LAMP.visible=true; LAMP.position.set(0,0,0); LAMP.rotation.set(0,0,0);
-      ['arBtnMob','arBtnVbar'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.borderColor='';b.style.color='';} });
-      R.setAnimationLoop(null);
-      setTimeout(()=>{
-        if(typeof resize==='function') resize();
-        requestAnimationFrame(animate);
-        if(typeof fitCameraToGLB==='function') setTimeout(fitCameraToGLB, 50);
-      }, 200);
-    });
+    arSess.addEventListener('end', _arOnEnd);
 
+    const ROT=0.028, STEP=0.016;
+
+    // ── ALLES IN ÉÉN XR LOOP ──
     R.setAnimationLoop((t,frame)=>{
+      // Hit-test
       if(frame&&arHitSrc&&!arPlaced){
         const hits=frame.getHitTestResults(arHitSrc);
         const ref=arLocalSp||R.xr.getReferenceSpace();
@@ -3253,8 +3227,8 @@ async function startAR(){
           if(pose){
             arReticle.visible=true;
             arReticle.matrix.fromArray(pose.transform.matrix);
-            arLastPos=new THREE.Vector3();
-            arLastQuat=new THREE.Quaternion();
+            if(!arLastPos) arLastPos=new THREE.Vector3();
+            if(!arLastQuat) arLastQuat=new THREE.Quaternion();
             new THREE.Matrix4().fromArray(pose.transform.matrix)
               .decompose(arLastPos,arLastQuat,new THREE.Vector3());
             document.getElementById('arPlace').style.display='block';
@@ -3266,62 +3240,111 @@ async function startAR(){
           document.getElementById('arHint').textContent='Richt op een vlak';
         }
       }
+
+      // Move + rotatie (alleen na plaatsing, IN de XR loop)
+      if(arPlaced){
+        if(arKeys.l) LAMP.rotation.y+=ROT;
+        if(arKeys.r) LAMP.rotation.y-=ROT;
+        if(arKeys.n||arKeys.s||arKeys.e||arKeys.w){
+          const cam=R.xr.getCamera?R.xr.getCamera():CAM;
+          const fwd=new THREE.Vector3(); cam.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
+          const right=new THREE.Vector3().crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
+          if(arKeys.n) LAMP.position.addScaledVector(fwd,   STEP);
+          if(arKeys.s) LAMP.position.addScaledVector(fwd,  -STEP);
+          if(arKeys.e) LAMP.position.addScaledVector(right,  STEP);
+          if(arKeys.w) LAMP.position.addScaledVector(right, -STEP);
+        }
+      }
+
       R.state.buffers.color.setClear(0,0,0,0);
       R.render(SC,CAM);
     });
 
   }catch(err){
     console.error('[AR]',err.name,err.message);
-    if(arOverlay){arOverlay.remove();arOverlay=null;}
-    if(arReticle){SC.remove(arReticle);arReticle=null;}
-    LAMP.visible=true;
-    R.xr.enabled=false; R.setClearColor(0x0C0E12,1); SC.background=new THREE.Color(0x0C0E12);
-    setTimeout(()=>{if(typeof resize==='function')resize();requestAnimationFrame(animate);},200);
-    _arToast(err.name+':\n'+err.message);
+    _arCleanup();
+    _arToast(err.name+': '+err.message);
   }
+}
+
+function _arBtnS(col){
+  const border = col==='amber' ? 'rgba(200,136,74,.5)' : 'rgba(255,255,255,.15)';
+  const bg     = col==='amber' ? 'rgba(200,136,74,.12)' : 'rgba(12,14,18,.8)';
+  return `width:40px;height:40px;background:${bg};border:1px solid ${border};color:#EDE4D0;font-size:16px;border-radius:3px;touch-action:none`;
 }
 
 function arDoPlace(){
   let pos=arLastPos, quat=arLastQuat;
   if(!pos){
     const cam=R.xr.getCamera?R.xr.getCamera():CAM;
-    pos=new THREE.Vector3(0,-0.3,-1.2).applyQuaternion(cam.quaternion).add(cam.position);
-    quat=new THREE.Quaternion();
+    const dir=new THREE.Vector3(0,-0.3,-1.2).applyQuaternion(cam.quaternion);
+    pos=cam.position.clone().add(dir); quat=new THREE.Quaternion();
   }
   const euler=new THREE.Euler().setFromQuaternion(quat,'YXZ');
   LAMP.rotation.set(0,euler.y,0);
   LAMP.position.copy(pos);
-  LAMP.visible=true; LAMP.updateMatrixWorld(true);
+  LAMP.visible=true;
+  LAMP.updateMatrixWorld(true);
   const bb=new THREE.Box3().setFromObject(LAMP);
-  LAMP.position.y += pos.y - bb.min.y;
-  LAMP.position.x += pos.x - (bb.min.x+bb.max.x)/2;
-  LAMP.position.z += pos.z - (bb.min.z+bb.max.z)/2;
-
+  LAMP.position.y+=pos.y-bb.min.y;
+  LAMP.position.x+=pos.x-(bb.min.x+bb.max.x)/2;
+  LAMP.position.z+=pos.z-(bb.min.z+bb.max.z)/2;
   arPlaced=true;
   if(arReticle) arReticle.visible=false;
   document.getElementById('arPlace').style.display='none';
   document.getElementById('arReset').style.display='block';
-  document.getElementById('arControls').style.display='flex';
-  document.getElementById('arHint').textContent='Verplaats · Draai';
-
-  // Bind knoppen
-  _hold('arN','n'); _hold('arS','s'); _hold('arE','e'); _hold('arW','w');
-  _hold('arL','l'); _hold('arR','r');
-
-  // Start game loop
-  if(arRotTick) cancelAnimationFrame(arRotTick);
-  arRotTick = requestAnimationFrame(_arTick);
+  document.getElementById('arHint').textContent='▲▼◀▶ Verplaats  ↺↻ Draai';
+  ['arMovepad','arSep','arRotpad'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=(id==='arRotpad'?'flex':'block');
+  });
 }
 
 function arDoReset(){
   arPlaced=false; arLastPos=null; arLastQuat=null;
   LAMP.visible=false;
-  Object.keys(AR).forEach(k=>AR[k]=false);
-  if(arRotTick){cancelAnimationFrame(arRotTick);arRotTick=null;}
+  Object.keys(arKeys).forEach(k=>arKeys[k]=false);
+  if(arReticle) arReticle.visible=false;
   document.getElementById('arReset').style.display='none';
-  document.getElementById('arControls').style.display='none';
   document.getElementById('arPlace').style.display='none';
   document.getElementById('arHint').textContent='Richt op een vlak';
+  ['arMovepad','arSep','arRotpad'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+}
+
+function _arOnEnd(){
+  _arCleanup();
+}
+
+function _arCleanup(){
+  if(arSess) arSess.removeEventListener('end',_arOnEnd);
+  arSess=null; arHitSrc=null; arPlaced=false; arLocalSp=null;
+  arLastPos=null; arLastQuat=null;
+  Object.keys(arKeys).forEach(k=>arKeys[k]=false);
+  if(arReticle){SC.remove(arReticle);arReticle=null;}
+  if(arOverlay){arOverlay.remove();arOverlay=null;}
+  R.xr.enabled=false;
+  R.setClearColor(0x0C0E12,1);
+  SC.background=new THREE.Color(0x0C0E12);
+  SC.traverse(o=>{if(o.userData._arH){o.visible=true;delete o.userData._arH;}});
+  LAMP.visible=true;
+  LAMP.position.set(0,0,0); LAMP.rotation.set(0,0,0);
+  ['arBtnMob','arBtnVbar'].forEach(id=>{
+    const b=document.getElementById(id); if(b){b.style.borderColor='';b.style.color='';}
+  });
+  R.setAnimationLoop(null);
+  setTimeout(()=>{
+    if(typeof resize==='function') resize();
+    requestAnimationFrame(animate);
+    if(typeof fitCameraToGLB==='function') fitCameraToGLB();
+  }, 300);
+}
+
+function _arToast(msg){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(12,14,18,.95);border:1px solid rgba(200,136,74,.4);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;z-index:9999;max-width:85vw;text-align:center';
+  t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),6000);
 }
 
 checkARSupport();
