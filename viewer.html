@@ -1505,20 +1505,16 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh && !o.userData.isOutline) _cBox.expandByObject(o); }));
   if(!_cBox.isEmpty()) {
     const _cCenter = _cBox.getCenter(new THREE.Vector3());
-    // Centreer X en Z op midden, Y op onderkant bbox (zodat voet op y=0 staat)
     const _yOffset = _cBox.min.y;
+    // Sla centering offset op voor lamp_pos correctie
+    window._arCenterOffset = new THREE.Vector3(-_cCenter.x, -_yOffset, -_cCenter.z);
     console.log('[Rhombi] bbox min.y='+_yOffset.toFixed(3)+' max.y='+_cBox.max.y.toFixed(3)+' center.x='+_cCenter.x.toFixed(3)+' center.z='+_cCenter.z.toFixed(3));
-    // Log per group
-    Object.entries(activeGLBGroups).forEach(([id,g])=>{
-      const gb=new THREE.Box3().setFromObject(g);
-      if(!gb.isEmpty()) console.log('[Rhombi] group '+id+' y: '+gb.min.y.toFixed(3)+' to '+gb.max.y.toFixed(3));
-    });
     Object.values(activeGLBGroups).forEach(g => {
       g.position.x -= _cCenter.x;
-      g.position.y -= _yOffset;  // onderkant op y=0, niet midden
+      g.position.y -= _yOffset;
       g.position.z -= _cCenter.z;
     });
-    // Variant yOffset NA centering (Y = omhoog in Three.js)
+    // Variant yOffset NA centering
     const _vOff = window._rhombiCurrentVariant;
     if(_vOff && _vOff.yOffset) {
       window._arCenterOffset.y += _vOff.yOffset;
@@ -1533,24 +1529,34 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   });
   updateSelectionOutline();
 
-  // kapGlow + LP in het midden van de kap (peertje zit daarbinnen)
-  const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
-  if(_peerGrp) {
-    const kb = new THREE.Box3();
-    // expandByObject werkt met world matrix — forceert update eerst
-    _peerGrp.updateWorldMatrix(true, true);
-    _peerGrp.traverse(o => {
-      if(o.isMesh && !o.userData.isOutline) {
-        o.updateWorldMatrix(true, false);
-        kb.expandByObject(o);
+  // Lichtpositie: gebruik lamp_pos Empty als aanwezig, anders kap centrum
+  const _lpData = activeGLBGroups && activeGLBGroups.__lampPos;
+  if(_lpData && _lpData._isLampPos) {
+    // Pas exact dezelfde centering offset toe als de groups
+    const co = window._arCenterOffset || new THREE.Vector3();
+    const lp = _lpData._worldPos.clone().add(co);
+    kapGlow.position.copy(lp);
+    LP.position.copy(lp);
+    console.log('[Rhombi] lamp_pos (empty):', lp.x.toFixed(2), lp.y.toFixed(2), lp.z.toFixed(2));
+  } else {
+    // Fallback: midden van de kap
+    const _peerGrp = activeGLBGroups && (activeGLBGroups['kap'] || activeGLBGroups['peer']);
+    if(_peerGrp) {
+      const kb = new THREE.Box3();
+      _peerGrp.updateWorldMatrix(true, true);
+      _peerGrp.traverse(o => {
+        if(o.isMesh && !o.userData.isOutline) {
+          o.updateWorldMatrix(true, false);
+          kb.expandByObject(o);
+        }
+      });
+      if(!kb.isEmpty()) {
+        const kc = kb.getCenter(new THREE.Vector3());
+        kapGlow.position.copy(kc);
+        LP.position.set(kc.x, kc.y, kc.z);
+        console.log('[Rhombi] lamp pos (fallback):', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
+        kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
       }
-    });
-    if(!kb.isEmpty()) {
-      const kc = kb.getCenter(new THREE.Vector3());
-      kapGlow.position.copy(kc);
-      LP.position.set(kc.x, kc.y, kc.z);
-      console.log('[Rhombi] lamp pos', kc.x.toFixed(2), kc.y.toFixed(2), kc.z.toFixed(2));
-      kapGlow.distance = Math.max(1.0, (kb.max.y - kb.min.y) * 1.5);
     }
   }
   updateKapGlow();
@@ -1956,6 +1962,19 @@ function loadGLBParts(url) {
           function(gltf) {
             var groups = {};
             var excludeList = window._rhombiExcludeNodes || [];
+            // Vang lamp_pos Empty op (heeft geen mesh)
+            var lampPosNode = null;
+            gltf.scene.traverse(function(obj) {
+              if (obj.name === 'lamp_pos') lampPosNode = obj;
+            });
+            if(lampPosNode) {
+              lampPosNode.updateWorldMatrix(true, false);
+              groups.__lampPos = {
+                _isLampPos: true,
+                _worldPos: new THREE.Vector3().setFromMatrixPosition(lampPosNode.matrixWorld)
+              };
+            }
+
             gltf.scene.traverse(function(obj) {
               if (!obj.isMesh) return;
               var rawId = obj.name;
