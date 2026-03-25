@@ -1505,9 +1505,11 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   Object.values(activeGLBGroups).forEach(g => g.traverse(o => { if(o.isMesh && !o.userData.isOutline) _cBox.expandByObject(o); }));
   if(!_cBox.isEmpty()) {
     const _cCenter = _cBox.getCenter(new THREE.Vector3());
+    // Centreer X en Z op midden, Y op onderkant bbox (zodat voet op y=0 staat)
+    const _yOffset = _cBox.min.y;
     Object.values(activeGLBGroups).forEach(g => {
       g.position.x -= _cCenter.x;
-      g.position.y -= _cCenter.y;
+      g.position.y -= _yOffset;  // onderkant op y=0, niet midden
       g.position.z -= _cCenter.z;
     });
     // Variant yOffset NA centering (Y = omhoog in Three.js)
@@ -1670,7 +1672,7 @@ function applyExplode(){
 // Uitbreiden: voeg een entry toe. Bij een nieuw GLB-mesh zonder entry hier
 // krijgt het automatisch een standaard naam en materiaal.
 const PART_GROUPS = [
-  { id: 'kap',          nm: 'Lichtkap',     sh: true,  aliases: ['kap_1','kap_2','kap_3','kap_4'] },
+  { id: 'kap',          nm: 'Lichtkap',     sh: true,  aliases: ['kap_1','kap_2'] },
   { id: 'voet',         nm: 'Voet',         aliases: ['voet_t','voet_a','voet_w'] },
   { id: 'kader_l',      nm: 'Kader Links'              },
   { id: 'kader_r',      nm: 'Kader Rechts'             },
@@ -2884,7 +2886,7 @@ function animate(ts){
   bounceSide.position.set(LP.position.x+sinThR*0.9, LP.position.y-0.2, LP.position.z+cosThR*0.7);
 
   tickOutlines();
-  if(composer) composer.render(); else R.render(SC,CAM);
+  if(!R.xr.isPresenting){ if(composer) composer.render(); else R.render(SC,CAM); }
 }
 
 // ═══════════════════════════════════════════
@@ -3290,25 +3292,47 @@ function _arStartTick(){
 }
 
 function _arEnd(){
+  // Stop alles
   arSess=null; arHitSrc=null; arPlaced=false; arLocalSp=null;
   arLastPos=null; arLastQuat=null;
   Object.keys(arKeys).forEach(k=>arKeys[k]=false);
   if(arTickId){cancelAnimationFrame(arTickId);arTickId=null;}
   if(arReticle){SC.remove(arReticle);arReticle=null;}
   if(arOverlay){arOverlay.remove();arOverlay=null;}
+
+  // Herstel renderer
   R.xr.enabled=false;
   R.setClearColor(0x0C0E12,1);
+  R.setPixelRatio(isMobile?Math.min(window.devicePixelRatio,1.5):Math.min(window.devicePixelRatio,2));
+
+  // Herstel scene
   SC.background=new THREE.Color(0x0C0E12);
   SC.traverse(o=>{if(o.userData._arH){o.visible=true;delete o.userData._arH;}});
+
+  // Herstel lamp
   LAMP.visible=true;
-  LAMP.position.set(0,0,0); LAMP.rotation.set(0,0,0);
-  ['arBtnMob','arBtnVbar'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.borderColor='';b.style.color='';}});
+  LAMP.position.set(0,0,0);
+  LAMP.rotation.set(0,0,0);
+  LAMP.scale.set(1,1,1);
+
+  // Herstel knoppen
+  ['arBtnMob','arBtnVbar'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.style.borderColor='';b.style.color='';}
+  });
+
+  // Stop XR render loop, start normale loop opnieuw
   R.setAnimationLoop(null);
+
   setTimeout(()=>{
-    if(typeof resize==='function') resize();
+    // Herstart normale animatie
+    lastTS=performance.now();
     requestAnimationFrame(animate);
+    // Reset canvas grootte
+    if(typeof resize==='function') resize();
+    // Camera op model zetten
     if(typeof fitCameraToGLB==='function') fitCameraToGLB();
-  },200);
+  }, 300);
 }
 
 function _arToast(msg){
