@@ -1490,7 +1490,7 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   Object.entries(groups).forEach(([k,g]) => { if(k !== '__lampPos' && g.isObject3D) _lampWrap.add(g); });
 
   curV.parts = Object.keys(groups).filter(k => k !== '__lampPos').map(id => partInfo(id));
-  if(!curV.parts.find(p => p.id === selP)) selP = curV.parts[0].id;
+  if(!curV.parts || !curV.parts.length) { selP = null; } else if(!selP || !curV.parts.find(p => p.id === selP)) selP = curV.parts[0]?.id || null;
 
   if(window._pendingColors) {
     Object.entries(window._pendingColors).forEach(([pid, hex]) => {
@@ -1592,42 +1592,30 @@ function swapLocal(varId){
       if(_swapSeq !== mySeq) return; // nieuwere klik — weggooien
       _finishLoad(groups, prevGroups, !!prevGroups);
       _cacheBaseOpacity();
-      exP = 1.1;
+      exP = exT; // behoud huidige explode staat
+      // Zet groepen direct op rustpositie (of huidige explode stand)
       Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
         if(pid==='__lampPos'||!grp.isObject3D) return;
         const off = GLB_EX_OFFSETS[pid] || [0,0,0];
-        const _base1 = grp.userData._centerOffset || new THREE.Vector3();
-        grp.position.set(_base1.x + off[0]*1.1, _base1.y + off[1]*1.1, _base1.z + off[2]*1.1);
+        const base = grp.userData._centerOffset || new THREE.Vector3();
+        grp.position.set(base.x + off[0]*exT, base.y + off[1]*exT, base.z + off[2]*exT);
       });
+      // Alleen opacity fade — geen positie animatie
       _setAllOpacity(0);
-      _animate(750, 0, 1,
+      _animate(500, 0, 1,
         t => {
           if(_swapSeq !== mySeq) return;
           _setAllOpacity(t);
-          const cur = 1.1 * (1 - t);
-          Object.entries(activeGLBGroups).forEach(([pid, grp]) => {
-            if(pid==='__lampPos'||!grp.isObject3D) return;
-            const off = GLB_EX_OFFSETS[pid] || [0,0,0];
-            const _base2 = grp.userData._centerOffset || new THREE.Vector3();
-            grp.position.set(_base2.x + off[0]*cur, _base2.y + off[1]*cur, _base2.z + off[2]*cur);
-          });
         },
-        () => { if(_swapSeq === mySeq) exP = exT; }
+        () => {}
       );
     };
 
     if(prevGroups && Object.keys(prevGroups).length > 0) {
-      _animate(500, 1, 0,
+      _animate(400, 1, 0,
         t => {
           if(_swapSeq !== mySeq) return;
           _setAllOpacity(t);
-          const cur = (1 - t) * 0.15; // klein beetje uitwaaieren
-          Object.entries(prevGroups).forEach(([pid, grp]) => {
-            if(pid==='__lampPos'||!grp.isObject3D) return;
-            const off = GLB_EX_OFFSETS[pid] || [0,0,0];
-            const _base0 = grp.userData._centerOffset || new THREE.Vector3();
-            grp.position.set(_base0.x + off[0]*cur, _base0.y + off[1]*cur, _base0.z + off[2]*cur);
-          });
         },
         () => { loadPromise.then(doShow).catch(e => console.error(e)); }
       );
@@ -2680,15 +2668,37 @@ window.addEventListener('keydown', e => {
 let lampOn = true;
 
 // Kleurtemperatuur van de peer instellen
+let _peerColorHex = '#FFAA44'; // standaard 3000K
+
 function setPeerColor(hex){
+  _peerColorHex = hex;
+  const col = new THREE.Color(hex);
+
+  // Peer materiaal
   const mat = MGLB['peer'];
-  if(!mat) return;
-  mat.emissive.set(hex);
-  mat.color.set(hex);
-  mat.needsUpdate = true;
+  if(mat){ mat.emissive.copy(col); mat.color.copy(col); mat.needsUpdate = true; }
+
+  // Alle lichten krijgen de kleurtemperatuur
+  LP.color.copy(col);
+  kapGlow.color.copy(col);
+  bounceDown.color.copy(col);
+  // bounceSide iets koeler (hemelreflectie blijft blauwachtig)
+  const sideCol = col.clone().lerp(new THREE.Color(0x8090C0), 0.35);
+  bounceSide.color.copy(sideCol);
+
   const dot = document.getElementById('dot-peer');
   if(dot) dot.style.background = hex;
+
+  // Highlight actieve knop
+  document.querySelectorAll('#ktemp-btns .cb').forEach(b => {
+    b.classList.toggle('on', b.title === _kTempLabel(hex));
+  });
   buildColorGrid();
+}
+
+function _kTempLabel(hex){
+  const map = {'#FF7700':'2700K','#FFAA44':'3000K','#FFF5CC':'4000K','#F5F0FF':'6500K'};
+  return map[hex] || '';
 }
 
 let peerIntensity = 0.20; // start op 20%
@@ -2743,8 +2753,9 @@ function updateKapGlow() {
   kapMat.emissiveIntensity = kp.emissiveIntensity * t;
   kapMat.needsUpdate = true;
 
-  // kapGlow kleur = kap kleur + warmte
-  const glowColor = kapColor.clone().lerp(new THREE.Color(0xFF8820), 0.55);
+  // kapGlow = kap kleur + lichttemperatuur (kap domineert)
+  const _tempCol = new THREE.Color(_peerColorHex || '#FFAA44');
+  const glowColor = kapColor.clone().lerp(_tempCol, 0.3);
   kapGlow.color.copy(glowColor);
 }
 
@@ -2763,13 +2774,14 @@ function setLamp(on) {
     peerMat.opacity           = on ? 0.55 : 0.88;
     peerMat.needsUpdate = true;
   }
-  kapGlow.intensity = on ? peerIntensity * 1.8 : 0.0;
-  kapGlow.distance  = 1.8;
+  kapGlow.intensity = on ? peerIntensity * 1.2 : 0.0;
+  kapGlow.distance  = 2.0;
   updateKapGlow();
-  LP.intensity = on ? peerIntensity * 1.0 : 0.0;
-  bounceDown.intensity = on ? peerIntensity * 0.5 : 0.0;
-  bounceSide.intensity = on ? peerIntensity * 0.25 : 0.0;
-  kapGlow.intensity = on ? peerIntensity * 1.8 : 0.0;
+  LP.intensity = on ? peerIntensity * 1.4 : 0.0;
+  bounceDown.intensity = on ? peerIntensity * 0.6 : 0.0;
+  bounceSide.intensity = on ? peerIntensity * 0.3 : 0.0;
+  // Herstel temperatuurkleur na setLamp
+  if(_peerColorHex) setPeerColor(_peerColorHex);
   syncGLBPart('peer');
 }
 

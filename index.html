@@ -686,14 +686,24 @@ footer {
 }
 #lightbox.open { display: flex; }
 #lightbox-frame {
-  width: min(82vh, 82vw);
-  height: min(82vh, 82vw);
+  width: min(90vw, 90vh);
+  height: min(90vw, 90vh);
   overflow: hidden;
   clip-path: polygon(28px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 28px);
   border-radius: 0 0 22px 0;
   box-shadow: 0 32px 80px rgba(0,0,0,.6);
-  animation: lbIn .3s cubic-bezier(.25,.46,.45,.94);
+  animation: lbIn .25s cubic-bezier(.25,.46,.45,.94);
   flex-shrink: 0;
+  cursor: zoom-out;
+}
+@media (max-width: 768px) {
+  #lightbox { padding: 0; }
+  #lightbox-frame {
+    width: 100vw;
+    height: 100vw;
+    clip-path: none;
+    border-radius: 0;
+  }
 }
 #lightbox-img {
   width: 100%;
@@ -1052,8 +1062,10 @@ footer {
 .lang-btn:hover { border-color: rgba(200,136,74,.4); color: var(--cream); }
 .lang-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(200,136,74,.08); }
 @media (max-width: 768px) {
-  .lang-toggle { margin-left: 8px; }
-  .lang-btn { font-size: 8px; padding: 3px 6px; }
+  .lang-toggle { margin-left: 4px; flex-shrink: 0; }
+  .lang-btn { font-size: 7px; padding: 3px 5px; }
+  .nav-inner { padding: 12px 16px; overflow: hidden; }
+  .nav-left { min-width: 0; overflow: hidden; }
 }
 
 
@@ -2553,6 +2565,7 @@ function closeLightbox() {
   const lb = document.getElementById('lightbox');
   lb.classList.remove('open');
   lb.style.display = 'none';
+  lb.style.flexDirection = '';
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
@@ -3546,9 +3559,9 @@ window.addEventListener('resize', () => {
 
 </script>
 
-<div id="lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,12,16,.92);backdrop-filter:blur(12px);cursor:zoom-out;align-items:center;justify-content:center;padding:40px">
-  <button onclick="closeLightbox()" style="position:absolute;top:24px;right:28px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#606870;background:none;border:1px solid rgba(255,255,255,.1);padding:6px 12px;cursor:pointer" data-i18n="lb-close">&#10005; Sluiten</button>
-  <div id="lightbox-frame" onclick="event.stopPropagation()"><img decoding="async" id="lightbox-img" src="" alt="" onclick="event.stopPropagation()"></div>
+<div id="lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,12,16,.92);backdrop-filter:blur(12px);cursor:zoom-out;align-items:center;justify-content:center;padding:0">
+  <button onclick="closeLightbox()" style="position:absolute;top:20px;right:20px;z-index:10;width:40px;height:40px;background:rgba(12,14,18,.85);border:1px solid rgba(255,255,255,.2);color:#EDE4D0;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+  <div id="lightbox-frame" onclick="closeLightbox()"><img decoding="async" id="lightbox-img" src="" alt="" onclick="closeLightbox()"></div>
 </div>
 
 
