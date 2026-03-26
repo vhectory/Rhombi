@@ -1500,6 +1500,15 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     });
     window._pendingColors = null;
   }
+  // Reset stale opacity op alle materialen voor sync
+  Object.values(MGLB).forEach(mat => {
+    if(mat && mat.userData) {
+      delete mat.userData._baseOp;
+      mat.opacity = mat.userData._targetOp ?? 1.0;
+      mat.transparent = mat.opacity < 0.99;
+      mat.needsUpdate = true;
+    }
+  });
   syncAllGLBParts();
 
   // Centreer model — bbox midden op 0,0,0
@@ -1977,6 +1986,8 @@ let   activeGLBGroups = null;  // { partId: THREE.Group, ... } — gevuld na lad
 function clearActiveGLB() {
   // Reset zichtbaarheid bij variant wissel
   Object.keys(PART_VIS).forEach(k => delete PART_VIS[k]);
+  // Wis gecachede materialen zodat nieuwe variant schone materialen krijgt
+  Object.keys(MGLB).forEach(k => { if(k !== 'peer') delete MGLB[k]; });
   if (!activeGLBGroups) return;
   Object.entries(activeGLBGroups).forEach(([k,g]) => {
     if(k === '__lampPos' || !g.isObject3D) return;
