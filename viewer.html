@@ -1466,8 +1466,10 @@ function _setAllOpacity(opacity) {
 function _cacheBaseOpacity() {
   _lampWrap.traverse(o => {
     if(!o.isMesh || o.userData.isOutline || !o.material) return;
-    if(o.material.userData._baseOp === undefined)
-      o.material.userData._baseOp = o.material.opacity ?? 1.0;
+    // Altijd opnieuw cachen — voorkomt stale waarden van onderbroken animaties
+    // Gebruik huidige opacity alleen als die redelijk is (niet mid-animatie)
+    const op = o.material.opacity ?? 1.0;
+    o.material.userData._baseOp = op > 0.5 ? op : 1.0;
   });
 }
 
@@ -1501,8 +1503,20 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   syncAllGLBParts();
 
   // Centreer model — bbox midden op 0,0,0
+  // Force world matrix update zodat expandByObject correcte posities gebruikt
+  LAMP.updateMatrixWorld(true);
   const _cBox = new THREE.Box3();
-  Object.entries(activeGLBGroups).forEach(([k,g]) => { if(k !== '__lampPos' && g.isObject3D) g.traverse(o => { if(o.isMesh && !o.userData.isOutline) _cBox.expandByObject(o); }); });
+  Object.entries(activeGLBGroups).forEach(([k,g]) => {
+    if(k !== '__lampPos' && g.isObject3D) {
+      g.updateMatrixWorld(true);
+      g.traverse(o => {
+        if(o.isMesh && !o.userData.isOutline) {
+          o.updateMatrixWorld(true);
+          _cBox.expandByObject(o);
+        }
+      });
+    }
+  });
   if(!_cBox.isEmpty()) {
     const _cCenter = _cBox.getCenter(new THREE.Vector3());
     const _yOffset = _cBox.min.y;
@@ -1591,6 +1605,12 @@ function swapLocal(varId){
     const doShow = (groups) => {
       if(_swapSeq !== mySeq) return; // nieuwere klik — weggooien
       _finishLoad(groups, prevGroups, !!prevGroups);
+      // Reset opacity naar 1 voor caching — anders cachet hij 0 (uit-animatie stand)
+      _lampWrap.traverse(o => {
+        if(!o.isMesh || o.userData.isOutline || !o.material) return;
+        o.material.opacity = 1.0;
+        o.material.userData._baseOp = undefined; // force herberekening
+      });
       _cacheBaseOpacity();
       exP = exT; // behoud huidige explode staat
       // Zet groepen direct op rustpositie (of huidige explode stand)
@@ -1600,25 +1620,35 @@ function swapLocal(varId){
         const base = grp.userData._centerOffset || new THREE.Vector3();
         grp.position.set(base.x + off[0]*exT, base.y + off[1]*exT, base.z + off[2]*exT);
       });
-      // Alleen opacity fade — geen positie animatie
-      _setAllOpacity(0);
-      _animate(500, 0, 1,
-        t => {
-          if(_swapSeq !== mySeq) return;
-          _setAllOpacity(t);
-        },
-        () => {}
-      );
+      // Alleen opacity fade — niet in AR modus
+      if(!arSess) {
+        _setAllOpacity(0);
+        _animate(500, 0, 1,
+          t => {
+            if(_swapSeq !== mySeq) return;
+            _setAllOpacity(t);
+          },
+          () => {}
+        );
+      } else {
+        // AR: herstel opacity direct, positie bewaren
+        _setAllOpacity(1);
+      }
     };
 
     if(prevGroups && Object.keys(prevGroups).length > 0) {
-      _animate(400, 1, 0,
-        t => {
-          if(_swapSeq !== mySeq) return;
-          _setAllOpacity(t);
-        },
-        () => { loadPromise.then(doShow).catch(e => console.error(e)); }
-      );
+      // In AR: geen fade, direct laden
+      if(arSess) {
+        loadPromise.then(doShow).catch(e => console.error(e));
+      } else {
+        _animate(400, 1, 0,
+          t => {
+            if(_swapSeq !== mySeq) return;
+            _setAllOpacity(t);
+          },
+          () => { if(_swapSeq === mySeq) loadPromise.then(doShow).catch(e => console.error(e)); else _setAllOpacity(1); }
+        );
+      }
     } else {
       loadPromise.then(doShow).catch(e => console.error(e));
     }
