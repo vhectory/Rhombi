@@ -675,17 +675,19 @@ footer {
 #lightbox {
   display: none;
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100%;
   z-index: 1000;
   background: rgba(10,12,16,.92);
   backdrop-filter: blur(12px);
-  cursor: zoom-out;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
 }
-#lightbox.open { display: flex; }
+#lightbox.open { display: block; }
 #lightbox-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: min(90vw, 90vh);
   height: min(90vw, 90vh);
   overflow: hidden;
@@ -693,41 +695,49 @@ footer {
   border-radius: 0 0 22px 0;
   box-shadow: 0 32px 80px rgba(0,0,0,.6);
   animation: lbIn .25s cubic-bezier(.25,.46,.45,.94);
-  flex-shrink: 0;
   cursor: zoom-out;
 }
 @media (max-width: 768px) {
-  #lightbox { padding: 0; }
   #lightbox-frame {
-    width: 100vw !important;
-    height: 100vw !important;
-    max-width: 100vw;
-    clip-path: none !important;
-    border-radius: 0 !important;
-    margin: 0;
+    width: 100vw;
+    height: 100vw;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    clip-path: none;
+    border-radius: 0;
   }
 }
 #lightbox-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 #lightbox-close {
   position: absolute;
-  top: 24px; right: 28px;
-  font-family: "Space Mono", monospace;
-  font-size: 11px;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--text-dim);
+  top: 16px; right: 16px;
+  z-index: 10;
+  width: 44px; height: 44px;
+  background: rgba(12,14,18,.85);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #EDE4D0;
+  font-size: 20px;
   cursor: pointer;
-  transition: color .2s;
-  background: none; border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
 }
-#lightbox-close:hover { color: var(--amber); }
 @keyframes lbIn {
-  from { opacity: 0; transform: scale(.94); }
-  to   { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: translate(-50%, -50%) scale(.94); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@media (max-width: 768px) {
+  @keyframes lbIn {
+    from { opacity: 0; transform: translateY(-50%) scale(.97); }
+    to   { opacity: 1; transform: translateY(-50%) scale(1); }
+  }
 }
 /* uitleg-grid--ont: see below uitleg-grid */
 
@@ -1990,6 +2000,12 @@ input, textarea, select {
     <button class="lang-btn" onclick="setLang('de')" id="btn-de">DE</button>
   </div>
 </div>
+<!-- Taalknopjes mobiel: aparte rij -->
+<div class="lang-toggle-mob">
+  <button class="lang-btn active" onclick="setLang('nl')" id="btn-nl-mob">NL</button>
+  <button class="lang-btn" onclick="setLang('en')" id="btn-en-mob">EN</button>
+  <button class="lang-btn" onclick="setLang('de')" id="btn-de-mob">DE</button>
+</div>
 </nav>
 
 <section class="hero hero-split">
@@ -2560,7 +2576,7 @@ function openLightbox(src, alt) {
   const img = document.getElementById('lightbox-img');
   img.src = src;
   img.alt = alt || '';
-  lb.style.display='flex'; lb.classList.add('open');
+  lb.style.display='grid'; lb.style.placeItems='center'; lb.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeLightbox() {
@@ -3262,9 +3278,10 @@ function setLang(lang) {
   const titles = { nl: 'Rhombi — Modulaire Lichtobjecten', en: 'Rhombi — Modular Light Objects', de: 'Rhombi — Modulare Lichtobjekte' };
   document.title = titles[lang];
 
-  // Update active button
+  // Update active button (desktop + mobiel)
   ['nl','en','de'].forEach(l => {
-    document.getElementById('btn-'+l).classList.toggle('active', l===lang);
+    document.getElementById('btn-'+l)?.classList.toggle('active', l===lang);
+    document.getElementById('btn-'+l+'-mob')?.classList.toggle('active', l===lang);
   });
 }
 
@@ -3561,9 +3578,11 @@ window.addEventListener('resize', () => {
 
 </script>
 
-<div id="lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,12,16,.92);backdrop-filter:blur(12px);cursor:zoom-out">
-  <button onclick="closeLightbox()" style="position:absolute;top:20px;right:20px;z-index:10;width:40px;height:40px;background:rgba(12,14,18,.85);border:1px solid rgba(255,255,255,.2);color:#EDE4D0;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
-  <div id="lightbox-frame" onclick="closeLightbox()"><img decoding="async" id="lightbox-img" src="" alt="" onclick="closeLightbox()"></div>
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <div id="lightbox-frame" onclick="closeLightbox()">
+    <img decoding="async" id="lightbox-img" src="" alt="">
+  </div>
 </div>
 
 

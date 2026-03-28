@@ -2039,12 +2039,14 @@ function loadGLBParts(url) {
               mesh.castShadow = true;
               mesh.receiveShadow = true;
               mesh.userData.partId = partId;
-              // Bak world matrix in geometry — mesh staat op 0,0,0
-              // Centering via group.position werkt dan correct
-              mesh.geometry.applyMatrix4(obj.matrixWorld);
+              // Bak matrix in geometry relatief aan scene root
+              // Zo wordt de Y-up conversie van gltf.scene NIET meegenomen
+              var sceneInv = new THREE.Matrix4().copy(gltf.scene.matrixWorld).invert();
+              var relMatrix = new THREE.Matrix4().multiplyMatrices(sceneInv, obj.matrixWorld);
+              mesh.geometry.applyMatrix4(relMatrix);
               // Gespiegelde mesh (negatieve determinant = mirrored):
               // winding order omkeren zodat normals kloppen
-              if(obj.matrixWorld.determinant() < 0) {
+              if(relMatrix.determinant() < 0) {
                 var idx = mesh.geometry.index;
                 if(idx) {
                   var arr = idx.array;
