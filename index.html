@@ -141,7 +141,7 @@ nav {
 
 /* hamburger */
 .nav-hamburger {
-  display: none !important;
+  display: none;
 }
 .nav-hamburger span {
   display: block; width: 24px; height: 1.5px;
@@ -154,7 +154,7 @@ nav {
 .mobile-menu {
   display: none;
   position: fixed;
-  top: 36px; left: 0; right: 0;
+  top: 96px; left: 0; right: 0;
   background: rgba(12,14,18,.97);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -593,7 +593,8 @@ footer {
   .cursor, .cursor-ring { display: none; }
   nav { padding: 18px 24px; }
   .nav-links { display: none; }
-  /* hamburger removed */
+  .nav-hamburger { display: flex !important; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+  .nav-menu-wrap { display: none; }
   .hero-left { padding: 100px 24px 64px; }
   .hero-title { font-size: clamp(42px, 12vw, 68px); }
   .hero-sub { font-size: 15px; }
