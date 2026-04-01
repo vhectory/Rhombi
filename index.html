@@ -593,8 +593,9 @@ footer {
   .cursor, .cursor-ring { display: none; }
   nav { padding: 18px 24px; }
   .nav-links { display: none; }
-  .nav-hamburger { display: flex !important; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+  .nav-hamburger { display: flex !important; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px 4px; flex-shrink: 0; }
   .nav-menu-wrap { display: none; }
+  .nav-left { flex: 0 0 auto; }
   .hero-left { padding: 100px 24px 64px; }
   .hero-title { font-size: clamp(42px, 12vw, 68px); }
   .hero-sub { font-size: 15px; }
@@ -1684,6 +1685,15 @@ input, textarea, select {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.topbanner .nobr { white-space: nowrap; }
+@media (max-width: 768px) {
+  .topbanner {
+    font-size: 8px;
+    letter-spacing: .1em;
+    padding: 7px 12px;
+    line-height: 1.7;
+  }
+}
 
 /* ── NIEUWE LAYOUT STIJLEN ── */
 
@@ -1995,17 +2005,12 @@ input, textarea, select {
       <span></span><span></span><span></span>
     </button>
   </div>
-  <div class="lang-toggle">
+  <!-- Taalknopjes: altijd rechts in nav -->
+  <div class="lang-toggle" id="langToggle">
     <button class="lang-btn active" onclick="setLang('nl')" id="btn-nl">NL</button>
     <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
     <button class="lang-btn" onclick="setLang('de')" id="btn-de">DE</button>
   </div>
-</div>
-<!-- Taalknopjes mobiel: aparte rij -->
-<div class="lang-toggle-mob">
-  <button class="lang-btn active" onclick="setLang('nl')" id="btn-nl-mob">NL</button>
-  <button class="lang-btn" onclick="setLang('en')" id="btn-en-mob">EN</button>
-  <button class="lang-btn" onclick="setLang('de')" id="btn-de-mob">DE</button>
 </div>
 </nav>
 
@@ -2028,6 +2033,124 @@ input, textarea, select {
     </div>
   </div>
 </section>
+
+<!-- VIDEO SCROLL SECTIE -->
+<style>
+#video-scroll {
+  position: relative;
+  height: 70vh;
+  overflow: hidden;
+  background: #12151A;
+}
+#scrollVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Vignette lagen */
+#video-vignette-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 35%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to bottom, #12151A 0%, rgba(18,21,26,0) 100%);
+}
+#video-vignette-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 45%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to top, #181C23 0%, #181C23 15%, rgba(24,28,35,0) 100%);
+}
+#video-vignette-sides {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to right, #12151A 0%, rgba(18,21,26,0) 20%, rgba(18,21,26,0) 80%, #12151A 100%);
+}
+#scrollVideoText {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .6s;
+}
+@media (max-width: 768px) {
+  #video-scroll { height: 50vh; }
+}
+</style>
+
+<section id="video-scroll">
+  <video
+    id="scrollVideo"
+    src="video/rhombi.mp4"
+    muted playsinline preload="auto"
+  ></video>
+
+  <div id="video-vignette-top"></div>
+  <div id="video-vignette-bottom"></div>
+  <div id="video-vignette-sides"></div>
+
+  <div id="scrollVideoText">
+    <p style="font-family:var(--font-mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--amber);margin-bottom:20px">◆ Rhombi in beweging</p>
+    <h2 style="font-size:clamp(32px,5vw,68px);font-weight:300;line-height:.95;letter-spacing:-.02em;color:var(--cream)">Licht <em style="font-style:italic;color:var(--amber-pale)">leeft.</em></h2>
+  </div>
+</section>
+
+<script>
+(function() {
+  const section = document.getElementById('video-scroll');
+  const video   = document.getElementById('scrollVideo');
+  const overlay = document.getElementById('scrollVideoText');
+  if (!video) return;
+
+  let ready = false;
+  let targetTime = 0;
+  let currentTime = 0;
+
+  function onReady() {
+    if (ready) return;
+    ready = true;
+    video.pause();
+    video.currentTime = 0;
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    requestAnimationFrame(tick);
+  }
+
+  video.addEventListener('loadedmetadata', onReady);
+  video.addEventListener('canplay', onReady);
+  video.addEventListener('error', () => { section.style.display = 'none'; });
+
+  function onScroll() {
+    const rect     = section.getBoundingClientRect();
+    const vh       = window.innerHeight;
+    const progress = Math.max(0, Math.min(1, (vh - rect.top) / (vh + rect.height)));
+    targetTime = progress * (video.duration || 0);
+    overlay.style.opacity = (progress > 0.35 && progress < 0.75) ? '1' : '0';
+  }
+
+  function tick() {
+    if (ready && Math.abs(currentTime - targetTime) > 0.008) {
+      currentTime += (targetTime - currentTime) * 0.45;
+      video.currentTime = currentTime;
+    }
+    requestAnimationFrame(tick);
+  }
+})();
+</script>
 
 <!-- 2b. KUNST CAROUSEL -->
 <section id="kunst" class="carousel-section">
@@ -2428,7 +2551,7 @@ input, textarea, select {
           </div>
           <div class="stap-slide-text">
             <span class="stap-slide-label" data-i18n="step-01-label">STAP 01</span>
-            <p data-i18n="step-01">Plaats vleugel L (2) en vleugel R (3) in de kap. Zorg dat de klikverbinding goed vastzit.</p>
+            <p data-i18n="step-01">Schuif vleugel L (2) en vleugel R (3) in de kap.</p>
           </div>
         </div>
         <div class="stap-slide">
@@ -2437,7 +2560,7 @@ input, textarea, select {
           </div>
           <div class="stap-slide-text">
             <span class="stap-slide-label" data-i18n="step-02-label">STAP 02</span>
-            <p data-i18n="step-02">Schuif de kern (4) in de fitting-houder en vergrendel de positie.</p>
+            <p data-i18n="step-02">Schuif de kern (4) in de fitting-houder.</p>
           </div>
         </div>
         <div class="stap-slide">
@@ -2455,7 +2578,7 @@ input, textarea, select {
           </div>
           <div class="stap-slide-text">
             <span class="stap-slide-label" data-i18n="step-04-label">STAP 04</span>
-            <p data-i18n="step-04">Bevestig kader L (6) en kader R (7). Voer het snoer door de snoergeleider.</p>
+            <p data-i18n="step-04">Bevestig kader L (6) en kader R (7). Voer het snoer weg via de snoergeleider.</p>
           </div>
         </div>
         <div class="stap-slide">
@@ -2464,7 +2587,7 @@ input, textarea, select {
           </div>
           <div class="stap-slide-text">
             <span class="stap-slide-label" data-i18n="step-05-label">STAP 05</span>
-            <p data-i18n="step-05">Sluit de kap door de fitting van bovenaf naar beneden te schuiven. Combineer met het gewenste onderstel.</p>
+            <p data-i18n="step-05">Schuif het achterkader (8) van bovenaf in de kap. Combineer met het gewenste onderstel.</p>
           </div>
         </div>
       </div>
@@ -2927,7 +3050,7 @@ window.addEventListener('scroll', () => {
 
 const TRANSLATIONS = {
   nl: {
-    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Opening studio: zondag 7 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25',
+    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br><span class="nobr">Opening studio: zondag 7 juni</span> · <span class="nobr">Elke 1e zondag van de maand</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span>',
     'type-hint': "Tik voor foto's",
     'type-tafel-label': '◆ Tafellamp',
     'type-hang-label': '◆ Hang',
@@ -3007,15 +3130,15 @@ const TRANSLATIONS = {
     'part-08-info': 'Frontframe · afwerking',
     'dl-manual': 'handleiding →',
     'step-01-label': 'STAP 01',
-    'step-01': 'Plaats vleugel L (2) en vleugel R (3) in de kap. Zorg dat de klikverbinding goed vastzit.',
+    'step-01': 'Schuif vleugel L (2) en vleugel R (3) in de kap.',
     'step-02-label': 'STAP 02',
-    'step-02': 'Schuif de kern (4) in de fitting-houder en vergrendel de positie.',
+    'step-02': 'Schuif de kern (4) in de fitting-houder.',
     'step-03-label': 'STAP 03',
     'step-03': 'Klik de E14 ring (5) op de kern. De ring is vervangbaar voor andere fittingversies.',
     'step-04-label': 'STAP 04',
-    'step-04': 'Bevestig kader L (6) en kader R (7). Voer het snoer door de snoergeleider.',
+    'step-04': 'Bevestig kader L (6) en kader R (7). Voer het snoer weg via de snoergeleider.',
     'step-05-label': 'STAP 05',
-    'step-05': 'Sluit de kap door de fitting van bovenaf naar beneden te schuiven. Combineer met het gewenste onderstel.',
+    'step-05': 'Schuif het achterkader (8) van bovenaf in de kap. Combineer met het gewenste onderstel.',
     'cta-t1': 'Tussen product',
     'cta-t2': 'en autonoom object.',
     'cta-sub': 'Rhombi is ontworpen voor interieur, expositie en designcontext. Neem contact op voor informatie, bestellingen of maatwerk.',
@@ -3034,7 +3157,7 @@ const TRANSLATIONS = {
     'mat-more': 'Meer mogelijk. Heb je een specifiek filament of afwerking in gedachten? Neem contact op voor de mogelijkheden, de lijst groeit.',
   },
   en: {
-    'topbanner': '◆ Exclusively available at <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studio opening: Sunday 7 June (Kunst &amp; Cultuurroute) · Every 1st Sunday of the month · 13:00–17:00 · Turfkaai 25',
+    'topbanner': '◆ Exclusively available at <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br><span class="nobr">Studio opening: Sunday 7 June</span> · <span class="nobr">Every 1st Sunday of the month</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span>',
     'type-hint': 'Tap for photos',
     'type-tafel-label': '◆ Table lamp',
     'type-hang-label': '◆ Pendant',
@@ -3114,15 +3237,15 @@ const TRANSLATIONS = {
     'part-08-info': 'Front frame · finish',
     'dl-manual': 'manual →',
     'step-01-label': 'STEP 01',
-    'step-01': 'Insert wing L (2) and wing R (3) into the shade. Make sure the click connection is secure.',
+    'step-01': 'Slide wing L (2) and wing R (3) into the shade.',
     'step-02-label': 'STEP 02',
-    'step-02': 'Slide the core (4) into the socket holder and lock the position.',
+    'step-02': 'Slide the core (4) into the socket holder.',
     'step-03-label': 'STEP 03',
     'step-03': 'Click the E14 ring (5) onto the core. The ring is replaceable for other socket versions.',
     'step-04-label': 'STEP 04',
-    'step-04': 'Attach frame L (6) and frame R (7). Route the cable through the cable guide.',
+    'step-04': 'Attach frame L (6) and frame R (7). Lead the cable away through the cable guide.',
     'step-05-label': 'STEP 05',
-    'step-05': 'Close the shade by sliding the socket from top to bottom. Combine with your chosen base.',
+    'step-05': 'Slide the back frame (8) from the top into the shade. Combine with your chosen base.',
     'cta-t1': 'Between product',
     'cta-t2': 'and autonomous object.',
     'cta-sub': 'Rhombi is designed for interior, exhibition and design contexts. Get in touch for information, orders or custom work.',
@@ -3141,7 +3264,7 @@ const TRANSLATIONS = {
     'geo-p2': 'The grid breaks the direct light source and creates a warm, layered glow. The name <em style="color:var(--cream)">Rhombi</em> refers to this repetition of forms: not a single gesture, but a composition of geometries that shape the light together.',
   },
   de: {
-    'topbanner': '◆ Exklusiv erhältlich bei <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Studioöffnung: Sonntag 7. Juni (Kunst &amp; Cultuurroute) · Jeden 1. Sonntag im Monat · 13:00–17:00 · Turfkaai 25',
+    'topbanner': '◆ Exklusiv erhältlich bei <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br><span class="nobr">Studioöffnung: Sonntag 7. Juni</span> · <span class="nobr">Jeden 1. Sonntag im Monat</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span>',
     'type-hint': 'Tippen für Fotos',
     'type-tafel-label': '◆ Tischleuchte',
     'type-hang-label': '◆ Hänge',
@@ -3221,15 +3344,15 @@ const TRANSLATIONS = {
     'part-08-info': 'Frontrahmen · Abschluss',
     'dl-manual': 'Anleitung →',
     'step-01-label': 'SCHRITT 01',
-    'step-01': 'Flügel L (2) und Flügel R (3) in den Schirm einsetzen. Sicherstellen, dass die Klickverbindung hält.',
+    'step-01': 'Flügel L (2) und Flügel R (3) in den Schirm schieben.',
     'step-02-label': 'SCHRITT 02',
-    'step-02': 'Kern (4) in den Fassungshalter schieben und Position arretieren.',
+    'step-02': 'Kern (4) in den Fassungshalter schieben.',
     'step-03-label': 'SCHRITT 03',
     'step-03': 'E14-Ring (5) auf den Kern klicken. Der Ring ist für andere Fassungsversionen austauschbar.',
     'step-04-label': 'SCHRITT 04',
-    'step-04': 'Rahmen L (6) und Rahmen R (7) befestigen. Das Kabel durch die Kabelführung führen.',
+    'step-04': 'Rahmen L (6) und Rahmen R (7) befestigen. Das Kabel durch die Kabelführung nach außen führen.',
     'step-05-label': 'SCHRITT 05',
-    'step-05': 'Schirm schließen, indem die Fassung von oben nach unten geschoben wird. Mit dem gewünschten Sockel kombinieren.',
+    'step-05': 'Hinterrahmen (8) von oben in den Schirm schieben. Mit dem gewünschten Sockel kombinieren.',
     'cta-t1': 'Zwischen Produkt',
     'cta-t2': 'und autonomem Objekt.',
     'cta-sub': 'Rhombi ist für Interieur, Ausstellung und Designkontexte konzipiert. Kontakt aufnehmen für Informationen, Bestellungen oder Sonderwünsche.',
@@ -3282,7 +3405,6 @@ function setLang(lang) {
   // Update active button (desktop + mobiel)
   ['nl','en','de'].forEach(l => {
     document.getElementById('btn-'+l)?.classList.toggle('active', l===lang);
-    document.getElementById('btn-'+l+'-mob')?.classList.toggle('active', l===lang);
   });
 }
 
