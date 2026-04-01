@@ -1686,6 +1686,7 @@ input, textarea, select {
   text-underline-offset: 3px;
 }
 .topbanner .nobr { white-space: nowrap; }
+.banner-mobile { display: none; }
 @media (max-width: 768px) {
   .topbanner {
     font-size: 8px;
@@ -1693,6 +1694,8 @@ input, textarea, select {
     padding: 7px 12px;
     line-height: 1.7;
   }
+  .banner-desktop { display: none; }
+  .banner-mobile  { display: inline; }
 }
 
 /* ── NIEUWE LAYOUT STIJLEN ── */
@@ -1955,8 +1958,9 @@ input, textarea, select {
 
 <!-- MOBILE MENU -->
 <div class="topbanner" data-i18n="topbanner">
-  ◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>
-  Opening studio: zondag 7 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25
+  ◆ Vooralsnog exclusief bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg
+  <span class="banner-desktop"> · <span class="nobr">Zondag 7 juni</span> · <span class="nobr">Elke 1e zondag</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span></span>
+  <span class="banner-mobile"><br><span class="nobr">1e zondag v/d maand</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span></span>
 </div>
 
 <div class="mobile-menu" id="mobileMenu">
