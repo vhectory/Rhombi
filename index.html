@@ -2042,6 +2042,8 @@ input, textarea, select {
     <li><a href="#kunst" onclick="closeMobileMenu()" data-i18n="nav-kunst">Kunst</a></li>
     <li><a href="#geometrie" onclick="closeMobileMenu()" data-i18n="nav-geo">Geometrie</a></li>
     <li><a href="#configurator" onclick="closeMobileMenu()" data-i18n="nav-conf">Configurator</a></li>
+    <li><a href="rhombi-prijslijst.html" data-i18n="nav-prijslijst">Prijslijst</a></li>
+    <li><a href="#prijzen" onclick="closeMobileMenu()" data-i18n="nav-prijzen">Prijzen</a></li>
     <li><a href="#types" onclick="closeMobileMenu()" data-i18n="nav-types">Varianten</a></li>
     <li><a href="#carousel" onclick="closeMobileMenu()" data-i18n="nav-sfeer">Sfeer</a></li>
     <li><a href="#uitleg" onclick="closeMobileMenu()" data-i18n="nav-about">Over Rhombi</a></li>
@@ -2069,6 +2071,8 @@ input, textarea, select {
           <li><a href="#kunst" data-i18n="nav-kunst">Kunst</a></li>
           <li><a href="#geometrie" data-i18n="nav-geo">Geometrie</a></li>
           <li><a href="#configurator" data-i18n="nav-conf">Configurator</a></li>
+          <li><a href="rhombi-prijslijst.html" data-i18n="nav-prijslijst">Prijslijst</a></li>
+          <li><a href="#prijzen" data-i18n="nav-prijzen">Prijzen</a></li>
           <li><a href="#types" data-i18n="nav-types">Varianten</a></li>
           <li><a href="#carousel" data-i18n="nav-sfeer">Sfeer</a></li>
           <li><a href="#uitleg" data-i18n="nav-about">Over Rhombi</a></li>
@@ -2289,6 +2293,10 @@ input, textarea, select {
       <p class="section-label reveal" data-i18n="conf-label">◆ 3D Configurator</p>
       <h2 class="section-title reveal"><span data-i18n="conf-t1">Stel jouw</span><br><em data-i18n="conf-t2">Rhombi samen.</em></h2>
       <p style="font-size:14px;line-height:1.7;color:var(--text-dim);margin-top:12px;letter-spacing:.01em" data-i18n="conf-sub">Kies variant, materiaal en kleur.</p>
+      <div style="display:flex;gap:12px;margin-top:28px;flex-wrap:wrap">
+        <a href="rhombi-prijslijst.html" class="btn-primary" style="font-size:10px;padding:13px 24px" data-i18n="conf-prijs">Bereken prijs →</a>
+        <a href="#prijzen" class="btn-ghost" style="font-size:10px" data-i18n="conf-prijzen-link">Bekijk prijsoverzicht</a>
+      </div>
     </div>
   <a href="viewer.html?variant=tafel" target="_blank" class="configurator-preview rhombi-frame" data-no-lightbox="1" style="display:block;text-decoration:none">
     <div class="configurator-preview-logo">
@@ -2716,6 +2724,94 @@ input, textarea, select {
       </div>
     </div>
 </div>
+  </div>
+</section>
+
+<!-- PRIJZEN SECTIE -->
+<section id="prijzen" style="padding:80px 48px;background:var(--dark2)">
+  <div style="max-width:1040px;margin:0 auto">
+
+    <p class="section-label reveal">◆ Prijzen</p>
+    <h2 class="section-title reveal"><span data-i18n="prijzen-t1">Complete lampen,</span><br><em data-i18n="prijzen-t2">transparante prijzen.</em></h2>
+    <p style="font-size:14px;line-height:1.75;color:var(--text-dim);margin-top:16px;margin-bottom:40px;max-width:520px" data-i18n="prijzen-sub">Alle prijzen inclusief BTW, snoer en fitting. Basisprijs geldt voor PLA Matte.</p>
+
+    <!-- Compacte prijstabel -->
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table style="width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:10px 16px;background:var(--dark3);border-bottom:1px solid rgba(200,136,74,.2);color:var(--amber);letter-spacing:.14em;text-transform:uppercase;font-weight:400;min-width:160px">Product</th>
+            <th style="padding:10px 16px;background:var(--dark3);border-bottom:1px solid rgba(200,136,74,.2);color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;font-weight:400;text-align:center">PLA Basic</th>
+            <th style="padding:10px 16px;background:var(--dark3);border-bottom:1px solid rgba(200,136,74,.2);color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;font-weight:400;text-align:center">PLA Matte</th>
+            <th style="padding:10px 16px;background:var(--dark3);border-bottom:1px solid rgba(200,136,74,.2);color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;font-weight:400;text-align:center">PETG</th>
+            <th style="padding:10px 16px;background:var(--dark3);border-bottom:1px solid rgba(200,136,74,.2);color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;font-weight:400;text-align:center">PLA Silk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Tafellamp -->
+          <tr style="background:rgba(200,136,74,.06);border-top:1px solid rgba(200,136,74,.15)">
+            <td colspan="5" style="padding:8px 16px;color:var(--amber);letter-spacing:.16em;text-transform:uppercase;font-size:9px">▢ Tafellamp</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+            <td style="padding:10px 16px;color:var(--cream);font-family:var(--font-sans);font-size:13px">230 mm <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">Lage voet</span></td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 185</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 185</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--cream)">€ 200</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale);opacity:.9">€ 210</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+            <td style="padding:10px 16px;color:var(--cream);font-family:var(--font-sans);font-size:13px">270 mm <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">Standaard</span></td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 195</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 195</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--cream)">€ 210</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale);opacity:.9">€ 220</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+            <td style="padding:10px 16px;color:var(--cream);font-family:var(--font-sans);font-size:13px">310 mm <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">Hoge voet</span></td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 205</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 205</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--cream)">€ 220</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale);opacity:.9">€ 230</td>
+          </tr>
+          <!-- Accentlamp -->
+          <tr style="background:rgba(200,136,74,.06);border-top:1px solid rgba(200,136,74,.15)">
+            <td colspan="5" style="padding:8px 16px;color:var(--amber);letter-spacing:.16em;text-transform:uppercase;font-size:9px">◈ Accentlamp</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+            <td style="padding:10px 16px;color:var(--cream);font-family:var(--font-sans);font-size:13px">Standaard <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">Gesloten achterkant</span></td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 165</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 165</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--cream)">€ 180</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale);opacity:.9">€ 190</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+            <td style="padding:10px 16px;color:var(--cream);font-family:var(--font-sans);font-size:13px">Met standaard <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">Ingebouwde steun</span></td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 175</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 175</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--cream)">€ 190</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale);opacity:.9">€ 200</td>
+          </tr>
+          <!-- Wandlamp -->
+          <tr style="background:rgba(200,136,74,.06);border-top:1px solid rgba(200,136,74,.15)">
+            <td colspan="5" style="padding:8px 16px;color:var(--amber);letter-spacing:.16em;text-transform:uppercase;font-size:9px">◧ Wandlamp</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+            <td style="padding:10px 16px;color:var(--cream);font-family:var(--font-sans);font-size:13px">Horizontaal / Verticaal <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim)">Incl. beugel</span></td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 175</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale)">€ 175</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--cream)">€ 190</td>
+            <td style="padding:10px 16px;text-align:center;color:var(--amber-pale);opacity:.9">€ 200</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Noot + CTA -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.05)">
+      <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--text-dim)">Incl. BTW · snoer & fitting inbegrepen · verkrijgbaar via Galerie T</p>
+      <a href="rhombi-prijslijst.html" class="btn-primary" style="font-size:10px;padding:12px 28px" data-i18n="prijzen-cta">Stel samen & bereken prijs →</a>
+    </div>
+
   </div>
 </section>
 
@@ -3153,6 +3249,8 @@ const TRANSLATIONS = {
     'ont-p2': 'In uiteenlopende projecten, van ruimtelijke ontwerpen tot visuele representaties, streeft hij naar helderheid in vorm en een subtiele, gelaagde ruimtelijke ervaring. Vincent maakt gebruik van technieken zoals 3D-modellering, digitale fabricage en visualisatie om ontwerpen te ontwikkelen en te verfijnen. Met deze werkwijze verbindt hij het architectonische met het sculpturale, waarbij licht niet enkel functioneel is maar een integraal onderdeel vormt van het ontwerpconcept.',
     'ont-p3': 'Als ontwerper zoekt hij naar objecten die zowel een rustige aanwezigheid als een expressieve vormkwaliteit bezitten en die uitnodigen om licht en ruimte op een nieuwe manier te ervaren.',
     'nav-conf': 'Configurator',
+    'nav-prijslijst': 'Prijslijst',
+    'nav-prijzen': 'Prijzen',
     'nav-types': 'Varianten',
     'nav-sfeer': 'Sfeer',
     'nav-about': 'Over Rhombi',
@@ -3172,6 +3270,12 @@ const TRANSLATIONS = {
     'conf-t1': 'Stel jouw',
     'conf-t2': 'Rhombi samen.',
     'conf-sub': 'Kies variant, materiaal en kleur.',
+    'conf-prijs': 'Bereken prijs →',
+    'conf-prijzen-link': 'Bekijk prijsoverzicht',
+    'prijzen-t1': 'Complete lampen,',
+    'prijzen-t2': 'transparante prijzen.',
+    'prijzen-sub': 'Alle prijzen inclusief BTW, snoer en fitting. Basisprijs geldt voor PLA Matte.',
+    'prijzen-cta': 'Stel samen & bereken prijs →',
     'conf-types': 'Tafel · Wand · Plafond · Accent · Hang',
     'types-label': '◆ Varianten',
     'types-t1': 'Meerdere vormen,',
@@ -3260,6 +3364,8 @@ const TRANSLATIONS = {
     'ont-p2': 'Across diverse projects — from spatial designs to visual representations — he strives for clarity of form and a subtle, layered spatial experience. Vincent uses techniques such as 3D modelling, digital fabrication and visualisation to develop and refine his designs. Through this approach he connects the architectural with the sculptural, where light is not merely functional but an integral part of the design concept.',
     'ont-p3': 'As a designer he seeks objects that possess both a quiet presence and an expressive formal quality, inviting people to experience light and space in a new way.',
     'nav-conf': 'Configurator',
+    'nav-prijslijst': 'Price list',
+    'nav-prijzen': 'Prices',
     'nav-types': 'Variants',
     'nav-sfeer': 'Atmosphere',
     'nav-about': 'About Rhombi',
@@ -3279,6 +3385,12 @@ const TRANSLATIONS = {
     'conf-t1': 'Configure your',
     'conf-t2': 'Rhombi.',
     'conf-sub': 'Choose variant, material and colour.',
+    'conf-prijs': 'Calculate price →',
+    'conf-prijzen-link': 'View price overview',
+    'prijzen-t1': 'Complete lamps,',
+    'prijzen-t2': 'transparent pricing.',
+    'prijzen-sub': 'All prices include VAT, cable and fitting. Base price applies to PLA Matte.',
+    'prijzen-cta': 'Configure & calculate price →',
     'conf-types': 'Table · Wall · Ceiling · Accent · Pendant',
     'types-label': '◆ Variants',
     'types-t1': 'Multiple forms,',
@@ -3367,6 +3479,8 @@ const TRANSLATIONS = {
     'ont-p2': 'In unterschiedlichen Projekten — von Raumgestaltungen bis hin zu visuellen Darstellungen — strebt er nach Klarheit der Form und einer subtilen, vielschichtigen Raumwahrnehmung. Vincent nutzt Techniken wie 3D-Modellierung, digitale Fertigung und Visualisierung, um Entwürfe zu entwickeln und zu verfeinern. Mit diesem Ansatz verbindet er das Architektonische mit dem Skulpturalen, wobei Licht nicht nur funktional ist, sondern ein integraler Bestandteil des Entwurfskonzepts.',
     'ont-p3': 'Als Designer sucht er nach Objekten, die sowohl eine ruhige Präsenz als auch eine ausdrucksstarke Formqualität besitzen und dazu einladen, Licht und Raum auf eine neue Weise zu erleben.',
     'nav-conf': 'Konfigurator',
+    'nav-prijslijst': 'Preisliste',
+    'nav-prijzen': 'Preise',
     'nav-mat': 'Material',
     'nav-types': 'Varianten',
     'nav-sfeer': 'Atmosphäre',
@@ -3386,6 +3500,12 @@ const TRANSLATIONS = {
     'conf-t1': 'Gestalte dein',
     'conf-t2': 'Rhombi.',
     'conf-sub': 'Variante, Material und Farbe wählen.',
+    'conf-prijs': 'Preis berechnen →',
+    'conf-prijzen-link': 'Preisübersicht ansehen',
+    'prijzen-t1': 'Komplette Leuchten,',
+    'prijzen-t2': 'transparente Preise.',
+    'prijzen-sub': 'Alle Preise inkl. MwSt., Kabel und Fassung. Grundpreis gilt für PLA Matte.',
+    'prijzen-cta': 'Konfigurieren & Preis berechnen →',
     'conf-types': 'Tisch · Wand · Decke · Akzent · Hänge',
     'types-label': '◆ Varianten',
     'types-t1': 'Mehrere Formen,',

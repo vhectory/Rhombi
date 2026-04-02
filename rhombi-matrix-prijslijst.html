@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhombi — Prijslijst</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --a:#C8884A; --ap:#D9A870; --c:#EDE4D0;
+  --d:#12151A; --d2:#181C23; --d3:#1E232C;
+  --t:#A8B0B8; --td:#606870;
+  --mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--d);}
+body{font-family:'Space Grotesk',sans-serif;background:var(--d);color:var(--c);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* ── ACTIEBALK ── */
+.bar{
+  position:sticky;top:0;z-index:100;
+  height:52px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+  background:rgba(18,21,26,.97);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(200,136,74,.12);
+}
+.bar-logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
+.bar-logo svg path{stroke:var(--a);}
+.bar-logo-txt{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--c);}
+.bar-logo-sub{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--td);margin-left:2px;}
+.bar-right{display:flex;align-items:center;gap:8px;}
+.bar-back{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--td);text-decoration:none;transition:color .2s;}
+.bar-back:hover{color:var(--a);}
+.bar-btn{padding:7px 16px;background:var(--a);border:none;color:var(--d);font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .15s;}
+.bar-btn:hover{background:var(--ap);}
+.bar-btn.ghost{background:transparent;border:1px solid rgba(200,136,74,.3);color:var(--ap);}
+.bar-btn.ghost:hover{border-color:var(--a);background:rgba(200,136,74,.07);}
+
+/* ── PAGINA ── */
+.wrap{max-width:1040px;margin:0 auto;padding:48px 32px 80px;}
+@media(max-width:600px){.wrap{padding:28px 16px 60px;}}
+
+/* ── HEADER ── */
+.hd{margin-bottom:40px;}
+.hd-tag{font-family:var(--mono);font-size:9px;letter-spacing:.26em;color:var(--a);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.hd-tag::before{content:'';display:block;width:14px;height:1.5px;background:var(--a);}
+.hd-title{font-size:clamp(24px,4vw,34px);font-weight:300;letter-spacing:-.02em;margin-bottom:6px;}
+.hd-sub{font-size:13px;color:var(--t);line-height:1.7;max-width:560px;}
+.hd-note{
+  display:inline-flex;align-items:center;gap:7px;
+  margin-top:16px;padding:8px 14px;
+  border:1px solid rgba(200,136,74,.2);
+  background:rgba(200,136,74,.05);
+  font-size:11px;color:var(--td);line-height:1.5;
+}
+.hd-note strong{color:var(--ap);}
+
+/* ── MAT LEGENDA ── */
+.legenda{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:32px;}
+.leg-item{
+  display:flex;align-items:center;gap:7px;
+  padding:6px 12px;
+  background:var(--d3);border:1px solid rgba(255,255,255,.06);
+  font-size:11px;color:var(--t);
+}
+.leg-dot{width:8px;height:8px;border-radius:50%;border:1px solid rgba(255,255,255,.15);flex-shrink:0;}
+.leg-name{font-weight:500;color:var(--c);}
+.leg-delta{font-family:var(--mono);font-size:9px;color:var(--td);margin-left:3px;}
+
+/* ── SECTIE ── */
+.sec{margin-bottom:40px;}
+.sec-head{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:2px;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(200,136,74,.15);
+}
+.sec-head::before{content:'';display:block;width:3px;height:16px;background:var(--a);flex-shrink:0;}
+.sec-title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--c);}
+.sec-desc{font-size:11px;color:var(--td);margin-left:auto;}
+
+/* ── MATRIX TABEL ── */
+.mtbl{width:100%;border-collapse:collapse;margin-top:1px;}
+
+/* Sticky header */
+.mtbl thead tr{position:sticky;top:52px;z-index:10;}
+.mtbl thead th{
+  background:var(--d2);
+  border-bottom:1px solid rgba(200,136,74,.2);
+  border-right:1px solid rgba(255,255,255,.04);
+  padding:10px 12px;
+  text-align:center;
+  white-space:nowrap;
+}
+.mtbl thead th:first-child{
+  text-align:left;min-width:160px;
+  border-right:1px solid rgba(200,136,74,.15);
+  position:sticky;left:0;z-index:11;background:var(--d2);
+}
+.th-mat{
+  font-family:var(--mono);font-size:9px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--c);
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.th-mat-dot{width:8px;height:8px;border-radius:50%;border:1px solid rgba(255,255,255,.15);flex-shrink:0;}
+.th-mat-delta{font-size:8px;color:var(--td);}
+.th-prod{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--td);}
+
+/* Rijen */
+.mtbl tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s;}
+.mtbl tbody tr:hover{background:rgba(200,136,74,.04);}
+.mtbl tbody tr.grp-header td{
+  background:rgba(200,136,74,.06);
+  border-top:1px solid rgba(200,136,74,.15);
+  border-bottom:1px solid rgba(200,136,74,.1);
+  padding:7px 12px;
+}
+.mtbl tbody td{
+  padding:10px 12px;
+  border-right:1px solid rgba(255,255,255,.03);
+  text-align:center;
+  vertical-align:middle;
+}
+.mtbl tbody td:first-child{
+  text-align:left;
+  border-right:1px solid rgba(200,136,74,.1);
+  position:sticky;left:0;
+  background:var(--d);
+  z-index:5;
+}
+.mtbl tbody tr:hover td:first-child{background:rgba(200,136,74,.04);}
+
+/* Cel labels */
+.prod-name{font-size:13px;font-weight:500;color:var(--c);}
+.prod-sub{font-family:var(--mono);font-size:9px;color:var(--td);margin-top:2px;}
+.prod-icon{font-family:var(--mono);font-size:11px;color:var(--a);opacity:.6;margin-right:6px;}
+.grp-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--a);}
+
+/* Prijs cel */
+.p-cel{
+  font-family:var(--mono);font-size:12px;
+  color:var(--c);font-weight:500;
+}
+.p-cel.basis{color:var(--ap);}
+.p-cel.plus{color:var(--c);}
+.p-cel.premium{color:var(--ap);opacity:.9;}
+.p-cel small{display:block;font-size:8px;color:var(--td);margin-top:1px;font-weight:400;}
+.p-cel.nvt{color:var(--td);font-size:10px;}
+
+/* Highlight kolom hover */
+.mtbl thead th:hover .th-mat{color:var(--a);}
+
+/* ── ONDERDELEN MATRIX ── */
+.deel-icon{display:inline-block;width:20px;height:20px;object-fit:contain;opacity:.55;vertical-align:middle;margin-right:6px;}
+
+/* ── NOTEN ── */
+.noten{
+  background:var(--d2);border:1px solid rgba(255,255,255,.06);
+  padding:18px 20px;margin-top:32px;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px 28px;
+  font-size:12px;color:var(--td);line-height:1.6;
+}
+@media(max-width:600px){.noten{grid-template-columns:1fr;}}
+.noten-item{display:flex;gap:8px;}
+.noten-item::before{content:'◆';color:var(--a);font-size:8px;margin-top:4px;flex-shrink:0;}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid rgba(255,255,255,.05);
+  padding:20px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--d2);
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--td);
+}
+footer a{color:var(--td);text-decoration:none;transition:color .2s;}
+footer a:hover{color:var(--a);}
+@media(max-width:560px){footer{flex-direction:column;gap:6px;text-align:center;padding:16px 20px;}}
+
+/* ── PRINT ── */
+@media print{
+  .bar{position:relative;background:#12151A!important;}
+  .bar-right{display:none;}
+  body{background:#fff;color:#1a1a1a;}
+  .wrap{padding:20px;}
+  .mtbl thead th,.mtbl tbody td:first-child{background:#f5f0e8!important;}
+  .mtbl thead tr{position:relative;top:0;}
+  @page{size:A3 landscape;margin:12mm;}
+}
+</style>
+</head>
+<body>
+
+<!-- BALK -->
+<div class="bar">
+  <a href="https://rhombi.nl" class="bar-logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="28" height="28" aria-label="Rhombi">
+      <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="5" d="M1131.5,582.5 C1130.56,584.79 1128.68,586.32 1127,588 C973.33,741.67 819.66,895.32 666.07,1049.07 C662.79,1052.35 659.51,1053.4 655.01,1053.62 C617.51,1055.4 580,1054.17 542.5,1054.44 C532.34,1054.51 522.17,1053.77 512,1053.56 C510.33,1053.53 509.12,1052.93 508.02,1051.98 C506.6,1050.74 505.33,1049.33 504,1048 C351,895 198,742 45.01,589 C43,586.98 40.67,585.23 39.37,582.21 C46.65,573.68 55.13,566.13 63.02,558.02 C64.53,556.47 66.38,556.56 67.99,558.01 C69.38,559.28 70.67,560.67 72,562 C215.33,705.33 358.69,848.64 501.9,992.1 C506.66,996.87 511.41,998.66 518,998.62 C564.17,998.39 610.33,998.45 656.5,998.58 C660.61,998.59 663.86,997.59 666.51,994.51 C667.28,993.62 668.17,992.83 669,992 C812.33,848.67 955.67,705.33 1099,562 C1106,555 1106,555 1113,562 C1117.83,566.83 1122.68,571.66 1127.49,576.51 C1129.11,578.13 1131.01,579.55 1131.5,582Z"/>
+      <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8" d="M1087.5,543 C1087.01,540.55 1085.11,539.12 1083.5,537.5 C1009.5,463.5 935.65,389.35 861.36,315.64 C847.48,301.87 833.73,287.93 819.47,274.54 C784.66,241.85 750.3,208.61 711.49,180.51 C690.65,165.42 668.59,152.47 643.96,144.62 C631.71,140.72 619.02,138.33 606,138.48 C594.83,138.6 583.68,138.08 572.5,138.17 C547.13,138.37 523.52,144.21 501,155.48 C477.47,167.23 456.29,182.46 436.01,199.02 C418.44,213.36 401.57,228.5 384.93,243.93 C369.71,258.04 354.82,272.48 339.96,286.96 C255.39,369.39 172.82,453.82 89.01,537.01 C87,539.01 84.67,540.77 83.51,543.46 C84.42,545.81 86.32,547.32 88,549 C226.67,687.67 365.35,826.32 503.93,965.07 C507.21,968.35 510.48,969.41 514.99,969.62 C553.16,971.42 591.33,970.16 629.5,970.44 C639.66,970.51 649.83,969.77 660,969.56 C661.67,969.53 662.88,968.93 663.98,967.98 C665.4,966.74 666.67,965.33 668,964 C806,826 944,688 1082,550 C1084.01,547.98 1086.27,546.18 1087.5,543.5Z"/>
+    </svg>
+    <span class="bar-logo-txt">RHOMBI</span>
+    <span class="bar-logo-sub">Prijslijst</span>
+  </a>
+  <div class="bar-right">
+    <a href="rhombi-prijslijst.html" class="bar-back" data-i18n="mx-back">← Samenstellen</a>
+    <div style="display:flex;gap:2px;">
+      <button onclick="setLang('nl')" id="btn-nl" style="padding:4px 8px;background:rgba(200,136,74,.08);border:1px solid rgba(200,136,74,.4);color:var(--ap);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:.1em;">NL</button>
+      <button onclick="setLang('en')" id="btn-en" style="padding:4px 8px;background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--dim);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:.1em;">EN</button>
+      <button onclick="setLang('de')" id="btn-de" style="padding:4px 8px;background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--dim);font-family:var(--mono);font-size:9px;cursor:pointer;letter-spacing:.1em;">DE</button>
+    </div>
+    <button class="bar-btn ghost" onclick="window.print()" data-i18n="btn-print">🖨 Afdrukken</button>
+  </div>
+</div>
+
+<!-- INHOUD -->
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="hd">
+    <div class="hd-tag">Rhombi · Modulaire Lichtobjecten</div>
+    <h1 class="hd-title" data-i18n="mx-page-title">Prijsoverzicht</h1>
+    <p class="hd-sub">Alle prijzen per product en materiaal. Elk onderdeel is leverbaar in elk filament. Prijzen zijn inclusief snoer en fitting, inclusief BTW.</p>
+    <div class="hd-note" data-i18n="mx-page-note">
+      <strong>◆</strong> Basisprijzen gelden voor PLA Matte. Andere materialen: zie toeslag per kolom.
+    </div>
+  </div>
+
+  <!-- MATERIAAL LEGENDA -->
+  <div class="legenda" id="legenda"></div>
+
+  <!-- ══ COMPLETE LAMPEN ══ -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-title" data-i18n="mx-lampen">Complete lampen</span>
+      <span class="sec-desc" data-i18n="mx-lampen-sub2">incl. snoer, fitting &amp; voet · incl. BTW · via Galerie T</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="mtbl" id="tbl-lampen"></table>
+    </div>
+  </div>
+
+  <!-- ══ LOSSE ONDERDELEN ══ -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-title" data-i18n="mx-delen">Losse onderdelen</span>
+      <span class="sec-desc" data-i18n="mx-delen-sub">los te bestellen · incl. BTW</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="mtbl" id="tbl-delen"></table>
+    </div>
+  </div>
+
+  <!-- NOTEN -->
+  <div class="noten">
+    <div class="noten-item">Prijzen in euro's, inclusief BTW en verzendkosten.</div>
+    <div class="noten-item" data-i18n="note-2">PLA Basic en PLA Matte hebben dezelfde basisprijs.</div>
+    <div class="noten-item" data-i18n="note-3">Elk onderdeel kan in een ander materiaal worden geprint.</div>
+    <div class="noten-item">Meer kleuren en materialen op aanvraag mogelijk.</div>
+    <div class="noten-item" data-i18n="note-5">Levertijd doorgaans 1–2 weken na bespreking en akkoord.</div>
+    <div class="noten-item" data-i18n="note-4">Verkrijgbaar bij <strong style="color:var(--ap)">Galerie T, Middelburg</strong>. Aanvragen via rhombi.nl.</div>
+  </div>
+
+</div><!-- /wrap -->
+
+<footer>
+  <a href="https://rhombi.nl" style="display:flex;align-items:center;gap:7px;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="16" height="16">
+      <path fill="none" stroke="#C8884A" stroke-linecap="round" stroke-linejoin="round" stroke-width="8" d="M1087.5,543 C1087.01,540.55 1085.11,539.12 1083.5,537.5 C1009.5,463.5 935.65,389.35 861.36,315.64 C847.48,301.87 833.73,287.93 819.47,274.54 C784.66,241.85 750.3,208.61 711.49,180.51 C690.65,165.42 668.59,152.47 643.96,144.62 C631.71,140.72 619.02,138.33 606,138.48 C594.83,138.6 583.68,138.08 572.5,138.17 C547.13,138.37 523.52,144.21 501,155.48 C477.47,167.23 456.29,182.46 436.01,199.02 C418.44,213.36 401.57,228.5 384.93,243.93 C369.71,258.04 354.82,272.48 339.96,286.96 C255.39,369.39 172.82,453.82 89.01,537.01 C87,539.01 84.67,540.77 83.51,543.46 C84.42,545.81 86.32,547.32 88,549 C226.67,687.67 365.35,826.32 503.93,965.07 C507.21,968.35 510.48,969.41 514.99,969.62 C553.16,971.42 591.33,970.16 629.5,970.44 C639.66,970.51 649.83,969.77 660,969.56 C661.67,969.53 662.88,968.93 663.98,967.98 C665.4,966.74 666.67,965.33 668,964 C806,826 944,688 1082,550 C1084.01,547.98 1086.27,546.18 1087.5,543.5Z"/>
+    </svg>
+    RHOMBI
+  </a>
+  <span>Ontwerp: Vincent Hector · Vhector · Rotterdam, NL</span>
+  <a href="https://rhombi.nl#contact" data-i18n="footer-contact">Contact</a>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA (zelfde als prijslijst — hier centraal)
+// ══════════════════════════════════════════════
+const MAT = [
+  { id:'pla-basic',      naam:'PLA Basic',       dot:'#a0b8d0', delta:0,   desc:'Glanzend' },
+  { id:'pla-mat',        naam:'PLA Matte',        dot:'#c8b89a', delta:0,   desc:'Standaard' },
+  { id:'pla-translucent',naam:'PLA Translucent',  dot:'#f0c860', delta:5,   desc:'Semi-transparant' },
+  { id:'pla-cf',         naam:'PLA CF',           dot:'#282828', delta:25,  desc:'Carbon fiber' },
+  { id:'pla-nebula',     naam:'PLA Galaxy',       dot:'#7060d0', delta:12,  desc:'Metallic glitter' },
+];
+
+const BASIS_LAMP = {
+  tafel:  { 230:185, 270:195, 310:205 },
+  accent: { std:165 },
+  wand:   { std:175 },
+};
+
+const LAMPEN = [
+  { icon:'▢', naam:'Tafellamp 230 mm', sub:'Lage voet', basis:185 },
+  { icon:'▢', naam:'Tafellamp 270 mm', sub:'Standaard voet · basis', basis:195 },
+  { icon:'▢', naam:'Tafellamp 310 mm', sub:'Hoge voet', basis:205 },
+  { icon:'◈', naam:'Accentlamp',       sub:'Slanke sokkel', basis:165 },
+  { icon:'◈', naam:'Accentlamp + standaard', sub:'Met ingebouwde steun', basis:175 },
+  { icon:'◧', naam:'Wandlamp horizontaal', sub:'Beugelmontage', basis:175 },
+  { icon:'◧', naam:'Wandlamp verticaal',   sub:'Beugelmontage', basis:175 },
+];
+
+
+// Gecategoriseerde onderdelen
+const DEEL_CATS = [
+  {
+    cat: 'Kap — basiskap',
+    icon: '▢',
+    desc: 'Vormen samen de complete kap',
+    delen: [
+      { num:'01', naam:'Kap',       sub:'Buitenkant · 200×100 mm', basis:95,  delta:{'pla-cf':25,'pla-nebula':12,'pla-translucent':5,'pla-basic':0} },
+      { num:'02', naam:'Vleugel L', sub:'Zijpaneel links',          basis:14,  delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0} },
+      { num:'03', naam:'Vleugel R', sub:'Zijpaneel rechts',         basis:14,  delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0} },
+      { num:'04', naam:'Kern',      sub:'Centrale fitting-houder',  basis:18,  delta:{'pla-cf':8,'pla-nebula':3,'pla-translucent':2,'pla-basic':0} },
+      { num:'05', naam:'Ring',      sub:'E14 · vervangbaar',        basis:8,   delta:{} },
+      { num:'06', naam:'Kader L',   sub:'Zijkader links',           basis:22,  delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0} },
+      { num:'07', naam:'Kader R',   sub:'Zijkader rechts · klikhaken', basis:22, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0} },
+      { num:'08', naam:'Kader',     sub:'Frontframe · afwerking',   basis:22,  delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0} },
+    ]
+  },
+  {
+    cat: 'Voeten & statieven',
+    icon: '◆',
+    desc: 'Tafellamp- en accentlamp-voeten',
+    delen: [
+      { num:'09', naam:'Voet 230 mm', sub:'Lage voet · tafellamp',      basis:28, delta:{'pla-cf':12,'pla-nebula':5,'pla-translucent':3,'pla-basic':0} },
+      { num:'10', naam:'Voet 270 mm', sub:'Standaard voet · tafellamp', basis:32, delta:{'pla-cf':12,'pla-nebula':5,'pla-translucent':3,'pla-basic':0} },
+      { num:'11', naam:'Voet 310 mm', sub:'Hoge voet · tafellamp',      basis:36, delta:{'pla-cf':12,'pla-nebula':5,'pla-translucent':3,'pla-basic':0} },
+      { num:'12', naam:'Stand',       sub:'Standaard achterkant · accentlamp', basis:18, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0} },
+    ]
+  },
+  {
+    cat: 'Wandophanging',
+    icon: '◧',
+    desc: 'Montageset voor wandlamp',
+    delen: [
+      { num:'13', naam:'Ophanging horizontaal', sub:'Beugel + wandplaat · links/rechts', basis:24, delta:{'pla-cf':10,'pla-nebula':4,'pla-translucent':2,'pla-basic':0} },
+      { num:'14', naam:'Ophanging verticaal',   sub:'Beugel + wandplaat · boven/onder',  basis:24, delta:{'pla-cf':10,'pla-nebula':4,'pla-translucent':2,'pla-basic':0} },
+    ]
+  },
+];
+
+const euro = v => '€\u202f' + Math.round(v);
+
+// ══════════════════════════════════════════════
+//  LEGENDA
+// ══════════════════════════════════════════════
+document.getElementById('legenda').innerHTML = MAT.map(m => `
+  <div class="leg-item">
+    <div class="leg-dot" style="background:${m.dot}"></div>
+    <span class="leg-name">${m.naam}</span>
+    <span class="leg-delta">${m.delta === 0 ? (m.id === 'pla-basic' ? '= matte' : 'standaard') : m.delta > 0 ? '+€'+m.delta : '−€'+Math.abs(m.delta)}</span>
+  </div>`).join('');
+
+// ══════════════════════════════════════════════
+//  TABLE HEADER
+// ══════════════════════════════════════════════
+function tblHeader(eersteKolom) {
+  return `<thead><tr>
+    <th><span class="th-prod">${eersteKolom}</span></th>
+    ${MAT.map(m => `
+      <th>
+        <div class="th-mat">
+          <div class="th-mat-dot" style="background:${m.dot}"></div>
+          ${m.naam}
+          <span class="th-mat-delta">${m.delta === 0 ? (m.id === 'pla-basic' ? '= matte' : 'standaard') : m.delta > 0 ? '+€'+m.delta : '−€'+Math.abs(m.delta)}</span>
+        </div>
+      </th>`).join('')}
+  </tr></thead>`;
+}
+
+// ══════════════════════════════════════════════
+//  LAMPEN TABEL (met groepkoppen)
+// ══════════════════════════════════════════════
+const LAMP_CATS = [
+  {
+    cat: 'Tafellamp', icon: '▢',
+    lampen: [
+      { naam:'230 mm', sub:'Lage voet', basis:185 },
+      { naam:'270 mm', sub:'Standaard · basis', basis:195 },
+      { naam:'310 mm', sub:'Hoge voet', basis:205 },
+    ]
+  },
+  {
+    cat: 'Accentlamp', icon: '◈',
+    lampen: [
+      { naam:'Standaard',       sub:'Gesloten achterkant', basis:165 },
+      { naam:'Met standaard',   sub:'Ingebouwde steun', basis:175 },
+    ]
+  },
+  {
+    cat: 'Wandlamp', icon: '◧',
+    lampen: [
+      { naam:'Horizontaal', sub:'Beugelmontage links/rechts', basis:175 },
+      { naam:'Verticaal',   sub:'Beugelmontage boven/onder', basis:175 },
+    ]
+  },
+];
+
+function lampPrijs(lamp, mat) { return lamp.basis + mat.delta; }
+
+let lampHTML = tblHeader('Product');
+lampHTML += '<tbody>';
+LAMP_CATS.forEach(cat => {
+  // groepkop
+  const ncols = MAT.length + 1;
+  lampHTML += `<tr class="grp-header"><td colspan="${ncols}">
+    <span class="prod-icon">${cat.icon}</span>
+    <span class="grp-lbl">${cat.cat}</span>
+  </td></tr>`;
+  cat.lampen.forEach(lamp => {
+    lampHTML += `<tr>
+      <td style="padding-left:24px">
+        <span class="prod-name">${lamp.naam}</span>
+        <div class="prod-sub">${lamp.sub}</div>
+      </td>
+      ${MAT.map(m => {
+        const p = lampPrijs(lamp, m);
+        const isBasis = m.id === 'pla-mat' || m.id === 'pla-basic';
+        const cls = isBasis ? 'basis' : m.delta > 10 ? 'premium' : 'plus';
+        return `<td><span class="p-cel ${cls}">${euro(p)}</span></td>`;
+      }).join('')}
+    </tr>`;
+  });
+});
+lampHTML += '</tbody>';
+document.getElementById('tbl-lampen').innerHTML = lampHTML;
+
+// ══════════════════════════════════════════════
+//  ONDERDELEN TABEL (gecategoriseerd)
+// ══════════════════════════════════════════════
+function deelPrijs(deel, mat) {
+  return deel.basis + (deel.delta[mat.id] || 0);
+}
+
+let deelHTML = tblHeader('Onderdeel');
+deelHTML += '<tbody>';
+const ncols = MAT.length + 1;
+DEEL_CATS.forEach(cat => {
+  // categorie kop rij
+  deelHTML += `<tr class="grp-header"><td colspan="${ncols}">
+    <span class="prod-icon">${cat.icon}</span>
+    <span class="grp-lbl">${cat.cat}</span>
+    <span style="font-family:'Space Grotesk',sans-serif;font-size:10px;color:var(--td);font-weight:400;margin-left:8px">${cat.desc}</span>
+  </td></tr>`;
+  cat.delen.forEach(d => {
+    deelHTML += `<tr>
+      <td style="padding-left:24px">
+        <span class="prod-name">
+          <span style="font-family:var(--mono);font-size:9px;color:var(--td);margin-right:6px">${d.num}</span>${d.naam}
+        </span>
+        <div class="prod-sub" style="margin-left:22px">${d.sub}</div>
+      </td>
+      ${MAT.map(m => {
+        const p = deelPrijs(d, m);
+        const isBasis = m.id === 'pla-mat' || m.id === 'pla-basic';
+        const cls = isBasis ? 'basis' : m.delta > 15 ? 'premium' : 'plus';
+        return `<td><span class="p-cel ${cls}">${euro(p)}</span></td>`;
+      }).join('')}
+    </tr>`;
+  });
+});
+deelHTML += '</tbody>';
+document.getElementById('tbl-delen').innerHTML = deelHTML;
+</script>
+
+<script>
+const MX_T = {
+  nl: {
+    'mx-page-title': 'Prijsoverzicht',
+    'mx-page-sub':   'Alle prijzen per product en materiaal, inclusief BTW. Elk onderdeel leverbaar in elk filament. Snoer en fitting inbegrepen bij complete lampen.',
+    'mx-page-note':  '<strong>◆</strong> Basisprijzen gelden voor PLA Matte. Andere materialen: zie toeslag per kolom.',
+    'mx-back':       '← Samenstellen',
+    'btn-print':     '🖨 Afdrukken',
+    'mx-lampen':     'Complete lampen',
+    'mx-lampen-sub2':'incl. snoer, fitting & voet · incl. BTW · via Galerie T',
+    'mx-delen':      'Losse onderdelen',
+    'mx-delen-sub':  'los te bestellen · incl. BTW',
+    'footer-contact':'Contact',
+    'note-1': 'Prijzen in euro's, inclusief BTW.',
+    'note-2': 'PLA Basic en PLA Matte hebben dezelfde basisprijs.',
+    'note-3': 'Elk onderdeel kan in een ander materiaal worden geprint.',
+    'note-4': 'Verkrijgbaar bij <strong style="color:var(--ap)">Galerie T, Middelburg</strong>. Aanvragen via rhombi.nl.',
+    'note-5': 'Levertijd doorgaans 1–2 weken na bespreking en akkoord.',
+    'note-6': 'Actuele prijzen via <strong style="color:var(--ap)">rhombi.nl</strong>.',
+    'col-standaard': 'standaard', 'col-matte': '= matte',
+  },
+  en: {
+    'mx-page-title': 'Price overview',
+    'mx-page-sub':   'All prices per product and material, incl. VAT. Every part available in every filament. Cable and fitting included with complete lamps.',
+    'mx-page-note':  '<strong>◆</strong> Base prices apply to PLA Matte. Other materials: see surcharge per column.',
+    'mx-back':       '← Compose',
+    'btn-print':     '🖨 Print',
+    'mx-lampen':     'Complete lamps',
+    'mx-lampen-sub2':'incl. cable, fitting & base · incl. VAT · via Galerie T',
+    'mx-delen':      'Individual parts',
+    'mx-delen-sub':  'sold separately · incl. VAT',
+    'footer-contact':'Contact',
+    'note-1': 'Prices in euros, inclusive of VAT.',
+    'note-2': 'PLA Basic and PLA Matte have the same base price.',
+    'note-3': 'Every part can be printed in a different material.',
+    'note-4': 'Available at <strong style="color:var(--ap)">Galerie T, Middelburg</strong>. Enquire via rhombi.nl.',
+    'note-5': 'Lead time typically 1–2 weeks after agreement.',
+    'note-6': 'Current prices via <strong style="color:var(--ap)">rhombi.nl</strong>.',
+    'col-standaard': 'standard', 'col-matte': '= matte',
+  },
+  de: {
+    'mx-page-title': 'Preisübersicht',
+    'mx-page-sub':   'Alle Preise pro Produkt und Material, inkl. MwSt. Jedes Teil in jedem Filament lieferbar. Kabel und Fassung bei kompletten Leuchten inklusive.',
+    'mx-page-note':  '<strong>◆</strong> Grundpreise gelten für PLA Matte. Andere Materialien: siehe Aufpreis pro Spalte.',
+    'mx-back':       '← Konfigurieren',
+    'btn-print':     '🖨 Drucken',
+    'mx-lampen':     'Komplette Leuchten',
+    'mx-lampen-sub2':'inkl. Kabel, Fassung & Fuß · inkl. MwSt. · über Galerie T',
+    'mx-delen':      'Einzelteile',
+    'mx-delen-sub':  'einzeln bestellbar · inkl. MwSt.',
+    'footer-contact':'Kontakt',
+    'note-1': 'Preise in Euro, inkl. MwSt.',
+    'note-2': 'PLA Basic und PLA Matte haben denselben Grundpreis.',
+    'note-3': 'Jedes Teil kann in einem anderen Material gedruckt werden.',
+    'note-4': 'Erhältlich in der <strong style="color:var(--ap)">Galerie T, Middelburg</strong>. Anfragen über rhombi.nl.',
+    'note-5': 'Lieferzeit in der Regel 1–2 Wochen nach Vereinbarung.',
+    'note-6': 'Aktuelle Preise über <strong style="color:var(--ap)">rhombi.nl</strong>.',
+    'col-standaard': 'Standard', 'col-matte': '= Matte',
+  }
+};
+
+let mxLang = localStorage.getItem('rhombi-lang') || 'nl';
+
+function setLang(l) {
+  mxLang = l; localStorage.setItem('rhombi-lang', l);
+  applyMxLang(); updateMxBtns();
+  // Rebuild tables with new lang
+  buildMatrix && buildMatrix();
+}
+
+function applyMxLang() {
+  const t = MX_T[mxLang] || MX_T.nl;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (t[k] !== undefined) el.innerHTML = t[k];
+  });
+}
+
+function updateMxBtns() {
+  ['nl','en','de'].forEach(l => {
+    const b = document.getElementById('btn-'+l); if(!b) return;
+    const on = l === mxLang;
+    b.style.borderColor = on ? 'var(--a)' : 'rgba(255,255,255,.1)';
+    b.style.color = on ? 'var(--ap)' : 'var(--dim)';
+    b.style.background = on ? 'rgba(200,136,74,.08)' : 'transparent';
+  });
+}
+
+// Override standaard/matte labels in tabel headers
+const _origBuildMatrix = typeof buildMatrix !== 'undefined' ? buildMatrix : null;
+window.addEventListener('load', () => {
+  applyMxLang();
+  updateMxBtns();
+});
+</script>
+
+</body>
+</html>
