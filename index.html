@@ -1076,10 +1076,10 @@ footer {
 .lang-btn:hover { border-color: rgba(200,136,74,.4); color: var(--cream); }
 .lang-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(200,136,74,.08); }
 @media (max-width: 768px) {
-  .lang-toggle { margin-left: 4px; flex-shrink: 0; }
+  .lang-toggle { margin-left: 8px; flex-shrink: 0; }
   .lang-btn { font-size: 7px; padding: 3px 5px; }
-  .nav-inner { padding: 12px 16px; overflow: hidden; }
-  .nav-left { min-width: 0; overflow: hidden; }
+  .nav-inner { padding: 12px 16px; overflow: visible; }
+  .nav-left { min-width: 0; overflow: visible; flex: 1; }
 }
 
 
@@ -1958,8 +1958,8 @@ input, textarea, select {
 
 <!-- MOBILE MENU -->
 <div class="topbanner" data-i18n="topbanner">
-  ◆ Vooralsnog exclusief bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg
-  <span class="banner-desktop"> · <span class="nobr">Zondag 7 juni</span> · <span class="nobr">Elke 1e zondag</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span></span>
+  ◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg
+  <span class="banner-desktop"><br>Opening studio: zondag 7 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25</span>
   <span class="banner-mobile"><br><span class="nobr">1e zondag v/d maand</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span></span>
 </div>
 
@@ -2121,7 +2121,7 @@ input, textarea, select {
 
   let ready = false;
   let targetTime = 0;
-  let currentTime = 0;
+  let seeking = false;
 
   function onReady() {
     if (ready) return;
@@ -2137,18 +2137,22 @@ input, textarea, select {
   video.addEventListener('canplay', onReady);
   video.addEventListener('error', () => { section.style.display = 'none'; });
 
+  // Seeked = vorige seek klaar, nu mogen we opnieuw
+  video.addEventListener('seeked', () => { seeking = false; });
+
   function onScroll() {
     const rect     = section.getBoundingClientRect();
     const vh       = window.innerHeight;
-    const progress = Math.max(0, Math.min(1, (vh - rect.top) / (vh + rect.height)));
+    const raw      = (vh - rect.top) / (vh + rect.height);
+    const progress = Math.max(0, Math.min(1, (raw - 0.2) / 0.6));
     targetTime = progress * (video.duration || 0);
     overlay.style.opacity = (progress > 0.35 && progress < 0.75) ? '1' : '0';
   }
 
   function tick() {
-    if (ready && Math.abs(currentTime - targetTime) > 0.008) {
-      currentTime += (targetTime - currentTime) * 0.45;
-      video.currentTime = currentTime;
+    if (ready && !seeking && Math.abs(video.currentTime - targetTime) > 0.04) {
+      seeking = true;
+      video.currentTime = targetTime;
     }
     requestAnimationFrame(tick);
   }
@@ -3053,7 +3057,7 @@ window.addEventListener('scroll', () => {
 
 const TRANSLATIONS = {
   nl: {
-    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br><span class="nobr">Opening studio: zondag 7 juni</span> · <span class="nobr">Elke 1e zondag van de maand</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span>',
+    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Opening studio: zondag 7 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25',
     'type-hint': "Tik voor foto's",
     'type-tafel-label': '◆ Tafellamp',
     'type-hang-label': '◆ Hang',
