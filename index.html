@@ -38,24 +38,8 @@ html { scroll-behavior: smooth; }
 
 html {
   background: var(--dark);
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100%;
-}
-body {
-  font-family: 'Space Grotesk', sans-serif;
-  background: var(--dark);
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: none;
-  color: var(--cream);
-  overflow-x: hidden;
-  cursor: none;
-  max-width: 2560px;
-  margin: 0 auto;
-  box-shadow: 0 0 100px rgba(0,0,0,.6);
-  width: 100%;
-}
-html {
-  background: var(--dark);
 }
 
 /* ── CURSOR ── */
@@ -1090,7 +1074,7 @@ footer {
   /* Voorkom dat secties breder worden dan het scherm */
   section, nav, footer, .topbanner {
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
   /* Tabellen en grids die kunnen overflowden */
   .types-grid, .parts-grid, .steps-grid, .gallery-grid,
