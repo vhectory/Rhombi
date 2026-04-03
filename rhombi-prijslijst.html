@@ -114,6 +114,11 @@ nav{position:sticky;top:0;z-index:200;height:54px;display:flex;align-items:cente
 .deel-prijs-tag{font-family:var(--mono);font-size:10px;color:var(--amber-pale);margin-top:4px;}
 .deel-check{position:absolute;top:7px;right:7px;width:15px;height:15px;background:var(--amber);display:none;align-items:center;justify-content:center;font-size:8px;color:var(--dark);}
 .deel-card.sel .deel-check{display:flex;}
+.deel-qty{display:flex;align-items:center;justify-content:center;gap:0;padding:6px 8px;background:rgba(200,136,74,.08);border-top:1px solid rgba(200,136,74,.2);}
+.qty-btn{width:28px;height:28px;background:var(--dark2);border:1px solid rgba(200,136,74,.3);color:var(--amber);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.qty-btn:hover{background:rgba(200,136,74,.15);}
+.qty-val{font-family:var(--mono);font-size:11px;color:var(--cream);min-width:28px;text-align:center;}
+#mandjeBar{display:none;background:var(--dark2);border:1px solid rgba(200,136,74,.25);padding:16px 20px;margin-bottom:24px;}
 
 /* DEEL DETAIL (materiaal+kleur per geselecteerd deel) */
 .deel-detail{background:var(--dark2);border:1px solid rgba(255,255,255,.05);margin-top:16px;}
@@ -387,6 +392,9 @@ footer a:hover{color:var(--amber);}
   <h1 class="pg-title" data-i18n="s4-title">Jouw configuratie</h1>
   <p class="pg-sub" data-i18n="s4-sub">Controleer alles hieronder. Alle prijzen zijn inclusief snoer en fitting, exclusief verzendkosten.</p>
 
+  <!-- Winkelmandje — eerdere lampen -->
+  <div id="mandjeBar"></div>
+
   <div class="ov-layout">
     <div id="ovItems"></div>
     <div class="price-card">
@@ -404,8 +412,11 @@ footer a:hover{color:var(--amber);}
   <div class="nav-btns">
     <button class="btn-ghost" onclick="naarStap(3)" data-i18n="btn-wijzigen">← Wijzigen</button>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button onclick="voegLampToeEnNieuw()" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:rgba(200,136,74,.1);border:1px solid rgba(200,136,74,.5);color:var(--amber);font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(200,136,74,.18)'" onmouseout="this.style.background='rgba(200,136,74,.1)'">
+        <span style="font-size:16px;line-height:1">+</span> Nog een lamp toevoegen
+      </button>
       <button class="btn-ghost" onclick="printBon(false)" data-i18n="btn-bon">🖨 Bon afdrukken</button>
-      <button class="btn-primary" onclick="naarStap(5)" data-i18n="btn-gegevens">Gegevens invullen →</button>
+      <button class="btn-primary" onclick="bevestigEnNaarGegevens()" data-i18n="btn-gegevens">Gegevens invullen →</button>
     </div>
   </div>
 </div>
@@ -574,30 +585,38 @@ const ONDERDEEL_CATS = [
 ];
 
 const ONDERDELEN = [
-  // Kap onderdelen
-  {id:'kap',        num:'01', naam:'Kap',              info:'Buitenkant · 200×100 mm',         cat:'kap', img:'fotos/handleiding/part_01_kap.png',      prijs:{base:95, delta:{'pla-cf':25,'pla-nebula':12,'pla-translucent':5,'pla-basic':0}}, viewerId:'shade'},
-  {id:'vleugel-l',  num:'02', naam:'Vleugel L',        info:'Zijpaneel links',                  cat:'kap', img:'fotos/handleiding/part_02_vleugel_L.png', prijs:{base:14, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
-  {id:'vleugel-r',  num:'03', naam:'Vleugel R',        info:'Zijpaneel rechts',                 cat:'kap', img:'fotos/handleiding/part_03_vleugel_R.png', prijs:{base:14, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
-  {id:'kern',       num:'04', naam:'Kern',              info:'Centrale fitting-houder',          cat:'kap', img:'fotos/handleiding/part_04_kern.png',      prijs:{base:18, delta:{'pla-cf':8,'pla-nebula':3,'pla-translucent':2,'pla-basic':0}},   viewerId:'arm'},
-  {id:'ring',       num:'05', naam:'Ring',              info:'E14 · vervangbaar',                cat:'kap', img:'fotos/handleiding/part_05_ring.png',      prijs:{base:8,  delta:{}},                                                                viewerId:'base'},
-  {id:'kader-l',    num:'06', naam:'Kader L',           info:'Zijkader links',                   cat:'kap', img:'fotos/handleiding/part_06_kader_L.png',  prijs:{base:22, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
-  {id:'kader-r',    num:'07', naam:'Kader R',           info:'Zijkader rechts · klikhaken',      cat:'kap', img:'fotos/handleiding/part_07_kader_R.png',  prijs:{base:22, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
-  {id:'kader',      num:'08', naam:'Kader',             info:'Frontframe · afwerking',           cat:'kap', img:'fotos/handleiding/part_08_kader.png',    prijs:{base:22, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
-  // Voeten
-  {id:'voet-230',   num:'09', naam:'Voet 230 mm',      info:'Lage voet · tafellamp',            cat:'voet', img:'fotos/handleiding/part_01_kap.png',     prijs:{base:28, delta:{'pla-cf':12,'pla-nebula':5,'pla-translucent':3,'pla-basic':0}},  viewerId:'base'},
-  {id:'voet-270',   num:'10', naam:'Voet 270 mm',      info:'Standaard voet · tafellamp',       cat:'voet', img:'fotos/handleiding/part_01_kap.png',     prijs:{base:32, delta:{'pla-cf':12,'pla-nebula':5,'pla-translucent':3,'pla-basic':0}},  viewerId:'base'},
-  {id:'voet-310',   num:'11', naam:'Voet 310 mm',      info:'Hoge voet · tafellamp',            cat:'voet', img:'fotos/handleiding/part_01_kap.png',     prijs:{base:36, delta:{'pla-cf':12,'pla-nebula':5,'pla-translucent':3,'pla-basic':0}},  viewerId:'base'},
-  {id:'stand',      num:'12', naam:'Stand',             info:'Standaard achterkant · accentlamp', cat:'voet', img:'fotos/handleiding/part_01_kap.png',    prijs:{base:18, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'base'},
-  // Wandophanging
-  {id:'ophanging-h',num:'13', naam:'Ophanging horizontaal', info:'Beugel + wandplaat',          cat:'wand', img:'fotos/handleiding/part_01_kap.png',     prijs:{base:24, delta:{'pla-cf':10,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},  viewerId:'base'},
-  {id:'ophanging-v',num:'14', naam:'Ophanging verticaal',   info:'Beugel + wandplaat',          cat:'wand', img:'fotos/handleiding/part_01_kap.png',     prijs:{base:24, delta:{'pla-cf':10,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},  viewerId:'base'},
+  // Kap onderdelen — hebben allemaal een foto
+  {id:'kap',        num:'01', naam:'Kap',              info:'Buitenkant · 200×100 mm',          cat:'kap', img:'fotos/handleiding/part_01_kap.png',      prijs:{base:95, delta:{'pla-cf':25,'pla-nebula':12,'pla-translucent':5,'pla-basic':0}}, viewerId:'shade'},
+  {id:'vleugel-l',  num:'02', naam:'Vleugel L',        info:'Zijpaneel links',                   cat:'kap', img:'fotos/handleiding/part_02_vleugel_L.png', prijs:{base:14, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
+  {id:'vleugel-r',  num:'03', naam:'Vleugel R',        info:'Zijpaneel rechts',                  cat:'kap', img:'fotos/handleiding/part_03_vleugel_R.png', prijs:{base:14, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
+  {id:'kern',       num:'04', naam:'Kern',              info:'Centrale fitting-houder',           cat:'kap', img:'fotos/handleiding/part_04_kern.png',      prijs:{base:18, delta:{'pla-cf':8,'pla-nebula':3,'pla-translucent':2,'pla-basic':0}},   viewerId:'arm'},
+  {id:'ring',       num:'05', naam:'Ring',              info:'E14 · vervangbaar',                 cat:'kap', img:null,                                       prijs:{base:8,  delta:{}},                                                                viewerId:'base'},
+  {id:'kader-l',    num:'06', naam:'Kader L',           info:'Zijkader links',                    cat:'kap', img:'fotos/handleiding/part_06_kader_L.png',  prijs:{base:22, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
+  {id:'kader-r',    num:'07', naam:'Kader R',           info:'Zijkader rechts · klikhaken',       cat:'kap', img:'fotos/handleiding/part_07_kader_R.png',  prijs:{base:22, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
+  {id:'kader',      num:'08', naam:'Kader',             info:'Frontframe · afwerking',            cat:'kap', img:'fotos/handleiding/part_08_kader.png',    prijs:{base:22, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'frame'},
+  // Voeten — nog geen foto's
+  {id:'voet-230',   num:'09', naam:'Voet 230 mm',       info:'Lage voet · tafellamp',             cat:'voet', img:null, prijs:{base:28, delta:{'pla-cf':12,'pla-nebula':5,'pla-translucent':3,'pla-basic':0}},  viewerId:'base'},
+  {id:'voet-270',   num:'10', naam:'Voet 270 mm',       info:'Standaard voet · tafellamp',        cat:'voet', img:null, prijs:{base:32, delta:{'pla-cf':12,'pla-nebula':5,'pla-translucent':3,'pla-basic':0}},  viewerId:'base'},
+  {id:'voet-310',   num:'11', naam:'Voet 310 mm',       info:'Hoge voet · tafellamp',             cat:'voet', img:null, prijs:{base:36, delta:{'pla-cf':12,'pla-nebula':5,'pla-translucent':3,'pla-basic':0}},  viewerId:'base'},
+  {id:'stand',      num:'12', naam:'Stand',              info:'Standaard achterkant · accentlamp', cat:'voet', img:null, prijs:{base:18, delta:{'pla-cf':8,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},   viewerId:'base'},
+  // Wandophanging — nog geen foto's
+  {id:'ophanging-h',num:'13', naam:'Ophanging horizontaal', info:'Beugel + wandplaat',            cat:'wand', img:null, prijs:{base:24, delta:{'pla-cf':10,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},  viewerId:'base'},
+  {id:'ophanging-v',num:'14', naam:'Ophanging verticaal',   info:'Beugel + wandplaat',            cat:'wand', img:null, prijs:{base:24, delta:{'pla-cf':10,'pla-nebula':4,'pla-translucent':2,'pla-basic':0}},  viewerId:'base'},
 ];
 
 // Welke onderdelen horen bij welk product (complete lamp)
+// Per onderdeel ook hoeveel stuks (voor perdeel modus)
 const LAMP_DELEN = {
-  tafel:  ['kap','vleugel-l','vleugel-r','kern','ring','kader-l','kader-r','kader'],
-  accent: ['kap','vleugel-l','vleugel-r','kern','ring','kader-l','kader-r','kader'],
-  wand:   ['kap','vleugel-l','vleugel-r','kern','ring','kader-l','kader-r','kader'],
+  tafel:  ['kap','vleugel-l','vleugel-r','kern','ring','kader-l','kader-r','kader','voet-270'],
+  accent: ['kap','vleugel-l','vleugel-r','kern','ring','kader-l','kader-r','kader','stand'],
+  wand:   ['kap','vleugel-l','vleugel-r','kern','ring','kader-l','kader-r','kader','ophanging-h'],
+};
+
+// Aantal stuks per onderdeel per lamp
+const LAMP_AANTALLEN = {
+  tafel:  {kap:1,'vleugel-l':1,'vleugel-r':1,kern:1,ring:1,'kader-l':1,'kader-r':1,kader:1,'voet-270':1},
+  accent: {kap:1,'vleugel-l':1,'vleugel-r':1,kern:1,ring:1,'kader-l':1,'kader-r':1,kader:1,stand:1},
+  wand:   {kap:1,'vleugel-l':1,'vleugel-r':1,kern:1,ring:1,'kader-l':1,'kader-r':1,kader:1,'ophanging-h':1},
 };
 
 const BASISPRIJZEN = {
@@ -607,18 +626,113 @@ const BASISPRIJZEN = {
 };
 
 // ══════════════════════════════════════════════════
+//  WINKELMANDJE
+// ══════════════════════════════════════════════════
+let winkelmandje = []; // array van geconfigureerde lampen/orders
+
+function voegToeAanMandje(cfgSnapshot) {
+  winkelmandje.push(JSON.parse(JSON.stringify(cfgSnapshot)));
+  bouwMandjeBar();
+}
+
+function verwijderUitMandje(idx) {
+  winkelmandje.splice(idx, 1);
+  bouwMandjeBar();
+}
+
+function berekenMandjeTotal() {
+  return winkelmandje.reduce((sum, c) => sum + berekenTotaalVanCfg(c), 0);
+}
+
+function bouwMandjeBar() {
+  const bar = $('mandjeBar');
+  if (!bar) return;
+  if (!winkelmandje.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  const pNamen = {tafel:'Tafellamp',accent:'Accentlamp',wand:'Wandlamp',los:'Losse onderdelen'};
+  bar.innerHTML = `
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:10px">
+      ◆ Bestelling (${winkelmandje.length} ${winkelmandje.length===1?'item':'items'})
+    </div>
+    ${winkelmandje.map((c,i) => {
+      const qty = c.lampAantal || 1;
+      return `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="font-size:13px;color:var(--cream);flex:1">${qty > 1 ? `<span style="color:var(--amber);margin-right:4px">${qty}×</span>` : ''}${pNamen[c.product]||'—'}
+          ${c.product==='tafel'?`<span style="font-size:11px;color:var(--text-dim)"> · ${c.hoogte}mm</span>`:''}
+        </span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--amber-pale)">${euro(berekenTotaalVanCfg(c))}</span>
+        <button onclick="verwijderUitMandje(${i})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:0 4px" title="Verwijder">✕</button>
+      </div>`;
+    }).join('')}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid rgba(200,136,74,.2)">
+      <span style="font-size:13px;color:var(--cream);font-weight:500">Totaal</span>
+      <span style="font-family:var(--mono);font-size:14px;color:var(--amber-pale);font-weight:500">${euro(berekenMandjeTotal())}</span>
+    </div>`;
+}
+
+function berekenTotaalVanCfg(c) {
+  if (c.product === 'los') {
+    return Object.keys(c.losActief||{})
+      .filter(did => c.losActief[did])
+      .reduce((sum, did) => {
+        const d = ONDERDELEN.find(x => x.id === did);
+        const matId = c.perDeel?.[did]?.matId || 'pla-mat';
+        const qty = c.losAantallen?.[did] || 1;
+        return sum + (d ? deelPrijs(d, matId) * qty : 0);
+      }, 0);
+  }
+  if (c.modus === 'compleet') {
+    const hk = c.product === 'tafel' ? c.hoogte : 'std';
+    return (BASISPRIJZEN[c.product]?.[hk] || 0) + (BAMBU[c.matId]?.delta || 0);
+  }
+  return (LAMP_DELEN[c.product] || []).reduce((sum, did) => {
+    const d = ONDERDELEN.find(x => x.id === did);
+    const matId = c.perDeel?.[did]?.matId || 'pla-mat';
+    return sum + (d ? deelPrijs(d, matId) : 0);
+  }, 0);
+}
+
+function wijzigLampAantal(delta) {
+  cfg.lampAantal = Math.max(1, cfg.lampAantal + delta);
+  bouwStap4();
+}
+
+// Huidige lamp toevoegen aan mandje en opnieuw configureren
+function voegLampToeEnNieuw() {
+  voegToeAanMandje(cfg);
+  // Reset cfg voor nieuwe lamp
+  Object.assign(cfg, {
+    product: null, hoogte:'270', achterkant:'standaard',
+    bevestiging:'horizontaal', modus:'compleet', matId:'pla-mat',
+    kleur: null, perDeel:{}, losActief:{}, losAantallen:{}, lampAantal:1
+  });
+  document.querySelectorAll('.prod-card').forEach(c => c.classList.remove('sel'));
+  $('btn1').disabled = true;
+  naarStap(1);
+}
+
+// Huidige lamp bevestigen + naar gegevens
+function bevestigEnNaarGegevens() {
+  voegToeAanMandje(cfg);
+  naarStap(5);
+}
+
+// ══════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════
 const cfg = {
-  product:    null,        // 'tafel'|'accent'|'wand'|'los'
-  hoogte:     '270',
-  achterkant: 'standaard',
-  bevestiging:'horizontaal',
-  modus:      'compleet',  // 'compleet'|'perdeel'  (los → altijd perdeel-achtig)
-  matId:      'pla-mat',   // voor compleet modus
-  kleur:      null,        // hex voor compleet
-  perDeel:    {},          // {deelId: {matId, kleur}}
-  losActief:  {},          // {deelId: bool}
+  product:     null,
+  hoogte:      '270',
+  achterkant:  'standaard',
+  bevestiging: 'horizontaal',
+  modus:       'compleet',
+  matId:       'pla-mat',
+  kleur:       null,
+  perDeel:     {},
+  losActief:   {},
+  losAantallen:{}, // {deelId: aantal}
+  lampAantal:  1,  // aantal complete lampen
 };
 
 const euro = v => '€\u202f' + Math.round(v);
@@ -789,21 +903,23 @@ function bouwPerDeelLijst() {
     if (!cfg.perDeel[did]) cfg.perDeel[did] = {matId:'pla-mat', kleur: BAMBU['pla-mat'].kleuren[0].h};
     const pd = cfg.perDeel[did];
     const mat = BAMBU[pd.matId];
+    const aantalKey = did === 'vleugel-l' || did === 'vleugel-r' ? null : did; // vleugels tellen als paar
+    const aantallen = LAMP_AANTALLEN[cfg.product] || {};
+    const qty = aantallen[did] || 1;
     return `
     <div class="deel-detail" id="dd_${did}">
       <div class="deel-detail-head">
-        <img class="deel-detail-img" src="${d.img}" alt="${d.naam}">
-        <span class="deel-detail-name">${d.naam}</span>
-        <span style="font-size:10px;color:var(--text-dim)">${d.info}</span>
-        <span class="mat-delta" id="dp_${did}">${euro(deelPrijs(d,pd.matId))}</span>
+        ${d.img ? `<img class="deel-detail-img" src="${d.img}" alt="${d.naam}" onerror="this.style.opacity='.15'">` : `<div class="deel-detail-img" style="display:flex;align-items:center;justify-content:center;background:var(--dark3);color:rgba(200,136,74,.25);font-family:var(--mono);font-size:20px">${d.num}</div>`}
+        <div style="flex:1;min-width:0">
+          <span class="deel-detail-name">${qty > 1 ? `<span style="color:var(--amber);margin-right:4px">${qty}×</span>` : ''}${d.naam}</span>
+          <span style="font-size:10px;color:var(--text-dim);display:block">${d.info}</span>
+        </div>
+        <span class="mat-delta" id="dp_${did}">${euro(deelPrijs(d,pd.matId) * qty)}</span>
       </div>
       <div class="deel-detail-body">
         <div class="sec-label" style="margin-bottom:8px">Materiaal</div>
         <div class="deel-mat-row">
-          ${Object.entries(BAMBU).map(([id,m])=>`
-            <div class="deel-mat-btn ${pd.matId===id?'sel':''}" onclick="kiesDeelMat('${did}','${id}')">
-              <div class="mat-dot" style="background:${m.dot}"></div>${m.naam}
-            </div>`).join('')}
+          ${bouwMatBtnsVoorDeel(d, did, pd.matId)}
         </div>
         <div class="sec-label" style="margin-bottom:4px">Kleur <span id="kn_${did}" style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--amber-pale);letter-spacing:0;text-transform:none;margin-left:6px">${mat.kleuren.find(k=>k.h===pd.kleur)?.n||''}</span></div>
         <div class="kleur-grid" id="kg_${did}">
@@ -812,6 +928,24 @@ function bouwPerDeelLijst() {
         </div>
       </div>
     </div>`;
+  }).join('');
+}
+
+// Bouw materiaal knoppen — alleen beschikbare tonen, rest als placeholder
+function bouwMatBtnsVoorDeel(d, did, huidigMatId) {
+  return Object.entries(BAMBU).map(([id, m]) => {
+    const heeftDelta = d.prijs.delta && (id in d.prijs.delta || id === 'pla-mat' || id === 'pla-basic');
+    // pla-mat en pla-basic zijn altijd beschikbaar
+    const beschikbaar = id === 'pla-mat' || id === 'pla-basic' || (d.prijs.delta && id in d.prijs.delta);
+    if (beschikbaar) {
+      return `<div class="deel-mat-btn ${huidigMatId===id?'sel':''}" onclick="kiesDeelMat('${did}','${id}')">
+        <div class="mat-dot" style="background:${m.dot}"></div>${m.naam}
+      </div>`;
+    } else {
+      return `<div class="deel-mat-btn" style="opacity:.25;cursor:not-allowed;pointer-events:none" title="Niet beschikbaar voor dit onderdeel">
+        <div class="mat-dot" style="background:${m.dot};opacity:.4"></div><span style="text-decoration:line-through">${m.naam}</span>
+      </div>`;
+    }
   }).join('');
 }
 
@@ -824,11 +958,20 @@ function kiesDeelMat(did, matId) {
 
 // Los grid
 function bouwLosGrid() {
-  // Toon per categorie
+  // Filter onderdelen op basis van huidig product (als ingesteld)
+  const relevantIds = cfg.product && cfg.product !== 'los'
+    ? LAMP_DELEN[cfg.product] || []
+    : null; // null = toon alles
+
   let html = '';
   ONDERDEEL_CATS.forEach(cat => {
     const deelIds = cat.ids;
-    const delenInCat = ONDERDELEN.filter(d => deelIds.includes(d.id));
+    const delenInCat = ONDERDELEN.filter(d =>
+      deelIds.includes(d.id) &&
+      (relevantIds === null || relevantIds.includes(d.id))
+    );
+    if (!delenInCat.length) return; // sla lege categorieën over
+
     html += `<div style="margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:7px;padding:7px 0;margin-bottom:8px;border-bottom:1px solid rgba(200,136,74,.15);">
         <span style="font-family:var(--mono);font-size:13px;color:var(--amber);opacity:.7">${cat.icon}</span>
@@ -836,25 +979,55 @@ function bouwLosGrid() {
         <span style="font-size:10px;color:var(--text-dim);margin-left:4px">${cat.desc}</span>
       </div>
       <div class="deel-grid">`;
+
     delenInCat.forEach(d => {
       const actief = cfg.losActief[d.id] === true;
       const pd = cfg.perDeel[d.id];
       const p = pd ? deelPrijs(d, pd.matId) : d.prijs.base;
-      html += `<div class="deel-card ${actief?'sel':''}" id="lc_${d.id}" onclick="toggleLos('${d.id}')">
-        <div class="deel-card-img"><img src="${d.img}" alt="${d.naam}"></div>
-        <div class="deel-card-body">
-          <div class="deel-num">${d.num}</div>
-          <div class="deel-name">${d.naam}</div>
-          <div class="deel-info">${d.info}</div>
-          <div class="deel-prijs-tag" id="lp_${d.id}">${euro(p)}</div>
+      const qty = cfg.losAantallen[d.id] || 1;
+      const imgHTML = d.img
+        ? `<img src="${d.img}" alt="${d.naam}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        : '';
+      const placeholderHTML = `<div style="display:${d.img ? 'none' : 'flex'};width:100%;height:100%;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:rgba(200,136,74,.25)">
+        <span style="font-family:var(--mono);font-size:22px;font-weight:700;line-height:1">${d.num}</span>
+        <span style="font-size:8px;letter-spacing:.1em;text-transform:uppercase">binnenkort</span>
+      </div>`;
+      html += `<div class="deel-card ${actief?'sel':''}" id="lc_${d.id}">
+        <div onclick="toggleLos('${d.id}')" style="cursor:pointer">
+          <div class="deel-card-img" style="position:relative;overflow:hidden">${imgHTML}${placeholderHTML}</div>
+          <div class="deel-card-body">
+            <div class="deel-num">${d.num}</div>
+            <div class="deel-name">${d.naam}</div>
+            <div class="deel-info">${d.info}</div>
+            <div class="deel-prijs-tag" id="lp_${d.id}">${euro(p * qty)}</div>
+          </div>
+          <div class="deel-check">✓</div>
         </div>
-        <div class="deel-check">✓</div>
+        ${actief ? `
+        <div class="deel-qty" onclick="event.stopPropagation()">
+          <button class="qty-btn" onclick="wijzigAantal('${d.id}',-1)">−</button>
+          <span class="qty-val" id="qty_${d.id}">${qty}×</span>
+          <button class="qty-btn" onclick="wijzigAantal('${d.id}',1)">+</button>
+        </div>` : ''}
       </div>`;
     });
     html += `</div></div>`;
   });
   $('losGrid').innerHTML = html;
   bouwLosDetail();
+}
+
+function wijzigAantal(did, delta) {
+  const huidig = cfg.losAantallen[did] || 1;
+  const nieuw = Math.max(1, huidig + delta);
+  cfg.losAantallen[did] = nieuw;
+  const el = $('qty_' + did);
+  if (el) el.textContent = nieuw + '×';
+  // Update prijs
+  const d = ONDERDELEN.find(x => x.id === did);
+  const matId = cfg.perDeel[did]?.matId || 'pla-mat';
+  const lp = $('lp_' + did);
+  if (lp && d) lp.textContent = euro(deelPrijs(d, matId) * nieuw);
 }
 
 function toggleLos(did) {
@@ -883,10 +1056,7 @@ function bouwLosDetail() {
       <div class="deel-detail-body">
         <div class="sec-label" style="margin-bottom:8px">Materiaal</div>
         <div class="deel-mat-row">
-          ${Object.entries(BAMBU).map(([id,m])=>`
-            <div class="deel-mat-btn ${pd.matId===id?'sel':''}" onclick="kiesDeelMat('${d.id}','${id}')">
-              <div class="mat-dot" style="background:${m.dot}"></div>${m.naam}
-            </div>`).join('')}
+          ${bouwMatBtnsVoorDeel(d, d.id, pd.matId)}
         </div>
         <div class="sec-label" style="margin-bottom:4px">Kleur <span id="kn_${d.id}" style="font-family:'Space Grotesk',sans-serif;font-size:11px;color:var(--amber-pale);letter-spacing:0;text-transform:none;margin-left:6px">${mat.kleuren.find(k=>k.h===pd.kleur)?.n||''}</span></div>
         <div class="kleur-grid" id="kg_${d.id}">
@@ -927,7 +1097,7 @@ function berekenTotaal() {
   if (cfg.modus === 'compleet') {
     const hk = p === 'tafel' ? cfg.hoogte : 'std';
     const basis = BASISPRIJZEN[p][hk] || 0;
-    return basis + (BAMBU[cfg.matId]?.delta || 0);
+    return (basis + (BAMBU[cfg.matId]?.delta || 0)) * cfg.lampAantal;
   }
 
   // perdeel
@@ -992,11 +1162,22 @@ function bouwStap4() {
       const kleur = mat?.kleuren.find(k => k.h === cfg.kleur);
       const hk = p === 'tafel' ? cfg.hoogte : 'std';
       const basis = BASISPRIJZEN[p][hk] || 0;
+      const eenheidsprijs = basis + (mat?.delta || 0);
       ovHTML += row('Materiaal',
         `<span class="ov-swatch" style="background:${mat?.dot}"></span>${mat?.naam} · ${kleur?.n || '—'}`);
       ovHTML += row('Inbegrepen', 'Snoer, fitting en voet', '', true);
+      ovHTML += `<div class="ov-row" style="align-items:center">
+        <span class="ov-l">Aantal</span>
+        <span class="ov-r" style="display:flex;align-items:center;gap:10px">
+          <button class="qty-btn" onclick="wijzigLampAantal(-1)" style="width:28px;height:28px;font-size:16px">−</button>
+          <span id="lampAantalTxt" style="font-family:var(--mono);font-size:13px;min-width:24px;text-align:center">${cfg.lampAantal}×</span>
+          <button class="qty-btn" onclick="wijzigLampAantal(1)" style="width:28px;height:28px;font-size:16px">+</button>
+          ${cfg.lampAantal > 1 ? `<span style="font-size:11px;color:var(--text-dim)">${euro(eenheidsprijs)} p.st.</span>` : ''}
+        </span>
+      </div>`;
       linesHTML += priceLine('Lamp (basis)', euro(basis));
       if (mat?.delta !== 0) linesHTML += priceLine('Materiaaltoeslag', (mat.delta > 0 ? '+' : '') + euro(mat.delta));
+      if (cfg.lampAantal > 1) linesHTML += priceLine(`× ${cfg.lampAantal} stuks`, euro(eenheidsprijs * cfg.lampAantal));
     }
   }
 
@@ -1058,32 +1239,32 @@ function bouwViewerHash() {
 //  STAP 5 — VERSTUUR
 // ══════════════════════════════════════════════════
 function verstuur() {
-  const vn = $('fVn').value.trim();
-  const an = $('fAn').value.trim();
-  const em = $('fEm').value.trim();
-  if (!vn || !an || !em) { alert('Vul je naam en e-mailadres in.'); return; }
-  if (!$('fCon').checked) { alert('Geef akkoord voor verwerking van je gegevens.'); return; }
+  const vn  = $('fVn').value.trim();
+  const an  = $('fAn').value.trim();
+  const em  = $('fEm').value.trim();
+  const tel = $('fTel').value.trim();
+  const opm = $('fOpm').value.trim();
 
-  const totaal = berekenTotaal();
-  const pNamen = {tafel:'Tafellamp',accent:'Accentlamp',wand:'Wandlamp',los:'Losse onderdelen'};
+  if (!vn || !an || !em) {
+    alert('Vul je naam en e-mailadres in.');
+    return;
+  }
+  if (!$('fCon').checked) {
+    alert('Geef akkoord voor verwerking van je gegevens.');
+    return;
+  }
 
-  $('succesBox').innerHTML = `
-    <div class="sb-row"><span class="sb-l">Naam</span><span class="sb-r">${vn} ${an}</span></div>
-    <div class="sb-row"><span class="sb-l">E-mail</span><span class="sb-r">${em}</span></div>
-    <div class="sb-row"><span class="sb-l">Product</span><span class="sb-r">${pNamen[cfg.product]}</span></div>
-    <div class="sb-row"><span class="sb-l">Totaal</span><span class="sb-r">${euro(totaal)}</span></div>
-  `;
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   $('p6').classList.add('active');
   $('stepsBar').style.display = 'none';
-  window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function opnieuw() {
   Object.assign(cfg, {
     product:null, hoogte:'270', achterkant:'standaard', bevestiging:'horizontaal',
-    modus:'compleet', matId:'pla-mat', kleur:null, perDeel:{}, losActief:{}
+    modus:'compleet', matId:'pla-mat', kleur:null, perDeel:{}, losActief:{}, losAantallen:{}, lampAantal:1
   });
   $('stepsBar').style.display = '';
   document.querySelectorAll('.prod-card').forEach(c => c.classList.remove('sel'));
