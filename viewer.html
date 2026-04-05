@@ -1504,7 +1504,14 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     Object.entries(window._pendingColors).forEach(([pid, hex]) => {
       const mat = getOrCreateMat(pid); if(mat) mat.color.set(hex);
     });
+    // Bewaar kleuren zodat ze na een variant-switch opnieuw toegepast worden
+    window._appliedColors = {...window._pendingColors};
     window._pendingColors = null;
+  } else if(window._appliedColors) {
+    // Hertoepassen na variant-switch
+    Object.entries(window._appliedColors).forEach(([pid, hex]) => {
+      const mat = getOrCreateMat(pid); if(mat) mat.color.set(hex);
+    });
   }
   // Reset stale opacity op alle materialen voor sync
   Object.values(MGLB).forEach(mat => {
@@ -3067,9 +3074,24 @@ function loadConfig(hash) {
     });
     // Kleuren instellen (na GLB laden)
     window._pendingColors = cfg.c || {};
+    window._appliedColors = null; // reset zodat pending opnieuw geldt
     // Variant laden
     const v = VARIANTS.find(v => v.id === cfg.v);
-    if(v && v.id !== curV.id) switchVar(v);
+    if(v) {
+      if(v.id !== curV.id) {
+        switchVar(v);
+      } else {
+        // Zelfde variant — kleuren direct toepassen als al geladen
+        if(window._pendingColors) {
+          Object.entries(window._pendingColors).forEach(([pid, hex]) => {
+            const mat = getOrCreateMat(pid); if(mat) { mat.color.set(hex); mat.needsUpdate = true; }
+          });
+          window._appliedColors = {...window._pendingColors};
+          window._pendingColors = null;
+        }
+        buildColorGrid(); buildMatList(); buildPList();
+      }
+    }
   } catch(e) { console.warn('Config laden mislukt:', e); }
 }
 
