@@ -1207,27 +1207,47 @@ function bouwViewerHash() {
   const variantId = cfg.product === 'los' ? 'tafel' : cfg.product;
   const m = {}, c = {};
 
-  const matMap = {
-    'pla-basic':'pla-basic','pla-mat':'pla-mat',
-    'pla-translucent':'pla-translucent','pla-cf':'pla-cf','pla-nebula':'pla-nebula'
+  // Mapping van onderdeel-id → viewer MGLB sleutel
+  const deelToViewer = {
+    'kap':        'kap',
+    'vleugel-l':  'vleugel_l',
+    'vleugel-r':  'vleugel_r',
+    'kern':       'kern',
+    'ring':       'ring',
+    'kader-l':    'kader_l',
+    'kader-r':    'kader_r',
+    'kader':      'kader_a',
+    'voet-230':   'voet',
+    'voet-270':   'voet',
+    'voet-310':   'voet',
+    'stand':      'voet',
+    'ophanging-h':'voet',
+    'ophanging-v':'voet',
   };
 
+  // Alle viewer part IDs
+  const allParts = ['kap','vleugel_l','vleugel_r','kern','ring','kader_l','kader_r','kader_a','voet'];
+
   if (cfg.modus === 'compleet' && cfg.product !== 'los') {
-    // Zet alle viewer parts op hetzelfde materiaal/kleur
-    ['shade','frame','arm','base'].forEach(vid => {
+    // Zet alle onderdelen op hetzelfde materiaal/kleur
+    const hex = cfg.kleur || BAMBU[cfg.matId]?.kleuren[0]?.h || '#F0EEE8';
+    allParts.forEach(vid => {
       m[vid] = cfg.matId;
-      c[vid] = cfg.kleur || BAMBU[cfg.matId]?.kleuren[0]?.h || '#F0EEE8';
+      c[vid] = hex;
     });
   } else {
-    // Per deel
+    // Per deel — gebruik de juiste viewer ID per onderdeel
     const deelIds = cfg.product === 'los'
-      ? ONDERDELEN.filter(d => cfg.losActief[d.id])
-      : ONDERDELEN.filter(d => (LAMP_DELEN[cfg.product]||[]).includes(d.id));
-    deelIds.forEach(d => {
-      const pd = cfg.perDeel[d.id];
+      ? ONDERDELEN.filter(d => cfg.losActief[d.id]).map(d => d.id)
+      : (LAMP_DELEN[cfg.product] || []);
+
+    deelIds.forEach(did => {
+      const vid = deelToViewer[did];
+      if (!vid) return;
+      const pd = cfg.perDeel[did];
       if (!pd) return;
-      m[d.viewerId] = pd.matId;
-      c[d.viewerId] = pd.kleur || BAMBU[pd.matId]?.kleuren[0]?.h || '#F0EEE8';
+      m[vid] = pd.matId;
+      c[vid] = pd.kleur || BAMBU[pd.matId]?.kleuren[0]?.h || '#F0EEE8';
     });
   }
 

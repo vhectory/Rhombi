@@ -1501,16 +1501,12 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
   if(!curV.parts || !curV.parts.length) { selP = null; } else if(!selP || !curV.parts.find(p => p.id === selP)) selP = curV.parts[0]?.id || null;
 
   if(window._pendingColors) {
-    Object.entries(window._pendingColors).forEach(([pid, hex]) => {
-      const mat = getOrCreateMat(pid); if(mat) mat.color.set(hex);
-    });
-    // Bewaar kleuren zodat ze na een variant-switch opnieuw toegepast worden
-    window._appliedColors = {...window._pendingColors};
-    window._pendingColors = null;
+    _applyPendingColors();
   } else if(window._appliedColors) {
     // Hertoepassen na variant-switch
     Object.entries(window._appliedColors).forEach(([pid, hex]) => {
-      const mat = getOrCreateMat(pid); if(mat) mat.color.set(hex);
+      const mat = getOrCreateMat(pid); if(mat) { mat.color.set(hex); mat.needsUpdate = true; }
+      syncGLBPart && syncGLBPart(pid);
     });
   }
   // Reset stale opacity op alle materialen voor sync
@@ -3068,31 +3064,40 @@ function saveConfig() {
 function loadConfig(hash) {
   try {
     const cfg = JSON.parse(atob(hash));
-    // Materialen instellen
+
+    // Materialen instellen in partMat
     if(cfg.m) Object.entries(cfg.m).forEach(([pid, matId]) => {
       partMat[pid] = matId;
     });
-    // Kleuren instellen (na GLB laden)
+
+    // Kleuren bewaren voor na GLB laden
     window._pendingColors = cfg.c || {};
-    window._appliedColors = null; // reset zodat pending opnieuw geldt
-    // Variant laden
+    window._appliedColors = null;
+
+    // Variant laden of zelfde variant verversen
     const v = VARIANTS.find(v => v.id === cfg.v);
     if(v) {
       if(v.id !== curV.id) {
         switchVar(v);
       } else {
-        // Zelfde variant — kleuren direct toepassen als al geladen
-        if(window._pendingColors) {
-          Object.entries(window._pendingColors).forEach(([pid, hex]) => {
-            const mat = getOrCreateMat(pid); if(mat) { mat.color.set(hex); mat.needsUpdate = true; }
-          });
-          window._appliedColors = {...window._pendingColors};
-          window._pendingColors = null;
-        }
+        // Zelfde variant — direct toepassen
+        _applyPendingColors();
         buildColorGrid(); buildMatList(); buildPList();
       }
     }
   } catch(e) { console.warn('Config laden mislukt:', e); }
+}
+
+function _applyPendingColors() {
+  if(!window._pendingColors) return;
+  Object.entries(window._pendingColors).forEach(([pid, hex]) => {
+    const mat = getOrCreateMat(pid);
+    if(mat) { mat.color.set(hex); mat.needsUpdate = true; }
+    // Sync ook direct naar de GLB meshes
+    syncGLBPart && syncGLBPart(pid);
+  });
+  window._appliedColors = {...window._pendingColors};
+  window._pendingColors = null;
 }
 
 function showToast(msg) {
