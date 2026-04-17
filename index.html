@@ -3622,7 +3622,6 @@ function setLang(lang) {
 
 // ── VARIANT LIGHTBOX ──────────────────────────────────────
 let variantPhotos = [];
-let variantIdx = 0;
 let variantName = '';
 
 async function openVariantLightbox(variant) {
@@ -3630,43 +3629,45 @@ async function openVariantLightbox(variant) {
     const data = await getFotosData();
     const photos = data[variant] || [];
     if(!photos.length) return;
-    
+
     variantPhotos = photos;
-    variantIdx = 0;
-    variantName = variant;
-    
+    variantName   = variant;
+
     // Update count badges
     const countEl = document.getElementById('count-' + variant);
     if(countEl && photos.length > 1) countEl.textContent = photos.length + ' fotos';
-    
-    showVariantPhoto();
-    
+
+    // Bouw mozaïek
+    const names = {tafel:'Tafellamp', accent:'Accentlamp', wand:'Wandlamp', plafond:'Plafondlamp', hang:'Hanglamp'};
+    document.getElementById('variantLbTitle').textContent = '◆ ' + (names[variant] || variant);
+    document.getElementById('variantLbCount').textContent = photos.length + ' foto' + (photos.length !== 1 ? "'s" : '');
+
+    const grid = document.getElementById('variantMosaicGrid');
+    grid.innerHTML = photos.map((file, i) => `
+      <div class="vm-cell" onclick="openVariantFull(${i})">
+        <img decoding="async" loading="lazy" src="fotos/${variant}/${file}" alt="Rhombi ${variant} ${i+1}">
+      </div>
+    `).join('');
+
     const lb = document.getElementById('variantLightbox');
     lb.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    
-    // Update title
-    const names = {tafel:'Tafellamp', accent:'Accentlamp', wand:'Wandlamp', plafond:'Plafondlamp', hang:'Hanglamp'};
-    document.getElementById('variantLbTitle').textContent = '◆ ' + (names[variant] || variant);
-    
+
   } catch(e) { console.warn('Variant lightbox error:', e); }
 }
 
-function showVariantPhoto() {
-  const img = document.getElementById('variantLbImg');
-  img.src = 'fotos/' + variantName + '/' + variantPhotos[variantIdx];
-  img.alt = 'Rhombi ' + variantName + ' ' + (variantIdx + 1);
-  document.getElementById('variantLbCounter').textContent = (variantIdx + 1) + ' / ' + variantPhotos.length;
-}
-
-function variantNext() {
-  variantIdx = (variantIdx + 1) % variantPhotos.length;
-  showVariantPhoto();
-}
-
-function variantPrev() {
-  variantIdx = (variantIdx - 1 + variantPhotos.length) % variantPhotos.length;
-  showVariantPhoto();
+// Open één foto fullscreen vanuit mozaïek
+function openVariantFull(idx) {
+  const src = 'fotos/' + variantName + '/' + variantPhotos[idx];
+  const img = document.getElementById('lightbox-img');
+  img.src = src;
+  img.alt = 'Rhombi ' + variantName + ' ' + (idx + 1);
+  const lb = document.getElementById('lightbox');
+  lb.style.display = 'grid';
+  lb.style.placeItems = 'center';
+  lb.classList.add('open');
+  // Lightbox sluiten gaat terug naar mozaïek, niet naar pagina
+  lb._fromMosaic = true;
 }
 
 function closeVariantLightbox() {
@@ -3674,12 +3675,10 @@ function closeVariantLightbox() {
   document.body.style.overflow = '';
 }
 
-// Keyboard nav for variant lightbox
+// Keyboard
 document.addEventListener('keydown', e => {
   const lb = document.getElementById('variantLightbox');
   if(lb && lb.style.display !== 'none') {
-    if(e.key === 'ArrowRight') variantNext();
-    if(e.key === 'ArrowLeft') variantPrev();
     if(e.key === 'Escape') closeVariantLightbox();
   }
 });
@@ -3922,87 +3921,97 @@ window.addEventListener('resize', () => {
 
 
 <!-- VARIANT LIGHTBOX -->
-<div id="variantLightbox" onclick="if(event.target===this)closeVariantLightbox()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,12,16,.95);backdrop-filter:blur(16px);align-items:center;justify-content:center;flex-direction:column;gap:0">
-  <button onclick="closeVariantLightbox()" style="position:absolute;top:24px;right:32px;background:none;border:none;color:var(--cream);font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;cursor:pointer;opacity:.7;z-index:10" data-i18n="lb-close">✕ Sluiten</button>
+<div id="variantLightbox" onclick="if(event.target===this)closeVariantLightbox()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(10,12,16,.97);backdrop-filter:blur(16px);flex-direction:column;overflow-y:auto">
 
-  <!-- Foto + pijlen -->
-  <div style="display:flex;align-items:center;gap:16px;width:100%;max-width:1200px;padding:0 24px;height:min(80vh,80vw);max-height:700px">
-    <button onclick="variantPrev()" class="vlb-prev vlb-arrow">←</button>
-    <div id="variantLbFrame" class="rhombi-frame" style="flex:1;aspect-ratio:1/1;height:100%;max-height:100%;overflow:hidden;position:relative">
-      <img decoding="async" id="variantLbImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center">
-      <div id="variantLbCounter" style="position:absolute;bottom:10px;right:12px;font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;color:rgba(237,232,222,.6);background:rgba(10,12,16,.5);padding:3px 8px"></div>
+  <!-- Header -->
+  <div style="position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:rgba(10,12,16,.95);border-bottom:1px solid rgba(200,136,74,.12);flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div id="variantLbTitle" style="font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber)"></div>
+      <div id="variantLbCount" style="font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;color:var(--text-dim)"></div>
     </div>
-    <button onclick="variantNext()" class="vlb-next vlb-arrow">→</button>
+    <button onclick="closeVariantLightbox()" style="background:none;border:1px solid rgba(255,255,255,.12);color:var(--cream);font-family:var(--font-mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;padding:7px 14px;transition:border-color .2s" data-i18n="lb-close">✕ Sluiten</button>
   </div>
 
-  <div id="variantLbTitle" style="font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-top:16px"></div>
+  <!-- Mozaïek grid -->
+  <div id="variantMosaicGrid" style="
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:3px;
+    padding:3px;
+    width:100%;
+    max-width:1200px;
+    margin:0 auto;
+  "></div>
+
 </div>
 
 <style>
-.vlb-arrow {
-  flex-shrink: 0;
-  width: 52px; height: 52px;
-  background: rgba(18,21,26,.85);
-  border: 1px solid rgba(200,136,74,.5);
+.vm-cell {
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  cursor: zoom-in;
+  position: relative;
+  background: var(--dark3);
+}
+.vm-cell img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .4s cubic-bezier(.25,.46,.45,.94), opacity .3s;
+  opacity: 0;
+}
+.vm-cell img.loaded { opacity: 1; }
+.vm-cell:hover img { transform: scale(1.04); }
+.vm-cell::after {
+  content: '⊕';
+  position: absolute;
+  top: 10px; right: 10px;
   color: var(--amber);
-  font-size: 20px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .2s, border-color .2s, transform .15s;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  font-size: 18px;
+  opacity: 0;
+  transition: opacity .2s;
+  text-shadow: 0 1px 4px rgba(0,0,0,.5);
 }
-.vlb-arrow:hover {
-  background: rgba(200,136,74,.15);
-  border-color: var(--amber);
-  transform: scale(1.08);
-}
-.vlb-arrow:active { transform: scale(.95); }
+.vm-cell:hover::after { opacity: 1; }
 
 @media (max-width: 768px) {
-  #variantLightbox > div:nth-of-type(1) {
-    padding: 0;
-    gap: 0;
-    height: 100vw;
-    max-height: 100vw;
-  }
-  #variantLightbox #variantLbFrame {
-    clip-path: none !important;
-    border-radius: 0 !important;
-    height: 100vw;
-    max-height: 100vw;
-  }
-  .vlb-arrow {
-    position: absolute;
-    top: calc(50vw - 26px);
-    z-index: 10;
-    width: 44px; height: 44px;
-  }
-  .vlb-prev { left: 12px; }
-  .vlb-next { right: 12px; }
+  #variantMosaicGrid { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 480px) {
+  #variantMosaicGrid { grid-template-columns: repeat(2,1fr); }
 }
 </style>
 
 <script>
-// ── Swipe voor variant lightbox ──
-(function() {
-  const frame = document.getElementById('variantLbFrame');
-  if (!frame) return;
-  let sx = 0, sy = 0;
-
-  frame.addEventListener('touchstart', e => {
-    sx = e.touches[0].clientX;
-    sy = e.touches[0].clientY;
-  }, { passive: true });
-
-  frame.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-      dx < 0 ? variantNext() : variantPrev();
+// Lazy load + fade in mozaïek afbeeldingen
+document.addEventListener('DOMContentLoaded', function() {
+  document.body.addEventListener('click', function(e) {
+    const cell = e.target.closest('.vm-cell');
+    if (!cell) return;
+    const img = cell.querySelector('img');
+    if (img && !img.classList.contains('loaded')) {
+      img.onload = () => img.classList.add('loaded');
+      if (img.complete) img.classList.add('loaded');
     }
-  }, { passive: true });
-})();
+  });
+});
+
+// Fade in bij openen mozaïek
+const _origOpen = openVariantLightbox;
+document.addEventListener('DOMContentLoaded', () => {
+  // Imgs in mozaïek direct laden als overlay opent
+  const lb = document.getElementById('variantLightbox');
+  if (!lb) return;
+  const obs = new MutationObserver(() => {
+    if (lb.style.display !== 'none') {
+      lb.querySelectorAll('.vm-cell img').forEach(img => {
+        img.onload = () => img.classList.add('loaded');
+        if (img.complete && img.naturalWidth) img.classList.add('loaded');
+      });
+    }
+  });
+  obs.observe(lb, { attributes: true, attributeFilter: ['style'] });
+});
 </script>
 
 
