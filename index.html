@@ -2889,6 +2889,7 @@ function openLightbox(src, alt) {
   img.src = src;
   img.alt = alt || '';
   lb.style.display='grid'; lb.style.placeItems='center'; lb.classList.add('open');
+  lb.style.zIndex = '1100'; // boven mozaïek (1000)
   document.body.style.overflow = 'hidden';
 }
 function closeLightbox() {
@@ -2896,7 +2897,12 @@ function closeLightbox() {
   lb.classList.remove('open');
   lb.style.display = 'none';
   lb.style.flexDirection = '';
-  document.body.style.overflow = '';
+  lb.style.zIndex = '';
+  // Herstel scroll alleen als mozaïek ook gesloten is
+  const mosaic = document.getElementById('variantLightbox');
+  if (!mosaic || mosaic.style.display === 'none') {
+    document.body.style.overflow = '';
+  }
 }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
 
@@ -3657,18 +3663,22 @@ async function openVariantLightbox(variant) {
 }
 
 // Open één foto fullscreen vanuit mozaïek
+let _mosaicIdx = 0;
 function openVariantFull(idx) {
+  _mosaicIdx = idx;
   const src = 'fotos/' + variantName + '/' + variantPhotos[idx];
-  const img = document.getElementById('lightbox-img');
-  img.src = src;
-  img.alt = 'Rhombi ' + variantName + ' ' + (idx + 1);
-  const lb = document.getElementById('lightbox');
-  lb.style.display = 'grid';
-  lb.style.placeItems = 'center';
-  lb.classList.add('open');
-  // Lightbox sluiten gaat terug naar mozaïek, niet naar pagina
-  lb._fromMosaic = true;
+  openLightbox(src, 'Rhombi ' + variantName + ' ' + (idx + 1));
 }
+
+// Keyboard nav: pijlen navigeren door mozaïek als lightbox open is vanuit mozaïek
+document.addEventListener('keydown', e => {
+  const lb = document.getElementById('lightbox');
+  const mosaic = document.getElementById('variantLightbox');
+  if (lb && lb.classList.contains('open') && mosaic && mosaic.style.display !== 'none') {
+    if (e.key === 'ArrowRight') { _mosaicIdx = (_mosaicIdx + 1) % variantPhotos.length; openVariantFull(_mosaicIdx); }
+    if (e.key === 'ArrowLeft')  { _mosaicIdx = (_mosaicIdx - 1 + variantPhotos.length) % variantPhotos.length; openVariantFull(_mosaicIdx); }
+  }
+});
 
 function closeVariantLightbox() {
   document.getElementById('variantLightbox').style.display = 'none';
