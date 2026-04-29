@@ -2053,12 +2053,13 @@ input, textarea, select {
       stroke-dasharray="4000" stroke-dashoffset="4000"
       d="M1131.5,582.5 C1130.56,584.79 1128.68,586.32 1127,588 C973.33,741.67 819.66,895.32 666.07,1049.07 C662.79,1052.35 659.51,1053.4 655.01,1053.62 C617.51,1055.4 580,1054.17 542.5,1054.44 C532.34,1054.51 522.17,1053.77 512,1053.56 C510.33,1053.53 509.12,1052.93 508.02,1051.98 C506.6,1050.74 505.33,1049.33 504,1048 C351,895 198,742 45.01,589 C43,586.98 40.67,585.23 39.37,582.21 C46.65,573.68 55.13,566.13 63.02,558.02 C64.53,556.47 66.38,556.56 67.99,558.01 C69.38,559.28 70.67,560.67 72,562 C215.33,705.33 358.69,848.64 501.9,992.1 C506.66,996.87 511.41,998.66 518,998.62 C564.17,998.39 610.33,998.45 656.5,998.58 C660.61,998.59 663.86,997.59 666.51,994.51 C667.28,993.62 668.17,992.83 669,992 C812.33,848.67 955.67,705.33 1099,562 C1106,555 1106,555 1113,562 C1117.83,566.83 1122.68,571.66 1127.49,576.51 C1129.11,578.13 1131.01,579.55 1131.5,582Z"/>
   </svg>
-  <span id="loaderText" style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:rgba(200,136,74,.5);opacity:0;transition:opacity .4s">RHOMBI</span>
+  <span id="loaderText" style="font-family:'Space Mono',monospace;font-size:22px;letter-spacing:.35em;text-transform:uppercase;color:var(--cream);opacity:0;transition:opacity .5s;text-align:center;line-height:1">RHOMBI</span>
+  <span id="loaderSub" style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.3em;text-transform:uppercase;color:rgba(200,136,74,.5);opacity:0;transition:opacity .5s .2s;text-align:center">Modulaire lichtobjecten</span>
 </div>
 
 <style>
-#lp2 { animation: drawPath 3s 0s cubic-bezier(.2,0,.3,1) forwards; }
-#lp1 { animation: drawPath 2.4s .6s cubic-bezier(.2,0,.3,1) forwards; }
+#lp2 { animation: drawPath 2.6s 0s cubic-bezier(.2,0,.3,1) forwards; }
+#lp1 { animation: drawPath 2.1s .5s cubic-bezier(.2,0,.3,1) forwards; }
 @keyframes drawPath  { to { stroke-dashoffset: 0; } }
 @keyframes heroDrawIn { to { stroke-dashoffset: 0; } }
 </style>
@@ -2095,13 +2096,17 @@ input, textarea, select {
     });
   }, 2000);
 
-  setTimeout(function() { if(loaderText) loaderText.style.opacity='1'; }, 2000);
+  setTimeout(function() {
+    if(loaderText) loaderText.style.opacity='1';
+    var sub = document.getElementById('loaderSub');
+    if(sub) sub.style.opacity='1';
+  }, 1800);
   setTimeout(function() {
     if(!loader) return;
     loader.style.opacity = '0';
     loader.style.visibility = 'hidden';
     setTimeout(function() { loader.style.display='none'; }, 700);
-  }, 4000);
+  }, 3500);
 })();
 </script>
 
