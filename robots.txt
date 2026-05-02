@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://rhombi.nl/sitemap.xml
+
+# Afbeeldingen mogen geïndexeerd worden
+User-agent: Googlebot-Image
+Allow: /fotos/
