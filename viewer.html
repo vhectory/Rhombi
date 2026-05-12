@@ -168,6 +168,24 @@ canvas{display:block;border-radius:2px}
 /* Verberg de oude fan UI: niet meer nodig */
 .fan{display:none !important}
 
+/* ── Mobile carousel mode voor de fan (dial-style swipe selector) ──────── */
+.color-fan.mobile-carousel .color-fan-backdrop{background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.55) 100%);pointer-events:none}
+.color-fan.mobile-carousel .color-fan-cards{position:fixed;bottom:18px;left:0;right:0;top:auto;width:auto;height:96px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;display:flex;align-items:center;gap:6px;padding:0 calc(50vw - 34px);scrollbar-width:none;pointer-events:auto;margin:0;-webkit-overflow-scrolling:touch}
+.color-fan.mobile-carousel .color-fan-cards::-webkit-scrollbar{display:none}
+.color-fan.mobile-carousel .color-fan-card{position:relative;flex:0 0 68px;width:68px;scroll-snap-align:center;margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;transition:opacity .25s ease;animation:none}
+.color-fan.mobile-carousel .color-fan-card.on .color-fan-card-swatch,
+.color-fan.mobile-carousel .color-fan-card:hover .color-fan-card-swatch{transform:scale(1) rotate(0)}
+.color-fan.mobile-carousel .color-fan-card-swatch{width:60px;height:60px;transform-origin:center;transition:transform .2s ease,border-color .2s,box-shadow .2s,filter .2s;animation:none}
+.color-fan.mobile-carousel .color-fan-card-name{font-size:9px;max-width:68px;opacity:1 !important;display:block !important;color:var(--cream);transition:color .2s,opacity .25s}
+/* Center selectie-indicator: ring rond gefocuste swatch */
+.color-fan.mobile-carousel::after{content:'';position:fixed;bottom:32px;left:50%;transform:translateX(-50%);width:74px;height:74px;border:2px solid var(--amber);border-radius:10px;pointer-events:none;box-shadow:0 0 18px rgba(200,136,74,.55),inset 0 0 12px rgba(200,136,74,.12);z-index:1;animation:carouselPulse 2.4s ease-in-out infinite}
+@keyframes carouselPulse{
+  0%,100%{box-shadow:0 0 18px rgba(200,136,74,.55),inset 0 0 12px rgba(200,136,74,.12)}
+  50%{box-shadow:0 0 26px rgba(200,136,74,.75),inset 0 0 18px rgba(200,136,74,.22)}
+}
+/* Sluit-knop rechtsboven op mobile */
+.color-fan.mobile-carousel .color-fan-close{position:fixed;top:64px;right:14px;left:auto;bottom:auto;width:32px;height:32px;font-size:13px}
+
 /* ── Onderdelen pill + dropdown op canvas ───────── */
 .parts-pill{display:none !important}
 .parts-dropdown{display:none !important}
@@ -229,7 +247,7 @@ canvas{display:block;border-radius:2px}
 .focus-active .lamp-part-dim{opacity:.35}
 
 @media (max-width:768px){
-  .topbar-sel{top:54px;left:50%;max-width:calc(100% - 28px)}
+  .topbar-sel{top:14px;left:50%;max-width:calc(100% - 28px)}
   .tbs-row1{gap:3px}
   .tbs-trigger{padding:3px 7px 3px 4px;font-size:8px;gap:4px}
   .tbs-trigger-icon{width:16px;height:16px}
@@ -3736,6 +3754,10 @@ function _openRadialFan(type, anchorEl, items, onPick){
   if(!fan || !anchorEl) return;
   const N = items.length;
   if(N === 0) return;
+  // Op mobile: dial/carousel-style swipe selector ipv radiale waaier
+  if(isMobile){
+    return _openMobileCarouselFan(type, items, onPick);
+  }
   // Adaptieve radius
   let radius;
   if(N <= 4)       radius = 95;
@@ -3801,9 +3823,92 @@ function _openRadialFan(type, anchorEl, items, onPick){
 
 function closeColorFan(){
   const fan = document.getElementById('colorFan');
-  if(fan) fan.classList.remove('on');
+  if(fan){
+    fan.classList.remove('on');
+    fan.classList.remove('mobile-carousel');
+    delete fan.dataset.fanType;
+  }
+  // Cleanup scroll listener als die er was
+  if(window._mobileFanCleanup){ window._mobileFanCleanup(); window._mobileFanCleanup = null; }
   _colorFanOpen = false;
   _fanType = null;
+}
+
+// ── Mobile carousel-fan: horizontal swipe selector met dial-effect ──
+function _openMobileCarouselFan(type, items, onPick){
+  const fan = document.getElementById('colorFan');
+  fan.dataset.fanType = type;
+  fan.classList.add('on', 'mobile-carousel');
+  const cards = document.getElementById('colorFanCards');
+  if(!cards) return;
+  cards.removeAttribute('style'); // reset desktop inline styles
+  cards.innerHTML = '';
+  // Bouw cards
+  items.forEach((item, i)=>{
+    const card = document.createElement('div');
+    card.className = 'color-fan-card' + (item.active ? ' on' : '');
+    card.title = item.label;
+    card.dataset.id = item.id;
+    let swatchHtml;
+    if(item.icon){
+      swatchHtml = `<div class="color-fan-card-swatch icon-swatch">${item.icon}</div>`;
+    } else if(item.img){
+      swatchHtml = `<div class="color-fan-card-swatch photo-swatch"><img src="${item.img}" alt="${item.label}" loading="lazy" draggable="false" onerror="this.parentElement.style.background='${item.swatch || '#444'}';this.style.display='none'"></div>`;
+    } else {
+      swatchHtml = `<div class="color-fan-card-swatch" style="background:${item.swatch || '#888'}"></div>`;
+    }
+    card.innerHTML = `${swatchHtml}<div class="color-fan-card-name">${item.label}</div>`;
+    card.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      onPick(item);
+    });
+    cards.appendChild(card);
+  });
+  // Reset sluit-knop styling (in case carousel positioned hem)
+  const closeBtn = document.getElementById('colorFanClose');
+  if(closeBtn) closeBtn.removeAttribute('style');
+  // Scale-effect: cards in midden groter dan aan randen
+  const updateScales = ()=>{
+    const screenMid = window.innerWidth / 2;
+    let nearestIdx = 0, nearestDist = Infinity;
+    Array.from(cards.children).forEach((card, idx)=>{
+      const rect = card.getBoundingClientRect();
+      const cardMid = rect.left + rect.width / 2;
+      const dist = Math.abs(cardMid - screenMid);
+      if(dist < nearestDist){ nearestDist = dist; nearestIdx = idx; }
+      const maxDist = window.innerWidth / 2;
+      const t = Math.min(dist / maxDist, 1);
+      const scale = 1 - t * 0.35;       // 1.0 midden → 0.65 randen
+      const opacity = 1 - t * 0.55;     // 1.0 midden → 0.45 randen
+      const swatch = card.querySelector('.color-fan-card-swatch');
+      if(swatch) swatch.style.transform = `scale(${scale})`;
+      card.style.opacity = opacity.toFixed(3);
+    });
+    // Highlight de momenteel-gecentreerde card via .focused class
+    Array.from(cards.children).forEach((card, idx)=>{
+      card.classList.toggle('focused', idx === nearestIdx);
+    });
+  };
+  const onScroll = ()=> requestAnimationFrame(updateScales);
+  cards.addEventListener('scroll', onScroll, {passive:true});
+  // Cleanup hook
+  window._mobileFanCleanup = ()=>{
+    cards.removeEventListener('scroll', onScroll);
+  };
+  // Scroll naar actieve item (gecentreerd)
+  const activeIdx = items.findIndex(it => it.active);
+  requestAnimationFrame(()=>{
+    if(activeIdx >= 0){
+      const card = cards.children[activeIdx];
+      if(card){
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        cards.scrollLeft = cardCenter - cards.clientWidth / 2;
+      }
+    }
+    updateScales();
+  });
+  _colorFanOpen = true;
+  _fanType = type;
 }
 
 // ── Specifieke openers ────────────────────────────────
