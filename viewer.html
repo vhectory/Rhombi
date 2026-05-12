@@ -85,37 +85,37 @@ canvas{display:block;border-radius:2px}
 .topbar-sel > *{pointer-events:auto}
 .embedded .topbar-sel{top:16px}
 
-.tbs-row1{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center}
+.tbs-row1{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
 
 /* Generieke trigger pill (gebruikt voor Onderdeel + Materiaal + Kleur) */
-.tbs-trigger{display:flex;align-items:center;gap:6px;background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);padding:4px 9px 4px 6px;border-radius:3px;color:var(--cream);font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;transition:all .15s;touch-action:manipulation;white-space:nowrap;letter-spacing:.04em}
+.tbs-trigger{display:flex;align-items:center;gap:8px;background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);padding:6px 12px 6px 8px;border-radius:4px;color:var(--cream);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s;touch-action:manipulation;white-space:nowrap;letter-spacing:.04em}
 .tbs-trigger:hover{border-color:var(--amber);background:rgba(35,30,28,.92)}
-.tbs-trigger-icon{width:18px;height:18px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;color:var(--cream);overflow:hidden;border-radius:2px}
-.tbs-trigger-icon svg{width:16px;height:16px}
+.tbs-trigger-icon{width:24px;height:24px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;color:var(--cream);overflow:hidden;border-radius:3px}
+.tbs-trigger-icon svg{width:22px;height:22px}
 .tbs-trigger-icon img{width:100%;height:100%;object-fit:contain;user-select:none}
 .tbs-trigger:hover .tbs-trigger-icon{color:var(--amber)}
-.tbs-trigger-label{color:var(--text-dim);font-size:8px;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0}
-.tbs-trigger-name{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--amber)}
-.tbs-trigger-arrow{color:var(--amber);font-size:10px;opacity:.85;margin-left:1px}
+.tbs-trigger-label{color:var(--text-dim);font-size:9px;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0}
+.tbs-trigger-name{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--amber)}
+.tbs-trigger-arrow{color:var(--amber);font-size:12px;opacity:.85;margin-left:2px}
 
 /* Kleur trigger heeft swatch ipv icon */
-.tbs-color-trigger-swatch{width:18px;height:18px;border-radius:2px;border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:inline-block}
+.tbs-color-trigger-swatch{width:24px;height:24px;border-radius:3px;border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:inline-block}
 
 /* Materiaal trigger heeft ook een swatch met foto van het huidige materiaal */
-.tbs-mat-trigger-swatch{width:18px;height:18px;border-radius:2px;border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:inline-block;overflow:hidden;background:#1a1d22}
+.tbs-mat-trigger-swatch{width:24px;height:24px;border-radius:3px;border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:inline-block;overflow:hidden;background:#1a1d22}
 .tbs-mat-trigger-swatch img{width:100%;height:100%;object-fit:cover;user-select:none}
 
-.scope-toggle{display:flex;border:1px solid rgba(255,255,255,.10);border-radius:3px;overflow:hidden;flex-shrink:0;background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.scope-toggle button{background:transparent;border:0;color:var(--text-dim);padding:5px 10px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;transition:all .15s;touch-action:manipulation}
+.scope-toggle{display:flex;border:1px solid rgba(255,255,255,.10);border-radius:4px;overflow:hidden;flex-shrink:0;background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.scope-toggle button{background:transparent;border:0;color:var(--text-dim);padding:7px 13px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;transition:all .15s;touch-action:manipulation}
 .scope-toggle button.on{background:rgba(200,136,74,.18);color:var(--amber)}
 .scope-toggle button:hover:not(.on){background:rgba(255,255,255,.05);color:var(--text)}
 
-.tbs-vis-btn{background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);color:var(--text);cursor:pointer;padding:4px 8px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;touch-action:manipulation}
+.tbs-vis-btn{background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);color:var(--text);cursor:pointer;padding:6px 10px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;touch-action:manipulation}
 .tbs-vis-btn:hover{border-color:var(--amber);color:var(--amber);background:rgba(35,30,28,.92)}
 .tbs-vis-btn.hidden-part{color:#c07070;border-color:rgba(192,112,112,.35)}
 .tbs-vis-btn.hidden-part:hover{color:#e08080;border-color:#e08080;background:rgba(60,30,30,.92)}
 
-.tbs-close{background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);color:var(--text-dim);font-size:14px;cursor:pointer;padding:3px 10px;border-radius:3px;line-height:1;transition:all .15s;touch-action:manipulation}
+.tbs-close{background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px 12px;border-radius:4px;line-height:1;transition:all .15s;touch-action:manipulation}
 .tbs-close:hover{color:var(--amber);border-color:var(--amber);background:rgba(35,30,28,.92)}
 
 /* ── Circulaire waaier (gedeeld voor part/mat/color) ──────── */
@@ -124,16 +124,16 @@ canvas{display:block;border-radius:2px}
 .color-fan-backdrop{position:absolute;inset:0;background:radial-gradient(circle at 35% 25%, rgba(0,0,0,0) 0, rgba(0,0,0,0) 250px, rgba(0,0,0,.18) 500px);pointer-events:none}
 .color-fan-cards{position:absolute;width:0;height:0;pointer-events:none}
 
-.color-fan-close{position:absolute;width:36px;height:36px;border-radius:50%;background:rgba(20,24,30,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(200,136,74,.4);color:var(--cream);font-size:14px;cursor:pointer;pointer-events:auto;transition:transform .25s,border-color .15s,color .15s,background .15s;z-index:5;display:flex;align-items:center;justify-content:center;touch-action:manipulation;animation:closePulse 2.6s ease-in-out infinite}
+.color-fan-close{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(20,24,30,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(200,136,74,.4);color:var(--cream);font-size:17px;cursor:pointer;pointer-events:auto;transition:transform .25s,border-color .15s,color .15s,background .15s;z-index:5;display:flex;align-items:center;justify-content:center;touch-action:manipulation;animation:closePulse 2.6s ease-in-out infinite}
 .color-fan-close:hover{border-color:var(--amber);color:var(--amber);background:rgba(35,30,28,1);transform:rotate(90deg) scale(1.15)}
 @keyframes closePulse{
   0%,100%{box-shadow:0 0 0 0 rgba(200,136,74,.5)}
-  50%{box-shadow:0 0 0 10px rgba(200,136,74,0)}
+  50%{box-shadow:0 0 0 12px rgba(200,136,74,0)}
 }
 
-.color-fan-card{position:absolute;width:60px;margin-left:-30px;margin-top:-30px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;pointer-events:auto;transition:transform .55s cubic-bezier(.34,1.4,.5,1.05),opacity .35s;touch-action:manipulation;will-change:transform,opacity}
+.color-fan-card{position:absolute;width:78px;margin-left:-39px;margin-top:-39px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;pointer-events:auto;transition:transform .55s cubic-bezier(.34,1.4,.5,1.05),opacity .35s;touch-action:manipulation;will-change:transform,opacity}
 
-.color-fan-card-swatch{width:44px;height:44px;border-radius:4px;border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 16px rgba(0,0,0,.5);transition:transform .25s cubic-bezier(.34,1.6,.6,1),border-color .2s,box-shadow .25s,border-width .2s,color .2s;background-clip:padding-box;will-change:transform,box-shadow;animation:swatchIdle 3.2s ease-in-out infinite}
+.color-fan-card-swatch{width:58px;height:58px;border-radius:5px;border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 16px rgba(0,0,0,.5);transition:transform .25s cubic-bezier(.34,1.6,.6,1),border-color .2s,box-shadow .25s,border-width .2s,color .2s;background-clip:padding-box;will-change:transform,box-shadow;animation:swatchIdle 3.2s ease-in-out infinite}
 .color-fan-card:nth-child(2n) .color-fan-card-swatch{animation-delay:-.8s}
 .color-fan-card:nth-child(3n) .color-fan-card-swatch{animation-delay:-1.6s}
 .color-fan-card:nth-child(4n) .color-fan-card-swatch{animation-delay:-2.4s}
@@ -143,8 +143,8 @@ canvas{display:block;border-radius:2px}
 }
 
 /* Icon swatch (voor part fan) */
-.color-fan-card-swatch.icon-swatch{background:linear-gradient(180deg,rgba(40,46,56,.95),rgba(22,26,34,.95));color:var(--cream);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;box-sizing:border-box}
-.color-fan-card-swatch.icon-swatch svg{width:26px;height:26px;pointer-events:none}
+.color-fan-card-swatch.icon-swatch{background:linear-gradient(180deg,rgba(40,46,56,.95),rgba(22,26,34,.95));color:var(--cream);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px;box-sizing:border-box}
+.color-fan-card-swatch.icon-swatch svg{width:34px;height:34px;pointer-events:none}
 .color-fan-card-swatch.icon-swatch img{width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
 .color-fan-card.on .color-fan-card-swatch.icon-swatch{color:var(--amber);background:linear-gradient(180deg,rgba(60,46,30,.95),rgba(30,22,14,.95))}
 
@@ -158,8 +158,19 @@ canvas{display:block;border-radius:2px}
 .color-fan-card:active .color-fan-card-swatch{transform:scale(1.18) rotate(-2deg)}
 .color-fan-card.on .color-fan-card-swatch{border-color:var(--amber);border-width:2px;box-shadow:0 0 0 2px var(--amber),0 6px 16px rgba(0,0,0,.6)}
 
-.color-fan-card-name{font-family:'Space Mono',monospace;font-size:8px;color:var(--cream);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.95);max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.02em;transition:color .2s,opacity .2s}
+.color-fan-card-name{font-family:'Space Mono',monospace;font-size:10px;color:var(--cream);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.95);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.02em;transition:color .2s,opacity .2s}
 .color-fan-card.on .color-fan-card-name{color:var(--amber)}
+
+/* Oog-knop op de cards in de onderdeel-waaier */
+.color-fan-card-vis-toggle{position:absolute;top:-4px;right:-4px;width:22px;height:22px;background:rgba(20,24,30,.95);border:1px solid rgba(255,255,255,.20);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;color:var(--cream);padding:0;transition:all .15s;pointer-events:auto}
+.color-fan-card-vis-toggle:hover{border-color:var(--amber);color:var(--amber);background:rgba(35,30,28,1);transform:scale(1.18)}
+.color-fan-card-vis-toggle.hidden-part{color:#c07070;border-color:rgba(192,112,112,.45)}
+.color-fan-card-vis-toggle.hidden-part:hover{color:#e08080;border-color:#e08080;background:rgba(60,30,30,.92)}
+.color-fan-card-vis-toggle svg{width:13px;height:9px;pointer-events:none}
+
+/* Visuele staat: heel onderdeel-card gedimd als 'ie verborgen is */
+.color-fan-card.part-hidden .color-fan-card-swatch{opacity:.42;filter:grayscale(.55)}
+.color-fan-card.part-hidden .color-fan-card-name{color:var(--text-dim)}
 
 /* Bij kleur- en onderdeel-fan: namen volledig verbergen, alleen tooltip via title= */
 .color-fan[data-fan-type="color"] .color-fan-card-name,
@@ -169,8 +180,8 @@ canvas{display:block;border-radius:2px}
 .fan{display:none !important}
 
 /* ── Mobile carousel mode voor de fan (dial-style swipe selector) ──────── */
-.color-fan.mobile-carousel .color-fan-backdrop{background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.55) 100%);pointer-events:none}
-.color-fan.mobile-carousel .color-fan-cards{position:fixed;bottom:18px;left:0;right:0;top:auto;width:auto;height:96px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;display:flex;align-items:center;gap:6px;padding:0 calc(50vw - 34px);scrollbar-width:none;pointer-events:auto;margin:0;-webkit-overflow-scrolling:touch}
+.color-fan.mobile-carousel .color-fan-backdrop{background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,transparent 35%);pointer-events:none}
+.color-fan.mobile-carousel .color-fan-cards{position:fixed;top:58px;left:0;right:0;bottom:auto;width:auto;height:96px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;display:flex;align-items:center;gap:6px;padding:0 calc(50vw - 34px);scrollbar-width:none;pointer-events:auto;margin:0;-webkit-overflow-scrolling:touch}
 .color-fan.mobile-carousel .color-fan-cards::-webkit-scrollbar{display:none}
 .color-fan.mobile-carousel .color-fan-card{position:relative;flex:0 0 68px;width:68px;scroll-snap-align:center;margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;transition:opacity .25s ease;animation:none}
 .color-fan.mobile-carousel .color-fan-card.on .color-fan-card-swatch,
@@ -178,13 +189,13 @@ canvas{display:block;border-radius:2px}
 .color-fan.mobile-carousel .color-fan-card-swatch{width:60px;height:60px;transform-origin:center;transition:transform .2s ease,border-color .2s,box-shadow .2s,filter .2s;animation:none}
 .color-fan.mobile-carousel .color-fan-card-name{font-size:9px;max-width:68px;opacity:1 !important;display:block !important;color:var(--cream);transition:color .2s,opacity .25s}
 /* Center selectie-indicator: ring rond gefocuste swatch */
-.color-fan.mobile-carousel::after{content:'';position:fixed;bottom:32px;left:50%;transform:translateX(-50%);width:74px;height:74px;border:2px solid var(--amber);border-radius:10px;pointer-events:none;box-shadow:0 0 18px rgba(200,136,74,.55),inset 0 0 12px rgba(200,136,74,.12);z-index:1;animation:carouselPulse 2.4s ease-in-out infinite}
+.color-fan.mobile-carousel::after{content:'';position:fixed;top:65px;left:50%;transform:translateX(-50%);bottom:auto;width:74px;height:74px;border:2px solid var(--amber);border-radius:10px;pointer-events:none;box-shadow:0 0 18px rgba(200,136,74,.55),inset 0 0 12px rgba(200,136,74,.12);z-index:1;animation:carouselPulse 2.4s ease-in-out infinite}
 @keyframes carouselPulse{
   0%,100%{box-shadow:0 0 18px rgba(200,136,74,.55),inset 0 0 12px rgba(200,136,74,.12)}
   50%{box-shadow:0 0 26px rgba(200,136,74,.75),inset 0 0 18px rgba(200,136,74,.22)}
 }
-/* Sluit-knop rechtsboven op mobile */
-.color-fan.mobile-carousel .color-fan-close{position:fixed;top:64px;right:14px;left:auto;bottom:auto;width:32px;height:32px;font-size:13px}
+/* Sluit-knop rechts onder de carousel */
+.color-fan.mobile-carousel .color-fan-close{position:fixed;top:170px;right:14px;left:auto;bottom:auto;width:32px;height:32px;font-size:13px}
 
 /* ── Onderdelen pill + dropdown op canvas ───────── */
 .parts-pill{display:none !important}
@@ -1326,12 +1337,15 @@ const _outlineMat = new THREE.MeshBasicMaterial({
 });
 const _outlineMeshes = []; // actieve outline meshes (direct in LAMP, niet als child)
 let _clickableMeshes = []; // gecached na GLB laden — nooit opnieuw traverseren in hover
+let _selPulseStart = 0;    // tijdstempel voor selectie-puls animatie
 
 function updateSelectionOutline() {
   // Verwijder oude outlines uit scene
   _outlineMeshes.forEach(m => { m.parent && m.parent.remove(m); });
   _outlineMeshes.length = 0;
   if(!activeGLBGroups) return;
+  // Reset puls-timer voor "pop" animatie bij elke selectie-update
+  _selPulseStart = performance.now();
   selParts.forEach(pid => {
     const grp = activeGLBGroups[pid];
     if(!grp) return;
@@ -1351,9 +1365,20 @@ function updateSelectionOutline() {
   });
 }
 
-// Update outline posities elke frame (model kan draaien/bewegen)
+// Update outline posities elke frame (model kan draaien/bewegen) + selectie-puls
 function tickOutlines() {
   if(_outlineMeshes.length === 0) return;
+  // Selectie-puls: korte "pop" animatie van 450ms bij elke selectie-update
+  const elapsed = performance.now() - _selPulseStart;
+  const pulseDur = 450;
+  let pulseScale = 1.025;
+  let pulseOpacity = 0.82;
+  if(elapsed < pulseDur){
+    const t = elapsed / pulseDur;
+    const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+    pulseScale = 1.085 - (1.085 - 1.025) * eased;
+    pulseOpacity = 1.0 - (1.0 - 0.82) * eased;
+  }
   let ci = 0;
   selParts.forEach(pid => {
     const grp = activeGLBGroups && activeGLBGroups[pid];
@@ -1364,9 +1389,10 @@ function tickOutlines() {
       if(!m) return;
       o.updateWorldMatrix(true, false);
       m.matrix.copy(o.matrixWorld);
-      m.matrix.scale(new THREE.Vector3(1.025, 1.025, 1.025));
+      m.matrix.scale(new THREE.Vector3(pulseScale, pulseScale, pulseScale));
       m.matrixAutoUpdate = false;
       m.matrixWorldNeedsUpdate = true;
+      if(m.material) m.material.opacity = pulseOpacity;
     });
   });
 }
@@ -2263,6 +2289,56 @@ function applyCavityHighlight(mat, strength=0.55) {
   mat.needsUpdate = true;
 }
 
+// Hot-spot effect voor kap: spatial emissive die toeneemt nabij de bulb-positie
+// Simuleert dat translucent PLA helderder is dichter bij de lichtbron
+function applyKapHotSpot(mat) {
+  if(mat.userData._hotSpotApplied) return;
+  mat.userData._hotSpotApplied = true;
+  // Pre-creëer uniforms zodat updateKapGlow ze kan zetten vóór shader-compile
+  const uniforms = {
+    uBulbPos:      { value: new THREE.Vector3(0, 0.4, 0) },
+    uBulbStrength: { value: 0.0 },
+    uBulbFalloff:  { value: 18.0 },
+    uBulbColor:    { value: new THREE.Color('#FFB060') },
+  };
+  mat.userData._hotSpotUniforms = uniforms;
+  const prevOBC = mat.onBeforeCompile;
+  mat.onBeforeCompile = (shader) => {
+    if(prevOBC) prevOBC(shader);
+    // Link onze uniforms in zodat ze gedeeld worden met de GPU
+    Object.entries(uniforms).forEach(([k, u]) => { shader.uniforms[k] = u; });
+    // Vertex: world-positie doorgeven aan fragment
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      `#include <common>
+      varying vec3 vWorldPosition_kap;`
+    ).replace(
+      '#include <worldpos_vertex>',
+      `#include <worldpos_vertex>
+      vWorldPosition_kap = worldPosition.xyz;`
+    );
+    // Fragment: voeg hot-spot toe aan emissive radiance (vóór output_fragment)
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      `#include <common>
+      uniform vec3 uBulbPos;
+      uniform float uBulbStrength;
+      uniform float uBulbFalloff;
+      uniform vec3 uBulbColor;
+      varying vec3 vWorldPosition_kap;`
+    ).replace(
+      '#include <emissivemap_fragment>',
+      `#include <emissivemap_fragment>
+      if (uBulbStrength > 0.001) {
+        float _bd = distance(vWorldPosition_kap, uBulbPos);
+        float _hot = uBulbStrength / (1.0 + _bd * _bd * uBulbFalloff);
+        totalEmissiveRadiance += uBulbColor * _hot;
+      }`
+    );
+  };
+  mat.needsUpdate = true;
+}
+
 function getOrCreateMat(partId) {
   if (MGLB[partId]) return MGLB[partId];
 
@@ -2305,6 +2381,10 @@ function getOrCreateMat(partId) {
   if(MGLB[partId] && partId !== "peer") {
     applyCavityHighlight(MGLB[partId], partId === "kap" ? 0.30 : 0.52);
     applyRimDarkening(MGLB[partId], partId === "kap" ? 0.45 : 0.65);
+  }
+  // Hot-spot effect alleen op kap: spatial emissive nabij de bulb-positie
+  if(partId === 'kap' && MGLB[partId]){
+    applyKapHotSpot(MGLB[partId]);
   }
   // Baseline envMapIntensity opslaan en ambiance multiplier toepassen
   if(MGLB[partId]){
@@ -3760,13 +3840,13 @@ function _openRadialFan(type, anchorEl, items, onPick){
   }
   // Adaptieve radius
   let radius;
-  if(N <= 4)       radius = 95;
-  else if(N <= 8)  radius = 125;
-  else if(N <= 14) radius = 155;
-  else             radius = 185;
+  if(N <= 4)       radius = 115;
+  else if(N <= 8)  radius = 150;
+  else if(N <= 14) radius = 185;
+  else             radius = 220;
   // Centrum onder anker, geklemd binnen viewport
   const rect = anchorEl.getBoundingClientRect();
-  const cardW = 65;
+  const cardW = 80;
   let cx = rect.left + rect.width/2;
   cx = Math.max(radius + cardW, Math.min(cx, window.innerWidth - radius - cardW));
   let cy = rect.bottom + 28;
@@ -3774,7 +3854,7 @@ function _openRadialFan(type, anchorEl, items, onPick){
   const cards = document.getElementById('colorFanCards');
   const closeBtn = document.getElementById('colorFanClose');
   if(cards){ cards.style.left = cx + 'px'; cards.style.top = cy + 'px'; }
-  if(closeBtn){ closeBtn.style.left = (cx - 18) + 'px'; closeBtn.style.top = (cy - 18) + 'px'; }
+  if(closeBtn){ closeBtn.style.left = (cx - 22) + 'px'; closeBtn.style.top = (cy - 22) + 'px'; }
   // Boog: max 180° (halve cirkel, altijd naar beneden)
   let totalArc;
   if(N <= 4)       totalArc = 90;
@@ -3802,6 +3882,27 @@ function _openRadialFan(type, anchorEl, items, onPick){
       swatchHtml = `<div class="color-fan-card-swatch" style="background:${item.swatch || '#888'}"></div>`;
     }
     card.innerHTML = `${swatchHtml}<div class="color-fan-card-name">${item.label}</div>`;
+    // Oog-toggle voor part-fan (verberg/toon dat onderdeel)
+    if(type === 'part'){
+      const isHidden = PART_VIS[item.id] === false;
+      if(isHidden) card.classList.add('part-hidden');
+      const visBtn = document.createElement('button');
+      visBtn.type = 'button';
+      visBtn.className = 'color-fan-card-vis-toggle' + (isHidden ? ' hidden-part' : '');
+      visBtn.innerHTML = isHidden ? EYE_OFF_SVG : EYE_ON_SVG;
+      visBtn.title = isHidden ? 'Toon dit onderdeel' : 'Verberg dit onderdeel';
+      visBtn.addEventListener('click', (ev)=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        togglePartVis(item.id, ev);
+        const nowHidden = PART_VIS[item.id] === false;
+        visBtn.innerHTML = nowHidden ? EYE_OFF_SVG : EYE_ON_SVG;
+        visBtn.classList.toggle('hidden-part', nowHidden);
+        visBtn.title = nowHidden ? 'Toon dit onderdeel' : 'Verberg dit onderdeel';
+        card.classList.toggle('part-hidden', nowHidden);
+      });
+      card.appendChild(visBtn);
+    }
     // Start: in centrum, klein, geroteerd voor "uitvouwen" effect
     card.style.transform = 'translate(0,0) scale(.3) rotate(-180deg)';
     card.style.opacity = '0';
@@ -3858,6 +3959,27 @@ function _openMobileCarouselFan(type, items, onPick){
       swatchHtml = `<div class="color-fan-card-swatch" style="background:${item.swatch || '#888'}"></div>`;
     }
     card.innerHTML = `${swatchHtml}<div class="color-fan-card-name">${item.label}</div>`;
+    // Oog-toggle voor part-fan
+    if(type === 'part'){
+      const isHidden = PART_VIS[item.id] === false;
+      if(isHidden) card.classList.add('part-hidden');
+      const visBtn = document.createElement('button');
+      visBtn.type = 'button';
+      visBtn.className = 'color-fan-card-vis-toggle' + (isHidden ? ' hidden-part' : '');
+      visBtn.innerHTML = isHidden ? EYE_OFF_SVG : EYE_ON_SVG;
+      visBtn.title = isHidden ? 'Toon dit onderdeel' : 'Verberg dit onderdeel';
+      visBtn.addEventListener('click', (ev)=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        togglePartVis(item.id, ev);
+        const nowHidden = PART_VIS[item.id] === false;
+        visBtn.innerHTML = nowHidden ? EYE_OFF_SVG : EYE_ON_SVG;
+        visBtn.classList.toggle('hidden-part', nowHidden);
+        visBtn.title = nowHidden ? 'Toon dit onderdeel' : 'Verberg dit onderdeel';
+        card.classList.toggle('part-hidden', nowHidden);
+      });
+      card.appendChild(visBtn);
+    }
     card.addEventListener('click', (ev)=>{
       ev.preventDefault();
       onPick(item);
@@ -4482,14 +4604,27 @@ function updateKapGlow() {
     kapMat.attenuationDistance = 2.0;
   }
 
-  // Emissive = warme kap-tint gemengd met de werkelijke kapkleur
+  // Emissive = warme kap-tint gemengd met de werkelijke kapkleur en kelvin-temperatuur
   const kapColor = kapMat.color.clone();
-  // Mix: amber SSS gloed + echte kleur
   const sssColor = new THREE.Color(kp.emissive);
   sssColor.lerp(kapColor, 0.45); // 45% echte kleur, 55% warm amber
+  // Kelvin-temperatuur erbij mengen zodat de kap mee verkleurt met de lichtkleur
+  const _tempColEmis = new THREE.Color(_peerColorHex || '#FFAA44');
+  sssColor.lerp(_tempColEmis, 0.30);
   kapMat.emissive = sssColor;
   kapMat.emissiveIntensity = kp.emissiveIntensity * t;
   kapMat.needsUpdate = true;
+
+  // Hot-spot uniforms: posities + sterkte + kleur (warm amber + kelvin)
+  if(kapMat.userData._hotSpotUniforms){
+    const u = kapMat.userData._hotSpotUniforms;
+    u.uBulbPos.value.copy(kapGlow.position);
+    u.uBulbStrength.value = t * 1.4;
+    // Hot-spot kleur: warmer dan de base emissive, sterk getint met kelvin
+    const hotCol = new THREE.Color('#FFB860');
+    hotCol.lerp(_tempColEmis, 0.55);
+    u.uBulbColor.value.copy(hotCol);
+  }
 
   // kapGlow = kap kleur + lichttemperatuur (kap domineert)
   const _tempCol = new THREE.Color(_peerColorHex || '#FFAA44');
