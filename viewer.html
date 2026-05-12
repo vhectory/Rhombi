@@ -17,6 +17,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/SSAOShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/SSAOPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--amber:#C8884A;--cream:#EDE4D0;--dark:#12151A;--dark2:#181C23;--dark3:#1E232C;--text:#A8B0B8;--text-dim:#606870}
@@ -55,11 +56,10 @@ canvas{display:block;border-radius:2px}
 .pb-member{padding-left:28px!important;font-size:9px;opacity:.85}
 .pb-member::before{content:"└ ";opacity:.4;margin-right:2px}
 .pb-member.collapsed{display:none}
-.vis-btn{padding:0 0 0 6px;cursor:pointer;opacity:.4;font-size:11px;color:var(--text-dim);transition:opacity .15s;flex-shrink:0;user-select:none}
-.vis-btn:hover{opacity:1!important}
-.pb:hover .vis-btn{opacity:.7}
-.vis-btn:hover{opacity:.8}
-.vis-btn.hidden-part{opacity:.6;color:#c07070}
+.vis-btn{padding:3px 5px;cursor:pointer;opacity:.85;font-size:12px;color:var(--text);transition:all .15s;flex-shrink:0;user-select:none;border-radius:2px;line-height:1;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:18px}
+.vis-btn:hover{opacity:1;background:rgba(200,136,74,.15);color:var(--amber)}
+.vis-btn.hidden-part{opacity:.55;color:#c07070}
+.vis-btn.hidden-part:hover{color:#e08080;background:rgba(192,112,112,.12)}
 .grp-arrow{margin-right:4px;opacity:.5;font-size:8px;display:inline-block;transition:transform .15s;transform:rotate(-90deg)}
 .grp-arrow.open{transform:rotate(0deg)}
 .grp-arrow.closed{transform:rotate(-90deg)}
@@ -68,6 +68,169 @@ canvas{display:block;border-radius:2px}
 .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;transition:background .3s}
 .sh{font-family:"Space Mono",monospace;font-size:7px;letter-spacing:.08em;color:var(--amber);opacity:.75;padding:1px 4px;border:1px solid rgba(200,136,74,.3);margin-left:5px}
 .cgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+
+/* ── Kelvin gradient slider ─────────────────────── */
+.kelvin-track{position:relative;height:14px;border-radius:2px;background:linear-gradient(to right,#FF7700 0%,#FFAA44 33%,#FFF5CC 66%,#E8F0FF 100%);cursor:pointer;margin:6px 0 0;user-select:none}
+.kelvin-snap{position:absolute;width:2px;height:6px;background:rgba(0,0,0,.45);top:4px;pointer-events:none}
+.kelvin-thumb{position:absolute;width:5px;height:18px;background:var(--cream);top:-2px;border-radius:1px;box-shadow:0 0 0 1px rgba(0,0,0,.6);transform:translateX(-2px);pointer-events:none;transition:left .2s}
+
+/* ── Sfeer presets ──────────────────────────────── */
+.sf-btn{font-family:'Space Mono',monospace;text-transform:uppercase;background:var(--dark3);border:1px solid rgba(255,255,255,.05);color:var(--text);cursor:pointer;transition:all .15s}
+.sf-btn:hover{border-color:rgba(200,136,74,.4);color:var(--cream)}
+.sf-btn.on{border-color:var(--amber);background:rgba(200,136,74,.10);color:var(--amber)}
+
+/* ── Topbar bij selectie: zwevende chips, gecentreerd ────── */
+.topbar-sel{position:fixed;top:60px;left:35%;transform:translateX(-50%);z-index:25;background:transparent;border:0;padding:0;display:none;width:max-content;max-width:calc(70% - 40px);pointer-events:none}
+.topbar-sel.on{display:block}
+.topbar-sel > *{pointer-events:auto}
+.embedded .topbar-sel{top:16px}
+
+.tbs-row1{display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center}
+
+/* Generieke trigger pill (gebruikt voor Onderdeel + Materiaal + Kleur) */
+.tbs-trigger{display:flex;align-items:center;gap:6px;background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);padding:4px 9px 4px 6px;border-radius:3px;color:var(--cream);font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;transition:all .15s;touch-action:manipulation;white-space:nowrap;letter-spacing:.04em}
+.tbs-trigger:hover{border-color:var(--amber);background:rgba(35,30,28,.92)}
+.tbs-trigger-icon{width:18px;height:18px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;color:var(--cream);overflow:hidden;border-radius:2px}
+.tbs-trigger-icon svg{width:16px;height:16px}
+.tbs-trigger-icon img{width:100%;height:100%;object-fit:contain;user-select:none}
+.tbs-trigger:hover .tbs-trigger-icon{color:var(--amber)}
+.tbs-trigger-label{color:var(--text-dim);font-size:8px;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0}
+.tbs-trigger-name{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--amber)}
+.tbs-trigger-arrow{color:var(--amber);font-size:10px;opacity:.85;margin-left:1px}
+
+/* Kleur trigger heeft swatch ipv icon */
+.tbs-color-trigger-swatch{width:18px;height:18px;border-radius:2px;border:1px solid rgba(255,255,255,.18);flex-shrink:0;display:inline-block}
+
+.scope-toggle{display:flex;border:1px solid rgba(255,255,255,.10);border-radius:3px;overflow:hidden;flex-shrink:0;background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.scope-toggle button{background:transparent;border:0;color:var(--text-dim);padding:5px 10px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;transition:all .15s;touch-action:manipulation}
+.scope-toggle button.on{background:rgba(200,136,74,.18);color:var(--amber)}
+.scope-toggle button:hover:not(.on){background:rgba(255,255,255,.05);color:var(--text)}
+
+.tbs-vis-btn{background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);color:var(--text);cursor:pointer;padding:4px 8px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;touch-action:manipulation}
+.tbs-vis-btn:hover{border-color:var(--amber);color:var(--amber);background:rgba(35,30,28,.92)}
+.tbs-vis-btn.hidden-part{color:#c07070;border-color:rgba(192,112,112,.35)}
+.tbs-vis-btn.hidden-part:hover{color:#e08080;border-color:#e08080;background:rgba(60,30,30,.92)}
+
+.tbs-close{background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);color:var(--text-dim);font-size:14px;cursor:pointer;padding:3px 10px;border-radius:3px;line-height:1;transition:all .15s;touch-action:manipulation}
+.tbs-close:hover{color:var(--amber);border-color:var(--amber);background:rgba(35,30,28,.92)}
+
+/* ── Circulaire waaier (gedeeld voor part/mat/color) ──────── */
+.color-fan{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.color-fan.on{opacity:1;visibility:visible}
+.color-fan-backdrop{position:absolute;inset:0;background:radial-gradient(circle at 35% 25%, rgba(0,0,0,0) 0, rgba(0,0,0,0) 250px, rgba(0,0,0,.18) 500px);pointer-events:none}
+.color-fan-cards{position:absolute;width:0;height:0;pointer-events:none}
+
+.color-fan-close{position:absolute;width:36px;height:36px;border-radius:50%;background:rgba(20,24,30,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(200,136,74,.4);color:var(--cream);font-size:14px;cursor:pointer;pointer-events:auto;transition:transform .25s,border-color .15s,color .15s,background .15s;z-index:5;display:flex;align-items:center;justify-content:center;touch-action:manipulation;animation:closePulse 2.6s ease-in-out infinite}
+.color-fan-close:hover{border-color:var(--amber);color:var(--amber);background:rgba(35,30,28,1);transform:rotate(90deg) scale(1.15)}
+@keyframes closePulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(200,136,74,.5)}
+  50%{box-shadow:0 0 0 10px rgba(200,136,74,0)}
+}
+
+.color-fan-card{position:absolute;width:60px;margin-left:-30px;margin-top:-30px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;pointer-events:auto;transition:transform .55s cubic-bezier(.34,1.4,.5,1.05),opacity .35s;touch-action:manipulation;will-change:transform,opacity}
+
+.color-fan-card-swatch{width:44px;height:44px;border-radius:4px;border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 16px rgba(0,0,0,.5);transition:transform .25s cubic-bezier(.34,1.6,.6,1),border-color .2s,box-shadow .25s,border-width .2s,color .2s;background-clip:padding-box;will-change:transform,box-shadow;animation:swatchIdle 3.2s ease-in-out infinite}
+.color-fan-card:nth-child(2n) .color-fan-card-swatch{animation-delay:-.8s}
+.color-fan-card:nth-child(3n) .color-fan-card-swatch{animation-delay:-1.6s}
+.color-fan-card:nth-child(4n) .color-fan-card-swatch{animation-delay:-2.4s}
+@keyframes swatchIdle{
+  0%,100%{box-shadow:0 4px 12px rgba(0,0,0,.5), 0 0 0 0 rgba(200,136,74,0)}
+  50%{box-shadow:0 7px 18px rgba(0,0,0,.6), 0 0 14px 2px rgba(200,136,74,.18)}
+}
+
+/* Icon swatch (voor part fan) */
+.color-fan-card-swatch.icon-swatch{background:linear-gradient(180deg,rgba(40,46,56,.95),rgba(22,26,34,.95));color:var(--cream);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;box-sizing:border-box}
+.color-fan-card-swatch.icon-swatch svg{width:26px;height:26px;pointer-events:none}
+.color-fan-card-swatch.icon-swatch img{width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
+.color-fan-card.on .color-fan-card-swatch.icon-swatch{color:var(--amber);background:linear-gradient(180deg,rgba(60,46,30,.95),rgba(30,22,14,.95))}
+
+.color-fan-card:hover{z-index:10}
+.color-fan-card:hover .color-fan-card-swatch{transform:scale(1.32) rotate(-4deg);border-color:var(--amber);border-width:2px;box-shadow:0 14px 32px rgba(0,0,0,.75),0 0 0 3px rgba(200,136,74,.45),0 0 26px rgba(200,136,74,.5);animation-play-state:paused;color:var(--amber)}
+.color-fan-card:hover .color-fan-card-name{color:var(--amber);letter-spacing:.10em;transform:translateY(2px)}
+.color-fan-card:active .color-fan-card-swatch{transform:scale(1.18) rotate(-2deg)}
+.color-fan-card.on .color-fan-card-swatch{border-color:var(--amber);border-width:2px;box-shadow:0 0 0 2px var(--amber),0 6px 16px rgba(0,0,0,.6)}
+
+.color-fan-card-name{font-family:'Space Mono',monospace;font-size:8px;color:var(--cream);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.95);max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.02em;transition:color .2s,letter-spacing .2s,transform .2s}
+.color-fan-card.on .color-fan-card-name{color:var(--amber)}
+
+/* Verberg de oude fan UI: niet meer nodig */
+.fan{display:none !important}
+
+/* ── Onderdelen pill + dropdown op canvas ───────── */
+.parts-pill{display:none !important}
+.parts-dropdown{display:none !important}
+
+.parts-dropdown{position:fixed;top:104px;left:24px;z-index:24;width:280px;max-height:62vh;overflow-y:auto;background:rgba(20,24,30,.97);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:3px;display:none;flex-direction:column;padding:14px;box-shadow:0 12px 32px rgba(0,0,0,.4)}
+.parts-dropdown.on{display:flex}
+.parts-dropdown::-webkit-scrollbar{width:2px}
+.parts-dropdown::-webkit-scrollbar-thumb{background:rgba(200,136,74,.2)}
+.parts-dropdown-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05)}
+.parts-dropdown-close{background:transparent;border:0;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px;line-height:1;transition:color .15s}
+.parts-dropdown-close:hover{color:var(--amber)}
+.parts-show-all{background:transparent;border:1px solid rgba(200,136,74,.30);color:var(--amber);font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;padding:4px 8px;cursor:pointer;border-radius:2px;transition:all .15s}
+.parts-show-all:hover{background:rgba(200,136,74,.10);border-color:var(--amber)}
+
+/* ── Collapsible secties (in paneel — niet meer gebruikt voor onderdelen) ─ */
+.pl-row{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.pl-row .pl{margin-bottom:0}
+.collapse-arrow{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-dim);transition:transform .2s}
+.ps.collapsed .collapse-arrow{transform:rotate(-90deg)}
+.collapse-body{overflow:hidden;max-height:1200px;transition:max-height .25s ease,margin-top .2s,opacity .2s;margin-top:8px;opacity:1}
+.ps.collapsed .collapse-body{max-height:0;margin-top:0;opacity:0;pointer-events:none}
+
+/* ── Materiaal & kleur waaier op canvas ─────────── */
+.fan{position:fixed;inset:0;right:30%;pointer-events:none;z-index:60;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.fan.on{opacity:1;visibility:visible}
+.fan-close{position:absolute;top:20px;right:20px;z-index:62;pointer-events:auto;background:rgba(20,24,30,.92);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);color:var(--text);font-family:'Space Mono',monospace;font-size:16px;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.fan-close:hover{border-color:var(--amber);color:var(--amber)}
+.fan-hint{position:absolute;top:22px;left:50%;transform:translateX(-50%);pointer-events:auto;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--text-dim);text-transform:uppercase;background:rgba(20,24,30,.85);backdrop-filter:blur(6px);padding:7px 14px;border:1px solid rgba(255,255,255,.06);border-radius:2px}
+.fan-hint span{color:var(--amber);font-family:"Space Grotesk",sans-serif;text-transform:none;font-size:12px;letter-spacing:0;margin-left:6px}
+
+/* Achtergrondvlak — klik buiten om te sluiten */
+.fan::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.22);backdrop-filter:blur(2px);pointer-events:auto;cursor:pointer}
+.fan-stage{position:absolute;left:0;right:0;bottom:0;height:200px;pointer-events:none;perspective:1400px;perspective-origin:50% 100%}
+.fan-cards{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);width:0;height:0;pointer-events:none;transform-style:preserve-3d}
+
+.fan-card{position:absolute;left:-44px;bottom:0;width:88px;height:140px;transform-origin:50% calc(100% + 130px);background:linear-gradient(180deg,rgba(28,32,40,.97) 0%,rgba(18,22,28,.97) 100%);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.06);border-radius:4px;overflow:hidden;cursor:pointer;pointer-events:auto;display:flex;flex-direction:column;opacity:0;transform:rotate(0deg) translateZ(0) scale(.6);transition:transform .5s cubic-bezier(.34,1.56,.64,1),opacity .3s,box-shadow .25s,border-color .2s;box-shadow:0 10px 28px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04)}
+/* Bij open: cards fanen uit met perspective */
+.fan.on .fan-card[data-i="0"]{opacity:.92;transform:rotate(-26deg) rotateY(14deg) translateZ(-22px) scale(.92);transition-delay:.00s}
+.fan.on .fan-card[data-i="1"]{opacity:.97;transform:rotate(-13deg) rotateY(7deg) translateZ(-8px) scale(.97);transition-delay:.05s}
+.fan.on .fan-card[data-i="2"]{opacity:1;transform:rotate(0deg) rotateY(0deg) translateZ(0) scale(1);transition-delay:.10s}
+.fan.on .fan-card[data-i="3"]{opacity:.97;transform:rotate(13deg) rotateY(-7deg) translateZ(-8px) scale(.97);transition-delay:.15s}
+.fan.on .fan-card[data-i="4"]{opacity:.92;transform:rotate(26deg) rotateY(-14deg) translateZ(-22px) scale(.92);transition-delay:.20s}
+
+.fan-card:hover{z-index:10;border-color:rgba(200,136,74,.5);opacity:1 !important;box-shadow:0 16px 48px rgba(0,0,0,.7),0 0 0 1px rgba(200,136,74,.25),inset 0 1px 0 rgba(255,255,255,.08)}
+.fan-card.on{border-color:var(--amber);box-shadow:0 0 0 2px var(--amber),0 14px 40px rgba(0,0,0,.6)}
+
+.fan-card-prev{height:75px;width:100%;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);position:relative}
+.fan-card-prev::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,rgba(0,0,0,.18) 100%);pointer-events:none}
+.fan-card-info{padding:7px 8px 6px;text-align:center;cursor:pointer;flex:1;display:flex;flex-direction:column;justify-content:center}
+.fan-card-nm{font-family:"Space Grotesk",sans-serif;font-size:11px;color:var(--cream);margin-bottom:2px;line-height:1.2}
+.fan-card.on .fan-card-nm{color:var(--amber)}
+.fan-card-desc{font-family:'Space Mono',monospace;font-size:6.5px;color:var(--text-dim);letter-spacing:.04em;text-transform:uppercase;line-height:1.2}
+
+/* ── Mat trigger knop ───────────────────────────── */
+.mat-trigger{text-transform:none !important;letter-spacing:.04em !important}
+.mat-trigger:hover{border-color:rgba(200,136,74,.5)}
+
+/* ── Focus mode: niet-geselecteerde parts dimmen ── */
+.focus-active .lamp-part-dim{opacity:.35}
+
+@media (max-width:768px){
+  .topbar-sel{top:54px;left:50%;max-width:calc(100% - 28px)}
+  .tbs-row1{gap:3px}
+  .tbs-trigger{padding:3px 7px 3px 4px;font-size:8px;gap:4px}
+  .tbs-trigger-icon{width:16px;height:16px}
+  .tbs-trigger-icon svg{width:14px;height:14px}
+  .tbs-color-trigger-swatch{width:16px;height:16px}
+  .tbs-trigger-name{max-width:80px}
+  .scope-toggle button{padding:4px 7px;font-size:7px;letter-spacing:.06em}
+  .color-fan-card{width:52px;margin-left:-26px;margin-top:-26px}
+  .color-fan-card-swatch{width:38px;height:38px}
+  .color-fan-card-swatch.icon-swatch svg{width:22px;height:22px}
+  .color-fan-card-name{font-size:7px;max-width:52px}
+  .color-fan-close{width:32px;height:32px;font-size:13px}
+}
 .sw{aspect-ratio:1;cursor:pointer;border:1.5px solid transparent;transition:all .16s;position:relative;overflow:hidden;clip-path:polygon(6px 0%,100% 0%,100% 100%,0% 100%,0% 6px);border-radius:0 0 3px 0}
 .sw:hover{transform:scale(1.08);border-color:rgba(200,136,74,.5)}
 .sw.on{border-color:rgba(200,136,74,.9);box-shadow:inset 0 0 0 1px rgba(200,136,74,.9)}
@@ -395,58 +558,64 @@ canvas { background: transparent !important; }
     <span class="pl">◆ Model</span>
     <h2 class="pt" id="vtit">Rhombi Tafel</h2>
     <p class="pp" id="vsub">Tafellamp · E14 fitting</p>
-
   </div>
+
   <div class="ps">
-    <div style="display:flex;gap:3px;margin-bottom:4px">
+    <span class="pl">◆ Aanzicht</span>
+    <div style="display:flex;gap:3px;margin-bottom:3px">
       <button class="cb" id="bEx" onclick="toggleExplode()" style="flex:1;margin:0"><span>Exploded</span><span>⬡</span></button>
-      <button class="cb" onclick="resetView()" style="flex:1;margin:0"><span>Reset camera</span><span>⊙</span></button>
+      <button class="cb" onclick="resetView()" style="flex:1;margin:0"><span>Reset cam</span><span>⊙</span></button>
     </div>
+    <button class="cb" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
+  </div>
+
+  <div class="ps">
+    <span class="pl">◆ Licht</span>
     <button class="cb on" id="bLampInline" onclick="toggleLamp()" style="width:100%;justify-content:space-between;margin-bottom:8px">
       <span id="bLampInlineLabel">● Lamp aan</span><span>💡</span>
     </button>
-    <div style="margin-bottom:8px">
-      <div style="display:flex;gap:3px;margin-bottom:6px" id="ktemp-btns">
-        <button class="cb" onclick="setPeerColor('#FF7700')" title="2700K" style="flex:1;padding:5px 2px;flex-direction:column;gap:2px;margin:0">
-          <span style="display:block;width:12px;height:12px;border-radius:50%;background:#FF7700;margin:0 auto"></span>
-          <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">2700K</span>
-        </button>
-        <button class="cb" onclick="setPeerColor('#FFAA44')" title="3000K" style="flex:1;padding:5px 2px;flex-direction:column;gap:2px;margin:0">
-          <span style="display:block;width:12px;height:12px;border-radius:50%;background:#FFAA44;margin:0 auto"></span>
-          <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">3000K</span>
-        </button>
-        <button class="cb" onclick="setPeerColor('#FFF5CC')" title="4000K" style="flex:1;padding:5px 2px;flex-direction:column;gap:2px;margin:0">
-          <span style="display:block;width:12px;height:12px;border-radius:50%;background:#FFF5CC;margin:0 auto"></span>
-          <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">4000K</span>
-        </button>
-        <button class="cb" onclick="setPeerColor('#E8F0FF')" title="6500K" style="flex:1;padding:5px 2px;flex-direction:column;gap:2px;margin:0">
-          <span style="display:block;width:12px;height:12px;border-radius:50%;background:#E8F0FF;margin:0 auto"></span>
-          <span style="font-family:Space Mono,monospace;font-size:6px;color:var(--text-dim)">6500K</span>
-        </button>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-family:Space Mono,monospace;font-size:7px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Intensiteit</span>
-        <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--amber);min-width:28px;text-align:right" id="peerIntVal">20%</span>
-      </div>
-      <input type="range" min="0" max="100" value="20" id="peerIntSlider"
-        oninput="setPeerIntensity(this.value/100)"
-        style="width:100%;accent-color:var(--amber);height:3px;cursor:pointer">
+
+    <!-- Kelvin gradient slider -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="font-family:Space Mono,monospace;font-size:7px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Kleurtemperatuur</span>
+      <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--amber)" id="kelvinVal">3000K</span>
     </div>
-    <span class="pl">◆ Materiaal</span>
-    <div class="plist" id="matlist" style="margin-bottom:10px"></div>
-    <span class="pl">◆ Kleur</span>
-    <div class="cgrid" id="cgrid"></div>
+    <div class="kelvin-track" id="kelvinTrack" onclick="setKelvinAtClick(event)">
+      <div class="kelvin-snap" style="left:0%"></div>
+      <div class="kelvin-snap" style="left:33%"></div>
+      <div class="kelvin-snap" style="left:66%"></div>
+      <div class="kelvin-snap" style="left:99%"></div>
+      <div class="kelvin-thumb" id="kelvinThumb" style="left:33%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-family:Space Mono,monospace;font-size:7px;color:var(--text-dim);letter-spacing:.05em;margin:3px 1px 10px">
+      <span>2700</span><span>3000</span><span>4000</span><span>6500</span>
+    </div>
+
+    <!-- Intensiteit -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="font-family:Space Mono,monospace;font-size:7px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em">Intensiteit</span>
+      <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--amber);min-width:28px;text-align:right" id="peerIntVal">20%</span>
+    </div>
+    <input type="range" min="0" max="100" value="20" id="peerIntSlider"
+      oninput="setPeerIntensity(this.value/100)"
+      style="width:100%;accent-color:var(--amber);height:3px;cursor:pointer;margin-bottom:10px">
+
+    <!-- Ambiance: hoeveel omgevingslicht op de lamp + bgSphere HDRI-stijl -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+      <span style="font-family:Space Mono,monospace;font-size:7px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase">Ambiance</span>
+      <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--amber);min-width:28px;text-align:right" id="ambianceVal">100%</span>
+    </div>
+    <input type="range" min="0" max="300" value="100" id="ambianceSlider"
+      oninput="setAmbiance(this.value/100)"
+      title="HDRI intensiteit: meer = helderder reflecties, sterkere schaduwen, bg licht mee"
+      style="width:100%;accent-color:var(--amber);height:3px;cursor:pointer">
   </div>
+
   <div class="ps">
-    <span class="pl">◆ Onderdeel</span>
-    <div class="plist" id="plist"></div>
-    <p style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.08em;color:var(--text-dim);margin-top:8px;line-height:1.6">◆ gedeeld = vliegt naar nieuwe positie</p>
-  </div>
-  <div class="ps">
-    <span class="pl">◆ Weergave</span>
+    <span class="pl">◆ Render</span>
     <button class="cb on" id="bBl" onclick="toggleBloom()"><span>Lichtgloed</span><span>✦</span></button>
     <button class="cb on" id="bAO" onclick="toggleSSAO()"><span>Ambient Occlusion</span><span>◉</span></button>
-    <button class="cb" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
+    <button class="cb on" id="bSm" onclick="toggleSmoothShading()"><span>Zachte ronding</span><span>●</span></button>
     <button class="cb" onclick="saveConfig()"><span>Deel configuratie</span><span>⬡</span></button>
   </div>
   <div class="ps">
@@ -457,6 +626,69 @@ canvas { background: transparent !important; }
     <button class="mob-open-sheet" onclick="closePanel()" style="width:100%;justify-content:center">
       <span>&#x2715; SLUITEN</span>
     </button>
+  </div>
+</div>
+
+<!-- Onderdelen pill + dropdown op canvas (links boven) -->
+<button class="parts-pill" id="partsPillBtn" onclick="togglePartsDropdown()" title="Onderdelen kiezen">
+  <span>Onderdelen</span>
+  <span class="parts-pill-arrow">▾</span>
+</button>
+<div class="parts-dropdown" id="partsDropdown">
+  <div class="parts-dropdown-hdr">
+    <span class="pl" style="margin:0">◆ Onderdelen</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="parts-show-all" onclick="showAllParts()" title="Alle onderdelen weer zichtbaar maken">Toon alles</button>
+      <button class="parts-dropdown-close" onclick="closePartsDropdown()">✕</button>
+    </div>
+  </div>
+  <div class="plist" id="plist"></div>
+  <p style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.08em;color:var(--text-dim);margin-top:10px;line-height:1.6">◆ Oogje aan/uit per onderdeel  ·  ◆ Klik op naam om te selecteren</p>
+  <!-- Verborgen legacy elementen zodat bestaande code nog kan binden -->
+  <div id="cgrid" style="display:none"></div>
+  <div id="matlist" style="display:none"></div>
+</div>
+
+<!-- Topbar met selectie + drie triggers (Onderdeel + Materiaal + Kleur) -->
+<div class="topbar-sel" id="topbarSel">
+  <div class="tbs-row1">
+    <button class="tbs-trigger tbs-part-trigger" id="tbsPartTrigger" onclick="openPartFan()" title="Kies onderdeel">
+      <span class="tbs-trigger-icon" id="tbsPartIcon"></span>
+      <span class="tbs-trigger-name">Onderdelen</span>
+      <span class="tbs-trigger-arrow">▾</span>
+    </button>
+    <button class="tbs-trigger tbs-mat-trigger" id="tbsMatTrigger" onclick="openMatFan()" title="Kies materiaal">
+      <span class="tbs-trigger-label">M</span>
+      <span class="tbs-trigger-name" id="tbsMatName">PLA-Mat</span>
+      <span class="tbs-trigger-arrow">▾</span>
+    </button>
+    <button class="tbs-trigger tbs-color-trigger" id="tbsColorTrigger" onclick="openColorFan()" title="Kies kleur">
+      <span class="tbs-color-trigger-swatch" id="tbsColorTriggerSwatch"></span>
+      <span class="tbs-trigger-name" id="tbsColorTriggerName">Kleur</span>
+      <span class="tbs-trigger-arrow">▾</span>
+    </button>
+    <div class="scope-toggle" title="Wijzigingen toepassen op één onderdeel of alles">
+      <button id="scopeBtn-sel" class="on" onclick="setMatColorScope('sel')">Dit deel</button>
+      <button id="scopeBtn-all" onclick="setMatColorScope('all')">Alles</button>
+    </div>
+    <button class="tbs-vis-btn" id="tbsVisBtn" onclick="togglePartVisFromTopbar(event)" title="Verberg dit onderdeel"></button>
+    <button class="tbs-close" onclick="clearSelection()" title="Deselecteer">✕</button>
+  </div>
+</div>
+
+<!-- Circulaire waaier (gedeeld voor part / materiaal / kleur) -->
+<div class="color-fan" id="colorFan">
+  <div class="color-fan-backdrop" onclick="closeColorFan()"></div>
+  <div class="color-fan-cards" id="colorFanCards"></div>
+  <button class="color-fan-close" id="colorFanClose" onclick="closeColorFan()" title="Sluit (klik buiten of ESC)">✕</button>
+</div>
+
+<!-- Materiaal & kleur waaier — opent op canvas bij selectie -->
+<div class="fan" id="matFan">
+  <button class="fan-close" onclick="closeFan()" title="Sluit waaier">✕</button>
+  <div class="fan-hint" id="fanHint">Materiaal & kleur voor <span id="fanPartName">kap</span></div>
+  <div class="fan-stage">
+    <div class="fan-cards" id="fanCards"></div>
   </div>
 </div>
 
@@ -772,10 +1004,52 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
 
 
     const bgTex=new THREE.CanvasTexture(bg);
+    window._originalBgTex = bgTex; // referentie voor Studio sfeer
     SC.background = null;
+    // HDRI-stijl shader: brightness * gamma * contrast curves obv intensity uniform
+    const bgShader = new THREE.ShaderMaterial({
+      uniforms:{
+        map:        { value: bgTex },
+        intensity:  { value: 1.0 },
+        gamma:      { value: 1.0 },
+        contrast:   { value: 1.0 }
+      },
+      vertexShader:`
+        varying vec2 vUv;
+        void main(){
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+        }
+      `,
+      fragmentShader:`
+        uniform sampler2D map;
+        uniform float intensity;
+        uniform float gamma;
+        uniform float contrast;
+        varying vec2 vUv;
+        void main(){
+          vec4 c = texture2D(map, vUv);
+          vec3 rgb = c.rgb;
+          // Brightness: floor op 0.25 zodat bg niet zwart wordt bij min ambiance
+          float bright = 0.25 + 0.85 * intensity;
+          rgb *= bright;
+          // Gamma curve: lager = lichtere midtonen
+          rgb = pow(max(rgb, 0.0), vec3(1.0 / max(gamma, 0.01)));
+          // Contrast (rond 0.5 spreidt)
+          rgb = (rgb - 0.5) * contrast + 0.5;
+          // Milde soft-clip voor highlights (geen agressieve ACES)
+          rgb = rgb / (1.0 + rgb * 0.35);
+          rgb *= 1.35;
+          gl_FragColor = vec4(max(rgb, 0.0), 1.0);
+        }
+      `,
+      side: THREE.BackSide,
+      depthWrite: false
+    });
+    window._bgShader = bgShader;
     const bgSphere=new THREE.Mesh(
       new THREE.SphereGeometry(22,48,32),
-      new THREE.MeshBasicMaterial({map:bgTex,side:THREE.BackSide,depthWrite:false})
+      bgShader
     );
     bgSphere.renderOrder=-10;
     window._bgSphere = bgSphere;
@@ -823,6 +1097,7 @@ const CAM=new THREE.PerspectiveCamera(26,1,.1,100);
       pl.position.set(...l.pos); envSC.add(pl);
     });
     SC.environment=pmrem.fromScene(envSC,0.04).texture;
+    window._originalEnvTex = SC.environment; // referentie voor Studio sfeer
     pmrem.dispose();
   } catch(e){ console.warn("Env map mislukt:",e); }
 })();
@@ -1324,16 +1599,38 @@ function getTex(key,fn){if(!TC[key])TC[key]=fn();return TC[key];}
 // ═══════════════════════════════════════════
 // MATERIAAL PRESETS — Bambu Lab filamenten
 // ═══════════════════════════════════════════
+
+// Reset MeshPhysicalMaterial extensies naar default zodat presets schoon
+// over elkaar heen werken (van Translucent naar Basic moet transmission uit)
+function resetPhysical(mat) {
+  if(mat.isMeshPhysicalMaterial) {
+    mat.transmission = 0;
+    mat.thickness = 0;
+    mat.clearcoat = 0;
+    mat.clearcoatRoughness = 0;
+    mat.ior = 1.5;
+    mat.attenuationDistance = Infinity;
+    mat.attenuationColor && mat.attenuationColor.set(0xffffff);
+  }
+  mat.transparent = false;
+  mat.opacity = 1;
+}
+
 const MAT_PRESETS=[
   {
     id:"pla-basic", nm:"PLA-Basic",
     desc:"Standaard · laaglijnen",
     apply:(mat)=>{
-      mat.roughness=.48; mat.metalness=.0; mat.transparent=false; mat.opacity=1;
+      resetPhysical(mat);
+      mat.roughness=.48; mat.metalness=.0;
       mat.normalMap=getTex("pbn2",texPLABasicNormal);
       mat.normalScale=new THREE.Vector2(.15,.15);
       mat.roughnessMap=getTex("pbr2",texPLABasicRough);
       mat.envMapIntensity=.9;
+      // Subtiele plastic sheen, niet glanzend maar wel met "leven" op de randen
+      if(mat.isMeshPhysicalMaterial){
+        mat.clearcoat=0.18; mat.clearcoatRoughness=0.55;
+      }
       mat.needsUpdate=true;
     }
   },
@@ -1341,11 +1638,14 @@ const MAT_PRESETS=[
     id:"pla-mat", nm:"PLA-Mat",
     desc:"Mat · velvet oppervlak",
     apply:(mat)=>{
-      mat.roughness=.88; mat.metalness=0; mat.transparent=false; mat.opacity=1;
+      resetPhysical(mat);
+      mat.roughness=.88; mat.metalness=0;
       mat.normalMap=getTex("pmn2",texPLAMatNormal);
       mat.normalScale=new THREE.Vector2(.12,.12);
       mat.roughnessMap=getTex("pmr2",texPLAMatRough);
-      mat.envMapIntensity=.15;
+      // Iets meer omgevingslicht zodat mat niet "krijtachtig" oogt
+      mat.envMapIntensity=.25;
+      // Geen clearcoat: mat moet mat blijven
       mat.needsUpdate=true;
     }
   },
@@ -1353,7 +1653,8 @@ const MAT_PRESETS=[
     id:"pla-cf", nm:"PLA-CF",
     desc:"Koolstofvezel · geweven",
     apply:(mat)=>{
-      mat.roughness=.82; mat.metalness=.0; mat.transparent=false; mat.opacity=1;
+      resetPhysical(mat);
+      mat.roughness=.82; mat.metalness=.0;
       mat.normalMap=getTex("cfn3",texCFNormal);
       mat.normalScale=new THREE.Vector2(0.18,0.18);
       mat.roughnessMap=getTex("cfr4",texCFRough);
@@ -1365,11 +1666,16 @@ const MAT_PRESETS=[
     id:"pla-nebula", nm:"PLA-Nebula",
     desc:"Glitter · metallic sparkle",
     apply:(mat)=>{
-      mat.roughness=.42; mat.metalness=.3; mat.transparent=false; mat.opacity=1;
+      resetPhysical(mat);
+      mat.roughness=.42; mat.metalness=.3;
       mat.normalMap=getTex("nbn2",texNebulaNormal);
       mat.normalScale=new THREE.Vector2(.50,.50);
       mat.roughnessMap=getTex("nbr2",texNebulaRough);
       mat.envMapIntensity=2.2;
+      // Clearcoat-laag over de metallic vlokjes — signature Bambu Nebula look
+      if(mat.isMeshPhysicalMaterial){
+        mat.clearcoat=0.6; mat.clearcoatRoughness=0.18;
+      }
       mat.needsUpdate=true;
     }
   },
@@ -1377,11 +1683,23 @@ const MAT_PRESETS=[
     id:"pla-translucent", nm:"PLA-Translucent",
     desc:"Doorschijnend · glad",
     apply:(mat)=>{
-      mat.roughness=.12; mat.metalness=0; mat.transparent=true; mat.opacity=.65;
+      resetPhysical(mat);
+      mat.roughness=.10; mat.metalness=0;
       mat.normalMap=getTex("tnn",texTransNormal);
       mat.normalScale=new THREE.Vector2(.25,.25);
       mat.roughnessMap=getTex("tnr",texTransRough);
       mat.envMapIntensity=1.8;
+      // Echte refractie ipv platte alpha. PLA's eigen IOR ~1.46.
+      if(mat.isMeshPhysicalMaterial){
+        mat.transmission=0.85;
+        mat.thickness=1.2;
+        mat.ior=1.46;
+        mat.attenuationDistance=3.0;
+        mat.attenuationColor.set('#FFF4D8');
+      } else {
+        // Fallback voor MeshStandardMaterial: oude alpha-look
+        mat.transparent=true; mat.opacity=.65;
+      }
       mat.needsUpdate=true;
     }
   },
@@ -1598,6 +1916,8 @@ function _finishLoad(groups, prevGroups, skipCamera=false) {
     }
   }
   updateKapGlow();
+  // Pas zachte ronding toe als die aan staat (default = aan)
+  if(smoothShadingOn && typeof applySmoothShading === 'function') applySmoothShading(true);
 }
 
 let _swapSeq = 0;
@@ -1917,34 +2237,37 @@ function getOrCreateMat(partId) {
   if (MGLB[partId]) return MGLB[partId];
 
   if (partId === 'peer') {
-    MGLB[partId] = new THREE.MeshStandardMaterial({
+    MGLB[partId] = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color('#FFF8E0'), roughness: 0.0, metalness: 0.0,
       transparent: true, opacity: 0.55, side: THREE.DoubleSide,
       emissive: new THREE.Color('#FF9900'), emissiveIntensity: 2.5,
       envMapIntensity: 0.3,
     });
   } else if (partId === 'kap') {
-    MGLB[partId] = new THREE.MeshStandardMaterial({
+    MGLB[partId] = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color('#F5F3EE'), roughness: 0.88, metalness: 0.0,
-      transparent: true, opacity: 0.97, side: THREE.DoubleSide,
+      transparent: false, opacity: 1.0, side: THREE.DoubleSide,
       emissive: new THREE.Color('#3A1800'), emissiveIntensity: 0.0,
       envMapIntensity: 0.35,
+      // Subtiele translucentie, alleen merkbaar bij lamp aan
+      transmission: 0.06, thickness: 0.3, ior: 1.46,
+      attenuationColor: new THREE.Color('#FFB060'), attenuationDistance: 2.5,
     });
     applyCavityHighlight(MGLB[partId], 0.30);
     applyRimDarkening(MGLB[partId], 0.45);
   } else if (partId === 'fitting') {
-    MGLB[partId] = new THREE.MeshStandardMaterial({
+    MGLB[partId] = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color('#E8E6E0'), roughness: 0.72, metalness: 0.0,
       envMapIntensity: 0.5,
     });
   } else if (partId === 'voet') {
-    MGLB[partId] = new THREE.MeshStandardMaterial({
+    MGLB[partId] = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color('#F0EEE8'), roughness: 0.92, metalness: 0.0,
-      envMapIntensity: 1.0,
+      envMapIntensity: 0.4,
     });
   } else {
     // Standaard: mat wit
-    MGLB[partId] = new THREE.MeshStandardMaterial({
+    MGLB[partId] = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color('#F0EEE8'), roughness: 0.92, metalness: 0.0,
       envMapIntensity: 0.5,
     });
@@ -1952,6 +2275,11 @@ function getOrCreateMat(partId) {
   if(MGLB[partId] && partId !== "peer") {
     applyCavityHighlight(MGLB[partId], partId === "kap" ? 0.30 : 0.52);
     applyRimDarkening(MGLB[partId], partId === "kap" ? 0.45 : 0.65);
+  }
+  // Baseline envMapIntensity opslaan en ambiance multiplier toepassen
+  if(MGLB[partId]){
+    MGLB[partId].userData._baseEnvInt = MGLB[partId].envMapIntensity;
+    MGLB[partId].envMapIntensity = MGLB[partId].userData._baseEnvInt * (window._ambianceMult || 1.0);
   }
   return MGLB[partId];
 }
@@ -2205,6 +2533,10 @@ function _groupColor(grp) {
   return first ? _partColor(first) : _partColor(grp.id);
 }
 
+// SVG icoontjes voor zichtbaarheid (oogje aan/uit)
+const EYE_ON_SVG  = '<svg width="14" height="10" viewBox="0 0 14 10" style="display:block"><ellipse cx="7" cy="5" rx="6" ry="4" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="5" r="1.8" fill="currentColor"/></svg>';
+const EYE_OFF_SVG = '<svg width="14" height="10" viewBox="0 0 14 10" style="display:block"><path d="M1 5 Q7 9 13 5 Q7 1 1 5z" fill="none" stroke="currentColor" stroke-width="1.2"/><line x1="2" y1="1.5" x2="12" y2="8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+
 function buildPList(){
   const list = document.getElementById("plist"); list.innerHTML = "";
 
@@ -2231,9 +2563,10 @@ function buildPList(){
       available.some(aid => _GI[aid] && _GI[aid].id === grp.id)
     );
     const arrow  = hasLoadedMembers ? '<span class="grp-arrow">▾</span>' : '';
-    const visIcon = PART_VIS[grp.id] === false ? '○' : '●';
+    const visIcon = PART_VIS[grp.id] === false ? EYE_OFF_SVG : EYE_ON_SVG;
     const visCls  = PART_VIS[grp.id] === false ? ' hidden-part' : '';
-    b.innerHTML  = `<span>${arrow}${grp.nm}${emIcon}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${grp.id}" style="background:${col}"></span><span class="vis-btn${visCls}" data-vis="${grp.id}" onclick="togglePartVis('${grp.id}',event)">${visIcon}</span></span>`;
+    const visTitle = PART_VIS[grp.id] === false ? 'Toon dit onderdeel' : 'Verberg dit onderdeel';
+    b.innerHTML  = `<span>${arrow}${grp.nm}${emIcon}</span><span style="display:flex;align-items:center;gap:4px"><span class="vis-btn${visCls}" data-vis="${grp.id}" title="${visTitle}" onclick="togglePartVis('${grp.id}',event)">${visIcon}</span></span>`;
     b.onclick = (e) => {
       if(e.target.classList.contains('vis-btn')||e.target.closest('.vis-btn')) return;
       // Pijl klik = alleen open/sluit, geen selectie
@@ -2276,9 +2609,10 @@ function buildPList(){
         mb.dataset.id  = mid;
         mb.dataset.group = grp.id;
         const mnm = mid.replace(/_/g,' ').replace(/\b\w/g, ch => ch.toUpperCase());
-        const mvisIcon = PART_VIS[mid] === false ? '○' : '●';
+        const mvisIcon = PART_VIS[mid] === false ? EYE_OFF_SVG : EYE_ON_SVG;
         const mvisCls  = PART_VIS[mid] === false ? ' hidden-part' : '';
-        mb.innerHTML = `<span>${mnm}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${mid}" style="background:${mc}"></span><span class="vis-btn${mvisCls}" data-vis="${mid}" onclick="togglePartVis('${mid}',event)">${mvisIcon}</span></span>`;
+        const mvisTitle = PART_VIS[mid] === false ? 'Toon dit onderdeel' : 'Verberg dit onderdeel';
+        mb.innerHTML = `<span>${mnm}</span><span style="display:flex;align-items:center;gap:4px"><span class="vis-btn${mvisCls}" data-vis="${mid}" title="${mvisTitle}" onclick="togglePartVis('${mid}',event)">${mvisIcon}</span></span>`;
         mb.onclick = (e) => { if(e.target.classList.contains('vis-btn')||e.target.closest('.vis-btn')) return; e.stopPropagation(); selPart(mid, e.ctrlKey||e.metaKey||e.shiftKey); };
         list.appendChild(mb);
       });
@@ -2299,9 +2633,10 @@ function buildPList(){
     const b = document.createElement("button");
     b.className = "pb" + (selP === id ? " on" : "");
     b.dataset.id = id;
-    const fvisIcon = PART_VIS[id] === false ? '○' : '●';
+    const fvisIcon = PART_VIS[id] === false ? EYE_OFF_SVG : EYE_ON_SVG;
     const fvisCls  = PART_VIS[id] === false ? ' hidden-part' : '';
-    b.innerHTML = `<span>${id}</span><span style="display:flex;align-items:center;gap:4px"><span class="dot" id="dot-${id}" style="background:${col}"></span><span class="vis-btn${fvisCls}" data-vis="${id}" onclick="togglePartVis('${id}',event)">${fvisIcon}</span></span>`;
+    const fvisTitle = PART_VIS[id] === false ? 'Toon dit onderdeel' : 'Verberg dit onderdeel';
+    b.innerHTML = `<span>${id}</span><span style="display:flex;align-items:center;gap:4px"><span class="vis-btn${fvisCls}" data-vis="${id}" title="${fvisTitle}" onclick="togglePartVis('${id}',event)">${fvisIcon}</span></span>`;
     b.onclick = (e) => selPart(id, e.ctrlKey||e.metaKey||e.shiftKey);
     list.appendChild(b);
   });
@@ -2361,17 +2696,48 @@ function togglePartVis(id, e) {
       activeGLBGroups[pid].visible = !allVisible;
     }
   });
-  // Update knoppen
-  const btn = document.querySelector('.vis-btn[data-vis="'+id+'"]');
-  if (btn) {
-    btn.textContent = allVisible ? '○' : '●';
-    btn.classList.toggle('hidden-part', allVisible);
-  }
-  // Update member buttons ook
-  targets.forEach(pid => {
+  // Update icoon + title voor de geklikte knop én alle members
+  const allTargets = new Set([id, ...targets]);
+  allTargets.forEach(pid => {
     const mb = document.querySelector('.vis-btn[data-vis="'+pid+'"]');
-    if (mb) { mb.textContent = allVisible ? '○' : '●'; mb.classList.toggle('hidden-part', allVisible); }
+    if (mb) {
+      mb.innerHTML = allVisible ? EYE_OFF_SVG : EYE_ON_SVG;
+      mb.classList.toggle('hidden-part', allVisible);
+      mb.title = allVisible ? 'Toon dit onderdeel' : 'Verberg dit onderdeel';
+    }
   });
+  // Update topbar-knop als die zichtbaar is
+  updateTopbarVisBtn();
+}
+
+// ── Topbar verberg-knop voor het geselecteerde onderdeel ──
+function updateTopbarVisBtn(){
+  const btn = document.getElementById('tbsVisBtn');
+  if(!btn || !selP) return;
+  const isHidden = PART_VIS[selP] === false;
+  btn.innerHTML = isHidden ? EYE_OFF_SVG : EYE_ON_SVG;
+  btn.classList.toggle('hidden-part', isHidden);
+  btn.title = isHidden ? 'Toon dit onderdeel weer' : 'Verberg dit onderdeel';
+}
+
+// ── Reset: alle onderdelen weer zichtbaar maken ──
+function showAllParts(){
+  Object.keys(PART_VIS).forEach(pid => {
+    PART_VIS[pid] = true;
+    if(activeGLBGroups && activeGLBGroups[pid]){
+      activeGLBGroups[pid].visible = true;
+    }
+  });
+  // Ook eventuele groepen die niet in PART_VIS staan resetten
+  if(activeGLBGroups){
+    Object.entries(activeGLBGroups).forEach(([pid, g]) => {
+      if(pid === '__lampPos' || !g.isObject3D) return;
+      g.visible = true;
+      PART_VIS[pid] = true;
+    });
+  }
+  buildPList();
+  updateTopbarVisBtn();
 }
 
 function selPart(id, multi=false){
@@ -2399,6 +2765,16 @@ function selPart(id, multi=false){
   buildColorGrid();
   buildMatList();
   updateSelectionOutline();
+  // Nieuwe UI hooks
+  if(typeof updateSelectionChip === 'function') updateSelectionChip();
+  if(typeof updateAfwerkingVisibility === 'function') updateAfwerkingVisibility();
+  // Als kleur-waaier open is, herbouw met nieuwe selectie
+  if(_colorFanOpen && selP){
+    if(_fanType === 'color' && typeof openColorFan === 'function') openColorFan();
+    else if(_fanType === 'mat' && typeof openMatFan === 'function') openMatFan();
+    // Als part-fan open en je hebt via canvas geklikt: sluit fan
+    else if(_fanType === 'part') closeColorFan();
+  }
 }
 
 function copyColorToSelection() {
@@ -2460,24 +2836,22 @@ const partMat = new Proxy(_partMatData, {
 
 // SSS-achtig effect per materiaaltype voor de kap
 // Kap is dun geprint — licht filtert erdoorheen, intensiteit verschilt per materiaal
+// transmission = echte refractieve doorlaat (Physical material), schaalt met lamp aan
 function kapLightProps(matId) {
-  // { opacity, emissiveIntensity, emissiveColor }
-  // opacity    = hoeveel licht erdoorheen komt (laag = meer licht)
-  // emissive   = warme gloed van binnenuit (SSS simulatie)
+  // Subtiel: SSS is een hint, niet een dominant effect
   switch(matId) {
-    // Kap bijna dicht — emissive doet de SSS gloed, niet transparantie
     case 'pla-translucent':
-      return { transparent:true,  opacity:0.72, emissiveIntensity:1.4,  emissive:'#5A2800' };
+      return { transparent:true,  opacity:0.84,  emissiveIntensity:0.55, emissive:'#5A2800', transmission:0.30, thickness:0.6 };
     case 'pla-basic':
-      return { transparent:true,  opacity:0.965, emissiveIntensity:0.55, emissive:'#3A1800' };
+      return { transparent:true,  opacity:0.985, emissiveIntensity:0.18, emissive:'#3A1800', transmission:0.06, thickness:0.4 };
     case 'pla-mat':
-      return { transparent:true,  opacity:0.975, emissiveIntensity:0.45, emissive:'#2E1200' };
+      return { transparent:true,  opacity:0.99,  emissiveIntensity:0.14, emissive:'#2E1200', transmission:0.04, thickness:0.4 };
     case 'pla-nebula':
-      return { transparent:true,  opacity:0.97, emissiveIntensity:0.50, emissive:'#3A2000' };
+      return { transparent:true,  opacity:0.99,  emissiveIntensity:0.16, emissive:'#3A2000', transmission:0.02, thickness:0.5 };
     case 'pla-cf':
-      return { transparent:false, opacity:1.0,    emissiveIntensity:0.06, emissive:'#0A0400' };
+      return { transparent:false, opacity:1.0,   emissiveIntensity:0.04, emissive:'#0A0400', transmission:0,    thickness:0   };
     default:
-      return { transparent:true,  opacity:0.985, emissiveIntensity:0.85, emissive:'#3A1800' };
+      return { transparent:true,  opacity:0.99,  emissiveIntensity:0.28, emissive:'#3A1800', transmission:0.08, thickness:0.4 };
   }
 }
 
@@ -2503,6 +2877,9 @@ function applyMatPreset(id, targets){
     const mat = getOrCreateMat(pid);
     if(!mat) return;
     preset.apply(mat);
+    // Baseline envMapIntensity opslaan en multiplier toepassen
+    mat.userData._baseEnvInt = mat.envMapIntensity;
+    mat.envMapIntensity = mat.userData._baseEnvInt * (window._ambianceMult || 1.0);
     // Box mapping toepassen voor normale & roughness maps
     if(mat.normalMap || mat.roughnessMap) applyBoxMapping(mat, pid==="kap" ? 3.5 : 2.8);
     if(pid !== "peer") { applyCavityHighlight(mat, pid==="kap" ? 0.30 : 0.52); applyRimDarkening(mat, pid==="kap" ? 0.45 : 0.65); }
@@ -2627,6 +3004,942 @@ function buildMatList(){
 }
 
 
+// ════════════════════════════════════════════════════════════════
+// NIEUWE UI: Kelvin slider, sfeer presets, materiaal modal,
+// floating selection chip, focus mode
+// ════════════════════════════════════════════════════════════════
+
+// ── Kelvin → kleur mapping (interpoleert tussen de 4 ankerpunten) ──
+const KELVIN_STOPS = [
+  { k: 2700, hex: '#FF7700' },
+  { k: 3000, hex: '#FFAA44' },
+  { k: 4000, hex: '#FFF5CC' },
+  { k: 6500, hex: '#E8F0FF' },
+];
+function kelvinToHex(kelvin){
+  kelvin = Math.max(2700, Math.min(6500, kelvin));
+  for(let i=0; i<KELVIN_STOPS.length-1; i++){
+    const a = KELVIN_STOPS[i], b = KELVIN_STOPS[i+1];
+    if(kelvin >= a.k && kelvin <= b.k){
+      const t = (kelvin - a.k) / (b.k - a.k);
+      const ca = new THREE.Color(a.hex), cb = new THREE.Color(b.hex);
+      const out = ca.lerp(cb, t);
+      return '#' + out.getHexString();
+    }
+  }
+  return KELVIN_STOPS[0].hex;
+}
+function kelvinToPct(kelvin){
+  // Verdeling: 2700/3000/4000/6500 op posities 0%/33%/66%/99%
+  if(kelvin <= 2700) return 0;
+  if(kelvin <= 3000) return ((kelvin - 2700) / 300) * 33;
+  if(kelvin <= 4000) return 33 + ((kelvin - 3000) / 1000) * 33;
+  return 66 + ((kelvin - 4000) / 2500) * 33;
+}
+function pctToKelvin(pct){
+  // Inverse van kelvinToPct
+  if(pct <= 33) return 2700 + (pct / 33) * 300;
+  if(pct <= 66) return 3000 + ((pct - 33) / 33) * 1000;
+  return 4000 + ((pct - 66) / 33) * 2500;
+}
+function setKelvin(kelvin, fromUi=false){
+  const hex = kelvinToHex(kelvin);
+  // setPeerColor doet het werk, we negeren z'n sfeer-deselect tijdens dit
+  const wasInSfeer = _inSfeer;
+  if(!fromUi) _inSfeer = true; // niet-UI calls (uit applySfeer) clearen geen sfeer
+  setPeerColor(hex);
+  _inSfeer = wasInSfeer;
+  // Snap thumb
+  const pct = kelvinToPct(kelvin);
+  const thumb = document.getElementById('kelvinThumb');
+  if(thumb) thumb.style.left = pct + '%';
+  const lbl = document.getElementById('kelvinVal');
+  if(lbl) lbl.textContent = Math.round(kelvin) + 'K';
+  if(fromUi) clearSfeerActive();
+}
+function setKelvinAtClick(ev){
+  const track = document.getElementById('kelvinTrack');
+  if(!track) return;
+  const rect = track.getBoundingClientRect();
+  let pct = ((ev.clientX - rect.left) / rect.width) * 100;
+  pct = Math.max(0, Math.min(100, pct));
+  // Snap binnen 4% van een ankerpunt
+  const snaps = [0, 33, 66, 99];
+  for(const s of snaps){ if(Math.abs(pct - s) < 4){ pct = s; break; } }
+  const kelvin = pctToKelvin(pct);
+  setKelvin(kelvin, true);
+}
+// Drag-support
+(function initKelvinDrag(){
+  let dragging = false;
+  document.addEventListener('mousedown', e=>{
+    const t = e.target.closest('#kelvinTrack');
+    if(t){ dragging = true; setKelvinAtClick(e); }
+  });
+  document.addEventListener('mousemove', e=>{
+    if(!dragging) return;
+    setKelvinAtClick({clientX: e.clientX});
+  });
+  document.addEventListener('mouseup', ()=>{ dragging = false; });
+  document.addEventListener('touchstart', e=>{
+    const t = e.target.closest('#kelvinTrack');
+    if(t && e.touches[0]){ dragging = true; setKelvinAtClick({clientX: e.touches[0].clientX}); }
+  });
+  document.addEventListener('touchmove', e=>{
+    if(!dragging || !e.touches[0]) return;
+    setKelvinAtClick({clientX: e.touches[0].clientX});
+  }, {passive:true});
+  document.addEventListener('touchend', ()=>{ dragging = false; });
+})();
+
+// ── Sfeer presets — coordineren peer + bloom + ambient + exposure + bg ──
+let _inSfeer = false;
+let _activeSfeer = null;
+const SFEER_PRESETS = {
+  avond: {
+    kelvin: 2700,
+    intensity: 0.40,
+    bloom: 0.55,
+    ambient: 0.12,
+    exposure: 0.90,
+    bg: '#0A0608',
+  },
+  schemer: {
+    kelvin: 3000,
+    intensity: 0.70,
+    bloom: 0.42,
+    ambient: 0.30,
+    exposure: 1.05,
+    bg: '#1A1208',
+  },
+  studio: {
+    kelvin: 4000,
+    intensity: 0.90,
+    bloom: 0.30,
+    ambient: 0.55,
+    exposure: 1.15,
+    bg: '#1E1E22',
+  },
+  daglicht: {
+    kelvin: 5500,
+    intensity: 0.60,
+    bloom: 0.18,
+    ambient: 0.85,
+    exposure: 1.20,
+    bg: '#4E5C70',
+  },
+};
+function applySfeer(id){
+  const p = SFEER_PRESETS[id]; if(!p) return;
+  _inSfeer = true;
+  _activeSfeer = id;
+  // Peer kleur + intensiteit
+  setKelvin(p.kelvin);
+  setPeerIntensity(p.intensity);
+  // Bloom strength (alleen als bloom aan staat)
+  if(bloomPass && bloomOn){ bloomPass.strength = p.bloom; }
+  // Ambient light — eerste AmbientLight in scene
+  SC.traverse(o=>{
+    if(o.isAmbientLight && !o.userData._sfeerSkip){ o.intensity = p.ambient; }
+  });
+  // Tone mapping exposure
+  R.toneMappingExposure = p.exposure;
+  // Skybox sphere + PMREM environment per sfeer (NIET scene.background)
+  if(typeof applySfeerEnv === 'function') applySfeerEnv(id);
+  // Slider UI
+  const sl = document.getElementById('peerIntSlider'); if(sl) sl.value = Math.round(p.intensity*100);
+  const iv = document.getElementById('peerIntVal'); if(iv) iv.textContent = Math.round(p.intensity*100) + '%';
+  // Knop UI
+  document.querySelectorAll('.sf-btn').forEach(b=>b.classList.remove('on'));
+  const btn = document.getElementById('sf-'+id); if(btn) btn.classList.add('on');
+  _inSfeer = false;
+}
+function clearSfeerActive(){
+  if(_inSfeer) return;
+  _activeSfeer = null;
+  document.querySelectorAll('.sf-btn').forEach(b=>b.classList.remove('on'));
+}
+
+// ════════════════════════════════════════════════════════════════
+// AMBIANCE: HDRI-stijl intensiteit
+// 0 = donker/muted, 1.0 = neutraal, 3.0 = helder HDR-stijl
+// Beïnvloedt: envMapIntensity, bgSphere shader (brightness+gamma+contrast),
+//             directe licht-intensiteiten (voor schaduwsterkte), ambient fill
+// ════════════════════════════════════════════════════════════════
+window._ambianceMult = 1.0;
+
+function setAmbiance(mult){
+  const m = Math.max(0, mult);
+  window._ambianceMult = m;
+
+  // ── 1) envMapIntensity per materiaal (reflecties) ──
+  // Niet-lineaire boost: m^1.2 voor wat meer drama bij hoge waardes
+  const envMult = Math.pow(m, 1.2);
+  const updated = new Set();
+  SC.traverse(o=>{
+    if(!o.material) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    mats.forEach(mat=>{
+      if(mat && !updated.has(mat) && mat.userData && mat.userData._baseEnvInt !== undefined){
+        mat.envMapIntensity = mat.userData._baseEnvInt * envMult;
+        mat.needsUpdate = true;
+        updated.add(mat);
+      }
+    });
+  });
+  if(typeof MGLB === 'object'){
+    Object.values(MGLB).forEach(mat=>{
+      if(mat && !updated.has(mat) && mat.userData && mat.userData._baseEnvInt !== undefined){
+        mat.envMapIntensity = mat.userData._baseEnvInt * envMult;
+        mat.needsUpdate = true;
+      }
+    });
+  }
+
+  // ── 2) bgSphere shader: HDRI-stijl gamma/contrast/brightness ──
+  if(window._bgShader && window._bgShader.uniforms){
+    const u = window._bgShader.uniforms;
+    // Intensity: ruwe waarde (shader doet zelf de floor naar 0.25 minimum)
+    u.intensity.value = m;
+    // Gamma: lage ambiance = donkerdere midtonen (1.5), hoge = lichtere (0.8)
+    u.gamma.value = 1.5 - 0.30 * m + 0.025 * m * m;
+    // Contrast: HOGER aan de lage kant zodat texture zichtbaar blijft
+    // m=0: 1.5 (hoog contrast - texture pop), m=1: 1.0, m=3: 0.95 (zachter)
+    u.contrast.value = m < 1 ? (1.5 - 0.5 * m) : (1.05 - (m - 1) * 0.05);
+  }
+
+  // ── 3) Directe lichten (DirectionalLight, SpotLight) voor schaduw-sterkte ──
+  // Hogere ambiance → meer direct licht → hardere, sterkere schaduwen
+  // Lagere ambiance → diffuser, zachtere schaduwen
+  SC.traverse(o=>{
+    if(!o.isLight || o.isAmbientLight || o.userData._sfeerSkip) return;
+    if(o.isHemisphereLight) return; // hemilights apart afhandelen
+    if(o.userData._baseInt === undefined){
+      o.userData._baseInt = o.intensity;
+    }
+    // Niet-lineaire schaling: zachtere ondergrens, ferme bovengrens
+    o.intensity = o.userData._baseInt * Math.pow(m, 1.1);
+  });
+
+  // ── 4) AmbientLight intensiteit (algemene vulling) ──
+  SC.traverse(o=>{
+    if(!o.isAmbientLight || o.userData._sfeerSkip) return;
+    if(o.userData._baseInt === undefined){
+      o.userData._baseInt = o.intensity;
+    }
+    // Iets minder dramatisch dan envMap zodat lichteffect echt op de bg/materiaal valt
+    o.intensity = o.userData._baseInt * (0.3 + m * 0.7);
+  });
+
+  // ── 5) Display update ──
+  const valEl = document.getElementById('ambianceVal');
+  if(valEl) valEl.textContent = Math.round(m * 100) + '%';
+}
+
+// ════════════════════════════════════════════════════════════════
+// SFEER ENVIRONMENTS — procedurele "HDRI's" op de bgSphere
+// plus PMREM regeneration zodat reflecties op materialen meebewegen
+// ════════════════════════════════════════════════════════════════
+const SFEER_BG_TEX_CACHE = {};
+const SFEER_PMREM_CACHE = {};
+let _sfeerPmrem = null;
+
+function buildSfeerBgTexture(id){
+  if(SFEER_BG_TEX_CACHE[id]) return SFEER_BG_TEX_CACHE[id];
+
+  const W=1024, H=1024;
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  const bx=cv.getContext("2d");
+  const horizon = Math.floor(H * 0.56);
+
+  // ── Hulpje: wand-vignet aan zijkanten (suggereert hoeken) ──
+  function addWallCorners(leftAlpha, rightAlpha){
+    const l = bx.createLinearGradient(0, 0, W*0.15, 0);
+    l.addColorStop(0, `rgba(0,0,0,${leftAlpha})`);
+    l.addColorStop(1, 'rgba(0,0,0,0)');
+    bx.fillStyle = l; bx.fillRect(0, 0, W*0.15, H);
+    const r = bx.createLinearGradient(W*0.85, 0, W, 0);
+    r.addColorStop(0, 'rgba(0,0,0,0)');
+    r.addColorStop(1, `rgba(0,0,0,${rightAlpha})`);
+    bx.fillStyle = r; bx.fillRect(W*0.85, 0, W*0.15, H);
+  }
+
+  // ── Hulpje: horizon-streep tussen plafond en vloer ──
+  function addHorizon(darkAlpha, skirtColor, skirtAlpha){
+    bx.fillStyle = `rgba(0,0,0,${darkAlpha})`;
+    bx.fillRect(0, horizon - 2, W, 4);
+    if(skirtColor){
+      bx.fillStyle = `rgba(${skirtColor},${skirtAlpha})`;
+      bx.fillRect(0, horizon + 3, W, 14);
+    }
+  }
+
+  if(id === 'avond'){
+    // ── Donkere kamer, lamp als enige lichtbron ─────────
+    // Plafond
+    const ceil = bx.createLinearGradient(0, 0, 0, horizon);
+    ceil.addColorStop(0,   '#020108');
+    ceil.addColorStop(0.6, '#0A0608');
+    ceil.addColorStop(1,   '#120A0C');
+    bx.fillStyle = ceil; bx.fillRect(0, 0, W, horizon);
+    // Vloer
+    const floor = bx.createLinearGradient(0, horizon, 0, H);
+    floor.addColorStop(0,   '#16100C');
+    floor.addColorStop(0.4, '#180C08');
+    floor.addColorStop(1,   '#080404');
+    bx.fillStyle = floor; bx.fillRect(0, horizon, W, H - horizon);
+    addHorizon(0.55, '20,12,10', 0.55);
+    // Warme gloed op achterwand (lamp licht weerkaatst)
+    const wall = bx.createRadialGradient(W*0.5, horizon*0.78, 0, W*0.5, horizon*0.78, W*0.55);
+    wall.addColorStop(0,   'rgba(80,36,16,0.42)');
+    wall.addColorStop(0.4, 'rgba(45,20,10,0.18)');
+    wall.addColorStop(1,   'rgba(0,0,0,0)');
+    bx.fillStyle = wall; bx.fillRect(0, 0, W, horizon);
+    // Warm pool op vloer onder de lamp
+    const pool = bx.createRadialGradient(W*0.5, H*0.72, 0, W*0.5, H*0.72, W*0.5);
+    pool.addColorStop(0,   'rgba(140,72,30,0.62)');
+    pool.addColorStop(0.3, 'rgba(80,38,15,0.28)');
+    pool.addColorStop(0.7, 'rgba(40,18,8,0.08)');
+    pool.addColorStop(1,   'rgba(0,0,0,0)');
+    bx.fillStyle = pool; bx.fillRect(0, horizon, W, H-horizon);
+    // Schilderij silhouet op linkerwand
+    bx.fillStyle = 'rgba(60,32,18,0.20)';
+    bx.fillRect(W*0.08, horizon*0.32, W*0.10, horizon*0.32);
+    bx.fillStyle = 'rgba(20,10,5,0.45)';
+    bx.fillRect(W*0.08, horizon*0.32, W*0.10, 3);
+    bx.fillRect(W*0.08, horizon*0.32+horizon*0.32-3, W*0.10, 3);
+    bx.fillRect(W*0.08, horizon*0.32, 3, horizon*0.32);
+    bx.fillRect(W*0.08+W*0.10-3, horizon*0.32, 3, horizon*0.32);
+    addWallCorners(0.60, 0.60);
+    // Subtiele noise
+    for(let i=0; i<280; i++){
+      const x = Math.random()*W, y = Math.random()*H, r = 1+Math.random()*4;
+      bx.fillStyle = `rgba(${15+Math.random()*8},${8+Math.random()*5},${6+Math.random()*4},${Math.random()*0.06})`;
+      bx.beginPath(); bx.arc(x,y,r,0,Math.PI*2); bx.fill();
+    }
+
+  } else if(id === 'schemer'){
+    // ── Warme kamer tijdens zonsondergang door raam ─────
+    const ceil = bx.createLinearGradient(0, 0, 0, horizon);
+    ceil.addColorStop(0,   '#5A2C18');
+    ceil.addColorStop(0.45,'#3C1E10');
+    ceil.addColorStop(1,   '#26140A');
+    bx.fillStyle = ceil; bx.fillRect(0, 0, W, horizon);
+    const floor = bx.createLinearGradient(0, horizon, 0, H);
+    floor.addColorStop(0,   '#34190E');
+    floor.addColorStop(0.5, '#1E0E08');
+    floor.addColorStop(1,   '#0C0604');
+    bx.fillStyle = floor; bx.fillRect(0, horizon, W, H - horizon);
+    addHorizon(0.45, '50,28,18', 0.45);
+    // Raam rechtsboven met warme zon
+    const wx = W*0.62, wy = H*0.10, ww = W*0.32, wh = H*0.32;
+    const winSky = bx.createLinearGradient(wx, wy, wx, wy + wh);
+    winSky.addColorStop(0,   '#FFC480');
+    winSky.addColorStop(0.5, '#E8853A');
+    winSky.addColorStop(1,   '#A04820');
+    bx.fillStyle = winSky;
+    bx.fillRect(wx, wy, ww, wh);
+    // Helder zonnetje binnen het raam
+    const sunR = bx.createRadialGradient(wx + ww*0.65, wy + wh*0.55, 0, wx + ww*0.65, wy + wh*0.55, ww*0.35);
+    sunR.addColorStop(0,   'rgba(255,240,200,0.85)');
+    sunR.addColorStop(0.5, 'rgba(255,180,90,0.40)');
+    sunR.addColorStop(1,   'rgba(0,0,0,0)');
+    bx.fillStyle = sunR; bx.fillRect(wx, wy, ww, wh);
+    // Raamkozijn
+    bx.fillStyle = 'rgba(20,10,5,0.65)';
+    bx.fillRect(wx-3, wy-3, ww+6, 4);
+    bx.fillRect(wx-3, wy+wh-1, ww+6, 4);
+    bx.fillRect(wx-3, wy-3, 4, wh+6);
+    bx.fillRect(wx+ww-1, wy-3, 4, wh+6);
+    bx.fillRect(wx + ww*0.5 - 1, wy, 2, wh);
+    bx.fillRect(wx, wy + wh*0.5 - 1, ww, 2);
+    // Warme gloed van het raam over de kamer
+    const winGlow = bx.createRadialGradient(wx + ww/2, wy + wh/2, 0, wx + ww/2, wy + wh/2, W*0.85);
+    winGlow.addColorStop(0,   'rgba(255,160,80,0.32)');
+    winGlow.addColorStop(0.4, 'rgba(220,110,50,0.12)');
+    winGlow.addColorStop(1,   'rgba(0,0,0,0)');
+    bx.fillStyle = winGlow; bx.fillRect(0, 0, W, H);
+    // Warme strijklicht op vloer (van raam naar links-onder)
+    const floorWash = bx.createRadialGradient(W*0.55, H*0.85, 0, W*0.55, H*0.85, W*0.55);
+    floorWash.addColorStop(0,   'rgba(200,90,35,0.30)');
+    floorWash.addColorStop(0.6, 'rgba(120,50,20,0.10)');
+    floorWash.addColorStop(1,   'rgba(0,0,0,0)');
+    bx.fillStyle = floorWash; bx.fillRect(0, horizon, W, H-horizon);
+    addWallCorners(0.40, 0.20);
+
+  } else if(id === 'daglicht'){
+    // ── Lichte kamer met groot raam en bomen ervoor ─────
+    const ceil = bx.createLinearGradient(0, 0, 0, horizon);
+    ceil.addColorStop(0,   '#CADCEE');
+    ceil.addColorStop(0.55,'#94AAC4');
+    ceil.addColorStop(1,   '#5E7088');
+    bx.fillStyle = ceil; bx.fillRect(0, 0, W, horizon);
+    const floor = bx.createLinearGradient(0, horizon, 0, H);
+    floor.addColorStop(0, '#506482');
+    floor.addColorStop(0.4,'#3C4C64');
+    floor.addColorStop(1, '#283648');
+    bx.fillStyle = floor; bx.fillRect(0, horizon, W, H - horizon);
+    addHorizon(0.40, '40,55,72', 0.40);
+    // Groot raam centraal-rechts
+    const wx = W*0.55, wy = H*0.08, ww = W*0.38, wh = H*0.38;
+    const winSky = bx.createLinearGradient(wx, wy, wx, wy + wh);
+    winSky.addColorStop(0,   '#E4F0FA');
+    winSky.addColorStop(0.5, '#B4CAE2');
+    winSky.addColorStop(1,   '#86A0BC');
+    bx.fillStyle = winSky;
+    bx.fillRect(wx, wy, ww, wh);
+    // Verre boomtoppen (donkere silhouetten met variabele hoogte)
+    bx.fillStyle = 'rgba(28,38,22,0.62)';
+    for(let i=0;i<8;i++){
+      const tx = wx + (i+0.5) * (ww/8);
+      const tyTop = wy + wh*0.30 + Math.sin(i*1.3) * wh*0.08;
+      const tBase = wy + wh + 8;
+      const tw = ww*0.10 + Math.random()*ww*0.06;
+      bx.beginPath();
+      bx.moveTo(tx-tw, tBase);
+      bx.quadraticCurveTo(tx-tw*0.6, tyTop, tx, tyTop - tw*0.2);
+      bx.quadraticCurveTo(tx+tw*0.6, tyTop, tx+tw, tBase);
+      bx.closePath();
+      bx.fill();
+    }
+    // Bladeren-textuur over de bomen
+    bx.fillStyle = 'rgba(50,68,30,0.42)';
+    for(let i=0;i<60;i++){
+      const tx = wx + Math.random()*ww;
+      const ty = wy + wh*0.30 + Math.random()*wh*0.65;
+      const tr = 4 + Math.random()*10;
+      bx.beginPath();
+      bx.ellipse(tx, ty, tr, tr*(0.5+Math.random()*0.6), Math.random()*Math.PI, 0, Math.PI*2);
+      bx.fill();
+    }
+    // Wat lichtere bladeren-glints (zon door bladeren)
+    bx.fillStyle = 'rgba(180,210,140,0.18)';
+    for(let i=0;i<25;i++){
+      const tx = wx + Math.random()*ww;
+      const ty = wy + wh*0.30 + Math.random()*wh*0.5;
+      const tr = 2 + Math.random()*5;
+      bx.beginPath(); bx.arc(tx, ty, tr, 0, Math.PI*2); bx.fill();
+    }
+    // Raamkozijn
+    bx.fillStyle = 'rgba(20,28,40,0.78)';
+    bx.fillRect(wx-4, wy-4, ww+8, 5);
+    bx.fillRect(wx-4, wy+wh-1, ww+8, 5);
+    bx.fillRect(wx-4, wy-4, 5, wh+8);
+    bx.fillRect(wx+ww-1, wy-4, 5, wh+8);
+    // Verdelers (3-vaks raam)
+    bx.fillRect(wx + ww*0.33 - 1, wy, 2, wh);
+    bx.fillRect(wx + ww*0.66 - 1, wy, 2, wh);
+    bx.fillRect(wx, wy + wh*0.5 - 1, ww, 2);
+    // Dappled bladschaduwen op de vloer (van bomen)
+    bx.globalCompositeOperation = 'destination-out';
+    for(let i=0;i<55;i++){
+      const x = Math.random()*W;
+      const y = horizon + Math.random()*(H-horizon);
+      const r = 8 + Math.random()*24;
+      const grad = bx.createRadialGradient(x,y,0,x,y,r);
+      grad.addColorStop(0, `rgba(0,0,0,${0.22+Math.random()*0.18})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      bx.fillStyle = grad;
+      bx.beginPath();
+      bx.ellipse(x, y, r, r*(0.4+Math.random()*0.5), Math.random()*Math.PI, 0, Math.PI*2);
+      bx.fill();
+    }
+    bx.globalCompositeOperation = 'source-over';
+    // Heldere raam-wash op de hele kamer
+    const winGlow = bx.createRadialGradient(wx + ww/2, wy + wh/2, 0, wx + ww/2, wy + wh/2, W*0.8);
+    winGlow.addColorStop(0,   'rgba(255,255,255,0.16)');
+    winGlow.addColorStop(0.4, 'rgba(220,235,250,0.07)');
+    winGlow.addColorStop(1,   'rgba(0,0,0,0)');
+    bx.fillStyle = winGlow; bx.fillRect(0, 0, W, H);
+    addWallCorners(0.35, 0.10);
+  }
+  // Studio wordt afgevangen in applySfeerEnv (origineel hergebruikt)
+
+  const tex = new THREE.CanvasTexture(cv);
+  if(THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+  SFEER_BG_TEX_CACHE[id] = tex;
+  return tex;
+}
+
+function buildSfeerPMREM(id){
+  if(SFEER_PMREM_CACHE[id]) return SFEER_PMREM_CACHE[id];
+  if(!_sfeerPmrem){
+    _sfeerPmrem = new THREE.PMREMGenerator(R);
+    _sfeerPmrem.compileCubemapShader();
+  }
+
+  // Lichtarrangementen per sfeer — bepalen reflecties en omgevingsbelichting
+  const ENV_CFG = {
+    avond: {
+      bg: 0x080406,
+      lights: [
+        {pos:[0, 1, 0],   col: 0xFFAA50, int: 1.8},  // central warm gloed (lamp dominant)
+        {pos:[0, -3, 2],  col: 0xFF7020, int: 0.9},  // warme vloer bounce
+        {pos:[3, 2, -2],  col: 0x100806, int: 0.4},  // donkere schaduwzijde
+      ]
+    },
+    schemer: {
+      bg: 0x1A0E08,
+      lights: [
+        {pos:[10, 4, 5],  col: 0xFF9050, int: 3.5},  // warme zon ondergaand
+        {pos:[-4, 1, -3], col: 0x402418, int: 0.6},  // koele schaduw fill
+        {pos:[0, 10, 0],  col: 0xCC6020, int: 1.4},  // warme hemel
+        {pos:[0, -3, 0],  col: 0x2A1A08, int: 0.5},  // vloer bounce
+      ]
+    },
+    studio: {
+      bg: 0x0E1116,
+      lights: [
+        {pos:[10, 12, 5], col: 0xFFE8A0, int: 5.0},  // warme key
+        {pos:[-7, 4, -5], col: 0x607888, int: 1.8},  // koele fill
+        {pos:[0, 18, 0],  col: 0xA8B0B8, int: 1.0},  // hemellicht
+        {pos:[0, -5, 0],  col: 0x2A1A08, int: 0.5},  // vloer bounce
+        {pos:[-1, 3, 9],  col: 0xC8884A, int: 0.6},  // amber rim
+      ]
+    },
+    daglicht: {
+      bg: 0x546478,
+      lights: [
+        {pos:[8, 15, 4],  col: 0xFFFAF0, int: 6.5},  // heldere zon door raam
+        {pos:[-5, 3, 8],  col: 0x7A8AA0, int: 3.2},  // koele sky fill
+        {pos:[0, 20, 0],  col: 0xB0C8E0, int: 3.8},  // blauwe hemel boven
+        {pos:[0, -5, 0],  col: 0x42505E, int: 0.9},  // koele vloer bounce
+        {pos:[-2, 0, 5],  col: 0xFFC880, int: 0.5},  // subtiele warme indoor rim
+      ]
+    },
+  };
+
+  const c = ENV_CFG[id]; if(!c) return null;
+
+  const envSC = new THREE.Scene();
+  envSC.add(new THREE.Mesh(
+    new THREE.SphereGeometry(50, 32, 16),
+    new THREE.MeshBasicMaterial({ side: THREE.BackSide, color: c.bg })
+  ));
+  c.lights.forEach(l => {
+    const pl = new THREE.PointLight(l.col, l.int, 100);
+    pl.position.set(...l.pos);
+    envSC.add(pl);
+  });
+
+  const result = _sfeerPmrem.fromScene(envSC, 0.04);
+  SFEER_PMREM_CACHE[id] = result.texture;
+  return result.texture;
+}
+
+function applySfeerEnv(id){
+  // Studio = de oorspronkelijke (rijkere) procedurele textures hergebruiken
+  if(id === 'studio'){
+    if(window._bgSphere && window._originalBgTex){
+      window._bgSphere.material.map = window._originalBgTex;
+      window._bgSphere.material.needsUpdate = true;
+    }
+    if(window._originalEnvTex){
+      SC.environment = window._originalEnvTex;
+    }
+    return;
+  }
+  // Andere sferen: bgSphere texture switchen
+  if(window._bgSphere){
+    const tex = buildSfeerBgTexture(id);
+    if(tex){
+      window._bgSphere.material.map = tex;
+      window._bgSphere.material.needsUpdate = true;
+    }
+  }
+  // PMREM environment switchen — bepaalt reflecties en ambient op materialen
+  const env = buildSfeerPMREM(id);
+  if(env){
+    SC.environment = env;
+  }
+}
+
+// ── Collapsible Onderdelen sectie (legacy, niet meer gebruikt) ──
+function toggleParts(){
+  const sec = document.getElementById('parts-section');
+  if(sec) sec.classList.toggle('collapsed');
+}
+
+// ── Onderdelen pill + dropdown op canvas ──
+function togglePartsDropdown(){
+  const dd = document.getElementById('partsDropdown');
+  const btn = document.getElementById('partsPillBtn');
+  if(!dd || !btn) return;
+  const isOpen = dd.classList.toggle('on');
+  btn.classList.toggle('on', isOpen);
+}
+function closePartsDropdown(){
+  const dd = document.getElementById('partsDropdown');
+  const btn = document.getElementById('partsPillBtn');
+  if(dd) dd.classList.remove('on');
+  if(btn) btn.classList.remove('on');
+}
+// Klik buiten de dropdown sluit hem
+document.addEventListener('click', (ev)=>{
+  const dd = document.getElementById('partsDropdown');
+  const btn = document.getElementById('partsPillBtn');
+  if(!dd || !btn || !dd.classList.contains('on')) return;
+  if(dd.contains(ev.target) || btn.contains(ev.target)) return;
+  closePartsDropdown();
+});
+
+// ── Chip klik opent waaier ──
+function openFanFromChip(){
+  if(selP) openFan();
+}
+
+// ── Handleiding PNG iconen per onderdeel (amber/cream tinted diagrammen) ──
+// Bestanden onder fotos/handleiding/ op rhombi.nl, klaar gemaakt voor de handleiding
+const PART_IMG = {
+  kap:        'fotos/handleiding/part_01_kap.png',
+  vleugel:    'fotos/handleiding/part_02_vleugel_L.png',
+  vleugel_l:  'fotos/handleiding/part_02_vleugel_L.png',
+  vleugel_r:  'fotos/handleiding/part_03_vleugel_R.png',
+  kern:       'fotos/handleiding/part_04_kern.png',
+  ring:       'fotos/handleiding/part_05_ring.png',
+  kader_l:    'fotos/handleiding/part_06_kader_L.png',
+  kader_r:    'fotos/handleiding/part_07_kader_R.png',
+  kader:      'fotos/handleiding/part_08_kader.png',
+  kader_a:    'fotos/handleiding/part_08_kader.png',
+};
+const PART_ICONS = {
+  kap:        '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M3 5 L13 5 L11 11 L5 11 Z"/></svg>',
+  voet:       '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12.5 L3 13.5 L13 13.5 L13 12.5"/><line x1="6" y1="13.5" x2="6" y2="4"/><line x1="10" y1="13.5" x2="10" y2="4"/></svg>',
+  fitting:    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><rect x="6" y="3.5" width="4" height="2.5"/><path d="M5 6 L5 11 L11 11 L11 6 Z"/><line x1="5.5" y1="8" x2="10.5" y2="8"/></svg>',
+  kader:      '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="3.5" width="9" height="9"/></svg>',
+  kader_l:    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="3.5" width="9" height="9"/><line x1="3.5" y1="3.5" x2="3.5" y2="12.5" stroke-width="3"/></svg>',
+  kader_r:    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="3.5" width="9" height="9"/><line x1="12.5" y1="3.5" x2="12.5" y2="12.5" stroke-width="3"/></svg>',
+  kader_a:    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="3.5" width="9" height="9"/><line x1="3.5" y1="3.5" x2="12.5" y2="3.5" stroke-width="3"/></svg>',
+  vleugel:    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M3 4 L13 8 L3 12 Z"/></svg>',
+  vleugel_l:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M13 4 L3 8 L13 12 Z"/></svg>',
+  vleugel_r:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M3 4 L13 8 L3 12 Z"/></svg>',
+  kern:       '<svg viewBox="0 0 16 16" fill="currentColor" stroke="currentColor" stroke-width="1"><rect x="5" y="5" width="6" height="6"/></svg>',
+  ring:       '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="4.5"/></svg>',
+  peer:       '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"><path d="M8 2.5 C5 2.5 4 4.3 4 6.3 C4 8 5.5 9 6 10 L6 12.5 L10 12.5 L10 10 C10.5 9 12 8 12 6.3 C12 4.3 11 2.5 8 2.5 Z"/><line x1="6.5" y1="13.5" x2="9.5" y2="13.5"/></svg>',
+  __lampPos:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="8" cy="8" r="5" stroke-dasharray="2 2"/></svg>',
+};
+function getPartIcon(id){
+  // 1. Handleiding PNG (amber/cream getinte CAD diagrammen)
+  if(PART_IMG[id]){
+    return `<img src="${PART_IMG[id]}" alt="${id}" draggable="false" loading="lazy">`;
+  }
+  // 2. SVG icoon fallback (voor fitting, voet, peer, etc)
+  return PART_ICONS[id] || '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="2"/></svg>';
+}
+
+// ── Topbar bij selectie ──
+function updateSelectionChip(){
+  const tb = document.getElementById('topbarSel');
+  if(!tb) return;
+  if(selP && selParts.size > 0){
+    tb.classList.add('on');
+    const tbsIcon = document.getElementById('tbsPartIcon');
+    if(tbsIcon) tbsIcon.innerHTML = getPartIcon(selP);
+    // Materiaal trigger label
+    const matId = partMat[selP] || 'pla-basic';
+    const matPreset = MAT_PRESETS.find(p=>p.id===matId);
+    const tbsMatName = document.getElementById('tbsMatName');
+    if(tbsMatName) tbsMatName.textContent = matPreset ? matPreset.nm : matId;
+    updateTopbarColorTrigger();
+    updateTopbarVisBtn();
+  } else {
+    tb.classList.remove('on');
+    closeColorFan();
+  }
+}
+
+function togglePartVisFromTopbar(e){
+  if(!selP) return;
+  togglePartVis(selP, e);
+}
+
+// ── Kleur trigger: huidige swatch + naam ──
+function updateTopbarColorTrigger(){
+  const swatch = document.getElementById('tbsColorTriggerSwatch');
+  const nameEl = document.getElementById('tbsColorTriggerName');
+  if(!swatch || !nameEl || !selP) return;
+  const matId = partMat[selP] || 'pla-basic';
+  const curMat = getOrCreateMat(selP);
+  const curHex = curMat ? ('#' + curMat.color.getHexString().toLowerCase()) : '';
+  swatch.style.background = curHex || '#888';
+  const colors = BAMBU_COLORS[matId] || [];
+  const found = colors.find(c => c.h.toLowerCase() === curHex);
+  nameEl.textContent = found ? found.n : 'Kleur';
+}
+
+// ── Generieke radiale waaier ──────────────────────────
+let _colorFanOpen = false;
+let _fanType = null;
+
+function _openRadialFan(type, anchorEl, items, onPick){
+  const fan = document.getElementById('colorFan');
+  if(!fan || !anchorEl) return;
+  const N = items.length;
+  if(N === 0) return;
+  // Adaptieve radius
+  let radius;
+  if(N <= 4)       radius = 95;
+  else if(N <= 8)  radius = 125;
+  else if(N <= 14) radius = 155;
+  else             radius = 185;
+  // Centrum onder anker, geklemd binnen viewport
+  const rect = anchorEl.getBoundingClientRect();
+  const cardW = 65;
+  let cx = rect.left + rect.width/2;
+  cx = Math.max(radius + cardW, Math.min(cx, window.innerWidth - radius - cardW));
+  let cy = rect.bottom + 28;
+  cy = Math.min(cy, window.innerHeight - radius - cardW - 20);
+  const cards = document.getElementById('colorFanCards');
+  const closeBtn = document.getElementById('colorFanClose');
+  if(cards){ cards.style.left = cx + 'px'; cards.style.top = cy + 'px'; }
+  if(closeBtn){ closeBtn.style.left = (cx - 18) + 'px'; closeBtn.style.top = (cy - 18) + 'px'; }
+  // Boog: max 180° (halve cirkel, altijd naar beneden)
+  let totalArc;
+  if(N <= 4)       totalArc = 90;
+  else if(N <= 8)  totalArc = 130;
+  else if(N <= 14) totalArc = 165;
+  else             totalArc = 180;
+  const startAngle = 90 - totalArc/2;
+  // Bouw cards
+  cards.innerHTML = '';
+  items.forEach((item, i)=>{
+    const t = N > 1 ? (i / (N - 1)) : 0.5;
+    const angle = startAngle + totalArc * t;
+    const rad = angle * Math.PI / 180;
+    const x = Math.cos(rad) * radius;
+    const y = Math.sin(rad) * radius;
+    const card = document.createElement('div');
+    card.className = 'color-fan-card' + (item.active ? ' on' : '');
+    card.title = item.label;
+    const swatchHtml = item.icon
+      ? `<div class="color-fan-card-swatch icon-swatch">${item.icon}</div>`
+      : `<div class="color-fan-card-swatch" style="background:${item.swatch || '#888'}"></div>`;
+    card.innerHTML = `${swatchHtml}<div class="color-fan-card-name">${item.label}</div>`;
+    // Start: in centrum, klein, geroteerd voor "uitvouwen" effect
+    card.style.transform = 'translate(0,0) scale(.3) rotate(-180deg)';
+    card.style.opacity = '0';
+    setTimeout(()=>{
+      card.style.transform = `translate(${x}px, ${y}px) scale(1) rotate(0deg)`;
+      card.style.opacity = '1';
+    }, i * 28 + 25);
+    card.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      onPick(item);
+    });
+    cards.appendChild(card);
+  });
+  fan.classList.add('on');
+  _colorFanOpen = true;
+  _fanType = type;
+}
+
+function closeColorFan(){
+  const fan = document.getElementById('colorFan');
+  if(fan) fan.classList.remove('on');
+  _colorFanOpen = false;
+  _fanType = null;
+}
+
+// ── Specifieke openers ────────────────────────────────
+function openColorFan(){
+  if(!selP) return;
+  const matId = partMat[selP] || 'pla-basic';
+  const colors = BAMBU_COLORS[matId] || [];
+  const curMat = getOrCreateMat(selP);
+  const curHex = curMat ? ('#' + curMat.color.getHexString().toLowerCase()) : '';
+  const items = colors.map(c=>({
+    id: c.h,
+    label: c.n,
+    swatch: c.h,
+    active: c.h.toLowerCase() === curHex
+  }));
+  const trigger = document.getElementById('tbsColorTrigger');
+  _openRadialFan('color', trigger, items, (item)=>{
+    applyColor(item.id);
+    updateTopbarColorTrigger();
+    closeColorFan();
+  });
+}
+
+function openMatFan(){
+  if(!selP) return;
+  const curMatId = partMat[selP] || 'pla-basic';
+  const MAT_PREVIEW = {
+    'pla-basic':       'linear-gradient(135deg,#FAF4E8 0%,#EDE4D0 55%,#BFB69E 100%)',
+    'pla-mat':         'linear-gradient(135deg,#F0EAD8 0%,#E0D6C0 55%,#A89E88 100%)',
+    'pla-cf':          'linear-gradient(135deg,#2A2A2C 0%,#1A1A1C 55%,#0E0E10 100%)',
+    'pla-nebula':      'radial-gradient(circle at 30% 30%,#FFE89A 0%,#C8884A 35%,#3A2818 100%)',
+    'pla-translucent': 'linear-gradient(135deg,rgba(255,255,255,.75) 0%,#EDE4D0 55%,#A89870 100%)',
+  };
+  const items = MAT_PRESETS.map(p=>({
+    id: p.id,
+    label: p.nm,
+    swatch: MAT_PREVIEW[p.id] || '#2A2A2C',
+    active: p.id === curMatId
+  }));
+  const trigger = document.getElementById('tbsMatTrigger');
+  _openRadialFan('mat', trigger, items, (item)=>{
+    const scope = (window._colorScope === 'all') ? 'all' : 'selected';
+    applyMatPreset(item.id, scope);
+    updateSelectionChip();
+    closeColorFan();
+  });
+}
+
+function openPartFan(){
+  // Verzamel beschikbare onderdelen + groepen uit het geladen GLB
+  const items = [];
+  const available = activeGLBGroups ? Object.keys(activeGLBGroups) : [];
+  PART_GROUPS.forEach(grp => {
+    const hasGroup   = available.includes(grp.id);
+    const hasMembers = grp.members ? grp.members.some(m => available.includes(m)) : false;
+    if(!hasGroup && !hasMembers) return;
+    if(grp.id === '__lampPos') return; // verbergen want geen tastbaar onderdeel
+    items.push({
+      id: grp.id,
+      label: grp.nm,
+      icon: getPartIcon(grp.id),
+      active: selP === grp.id
+    });
+  });
+  if(items.length === 0) return;
+  const trigger = document.getElementById('tbsPartTrigger');
+  _openRadialFan('part', trigger, items, (item)=>{
+    selPart(item.id);
+    closeColorFan();
+  });
+}
+
+// ESC sluit de waaier
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && _colorFanOpen) closeColorFan();
+});
+
+// ── Scope toggle: dit deel vs alles (gebruikt voor kleur én materiaal) ──
+function setMatColorScope(scope){
+  window._colorScope = (scope === 'all') ? 'all' : 'sel';
+  document.querySelectorAll('.scope-toggle button').forEach(b=>b.classList.remove('on'));
+  const btn = document.getElementById('scopeBtn-' + (scope === 'all' ? 'all' : 'sel'));
+  if(btn) btn.classList.add('on');
+  document.querySelectorAll('#scopeSel,#scopeAll').forEach(b=>b.classList.remove('on'));
+  const lb = document.getElementById(scope === 'all' ? 'scopeAll' : 'scopeSel');
+  if(lb) lb.classList.add('on');
+}
+function clearSelection(){
+  selParts = new Set();
+  selP = null;
+  document.querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
+  updateSelectionOutline();
+  buildColorGrid();
+  buildMatList();
+  updateSelectionChip();
+  updateAfwerkingVisibility();
+}
+
+// ── Afwerking contextuele zichtbaarheid ──
+function updateAfwerkingVisibility(){
+  const empty = document.getElementById('afwerking-empty');
+  const active = document.getElementById('afwerking-active');
+  const label = document.getElementById('afwerking-label');
+  if(!empty || !active) return;
+  if(selP && selParts.size > 0){
+    empty.style.display = 'none';
+    active.style.display = '';
+    const info = partInfo(selP);
+    const nm = info && info.nm ? info.nm : selP;
+    if(label) label.innerHTML = '◆ Afwerking voor <span style="color:var(--cream)">' + nm + (selParts.size > 1 ? ` +${selParts.size-1}` : '') + '</span>';
+    // Trigger label
+    const matId = partMat[selP] || 'pla-basic';
+    const preset = MAT_PRESETS.find(p=>p.id===matId);
+    const tl = document.getElementById('matTriggerLabel');
+    if(tl) tl.textContent = preset ? preset.nm : matId;
+  } else {
+    empty.style.display = '';
+    active.style.display = 'none';
+    if(label) label.textContent = '◆ Afwerking';
+  }
+}
+
+// ── Materiaal & kleur WAAIER ──
+// Cards fan uit een virtueel pivot punt onder het scherm.
+// Bovenste deel = materiaal preview + naam (klik = alleen materiaal toepassen).
+// Onderste deel = kleurpunten voor dit materiaal (klik = materiaal + kleur).
+function openFan(){
+  if(!selP) return;
+  buildFan();
+  const info = partInfo(selP);
+  const nm = info && info.nm ? info.nm : selP;
+  const partLabel = document.getElementById('fanPartName');
+  if(partLabel) partLabel.textContent = nm + (selParts.size > 1 ? ` +${selParts.size-1}` : '');
+  document.getElementById('matFan').classList.add('on');
+}
+function closeFan(){
+  document.getElementById('matFan').classList.remove('on');
+}
+function buildFan(){
+  const wrap = document.getElementById('fanCards');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const curId = partMat[selP] || 'pla-basic';
+
+  // Mini-preview gradients per materiaal
+  const MAT_PREVIEW = {
+    'pla-basic':       'linear-gradient(135deg,#FAF4E8 0%,#EDE4D0 55%,#BFB69E 100%)',
+    'pla-mat':         'linear-gradient(135deg,#F0EAD8 0%,#E0D6C0 55%,#A89E88 100%)',
+    'pla-cf':          'linear-gradient(135deg,#2A2A2C 0%,#1A1A1C 55%,#0E0E10 100%)',
+    'pla-nebula':      'radial-gradient(circle at 30% 30%,#FFE89A 0%,#C8884A 35%,#3A2818 100%)',
+    'pla-translucent': 'linear-gradient(135deg,rgba(255,255,255,.75) 0%,#EDE4D0 55%,#A89870 100%)',
+  };
+
+  MAT_PRESETS.forEach((p, i)=>{
+    const isActive = p.id === curId;
+    const card = document.createElement('div');
+    card.className = 'fan-card' + (isActive ? ' on' : '');
+    card.setAttribute('data-i', i);
+    card.innerHTML = `
+      <div class="fan-card-prev" style="background:${MAT_PREVIEW[p.id] || '#2A2A2C'}"></div>
+      <div class="fan-card-info">
+        <div class="fan-card-nm">${p.nm}</div>
+        <div class="fan-card-desc">${p.desc}</div>
+      </div>
+    `;
+    card.onclick = ()=>{ applyMatFromFan(p.id); };
+    wrap.appendChild(card);
+  });
+}
+function applyMatFromFan(matId, colorHex){
+  if(!selP) return;
+  // Respecteer de scope toggle voor materiaal toepassen
+  const scope = (window._colorScope === 'all') ? 'all' : 'selected';
+  applyMatPreset(matId, scope);
+  if(colorHex){
+    applyColor(colorHex); // gebruikt al window._colorScope
+  }
+  updateSelectionChip(); // ververst topbar met nieuwe materiaal + bijbehorende kleuren
+  closeFan();
+}
+
+// Klik op de achtergrond (niet op een card of close) sluit de waaier
+document.addEventListener('click', (ev)=>{
+  const fan = document.getElementById('matFan');
+  if(!fan || !fan.classList.contains('on')) return;
+  const onCard = ev.target.closest('.fan-card');
+  const onClose = ev.target.closest('.fan-close');
+  const onHint = ev.target.closest('.fan-hint');
+  if(!onCard && !onClose && !onHint && (ev.target === fan || ev.target.closest('.fan'))){
+    closeFan();
+  }
+});
+
+// Sluit waaier met Escape
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape'){
+    const f = document.getElementById('matFan');
+    if(f && f.classList.contains('on')) closeFan();
+  }
+});
+
+
 function takeScreenshot() {
   _outlineMeshes.forEach(m => { m.visible = false; });
 
@@ -2689,6 +4002,130 @@ function toggleSSAO(){
   document.getElementById("bAO").classList.toggle("on",ssaoOn);
 }
 
+// ── Zachte ronding: vertices welden + normals smoothen op alle GLB meshes ──
+let smoothShadingOn = true;
+function toggleSmoothShading(){
+  smoothShadingOn = !smoothShadingOn;
+  const btn = document.getElementById("bSm");
+  if(btn){
+    btn.classList.toggle("on", smoothShadingOn);
+    const ic = btn.querySelector("span:last-child");
+    if(ic) ic.textContent = smoothShadingOn ? '●' : '◯';
+  }
+  applySmoothShading(smoothShadingOn);
+}
+
+// Custom: middel normals van vertices op dezelfde positie MAAR alleen als hun
+// normals binnen een hoek-tolerantie liggen. Daardoor blijven scherpe randen
+// (>35° tussen face-normals) bewaard, terwijl gladde oppervlakken smooth worden.
+function _smoothNormalsByPosition(geometry, tolerance, angleDeg){
+  tolerance = tolerance || 1e-4;
+  const cosThresh = Math.cos(((angleDeg || 35) * Math.PI) / 180);
+  const pos = geometry.attributes.position;
+  if(!pos) return geometry;
+  let nrm = geometry.attributes.normal;
+  if(!nrm){
+    geometry.computeVertexNormals();
+    nrm = geometry.attributes.normal;
+  }
+  const count = pos.count;
+  // Group vertex indices per gequantiseerde positie
+  const groups = new Map();
+  for(let i = 0; i < count; i++){
+    const x = Math.round(pos.getX(i) / tolerance);
+    const y = Math.round(pos.getY(i) / tolerance);
+    const z = Math.round(pos.getZ(i) / tolerance);
+    const key = x + ',' + y + ',' + z;
+    let arr = groups.get(key);
+    if(!arr){ arr = []; groups.set(key, arr); }
+    arr.push(i);
+  }
+  // Per positie-groep: cluster vertices wiens normals binnen hoek-tolerantie liggen
+  const out = new Float32Array(count * 3);
+  groups.forEach(idxs=>{
+    if(idxs.length === 1){
+      const idx = idxs[0];
+      out[idx*3]   = nrm.getX(idx);
+      out[idx*3+1] = nrm.getY(idx);
+      out[idx*3+2] = nrm.getZ(idx);
+      return;
+    }
+    // Bouw clusters op basis van dot-product (hoek tussen normals)
+    const clusters = [];
+    for(const idx of idxs){
+      const nx = nrm.getX(idx), ny = nrm.getY(idx), nz = nrm.getZ(idx);
+      let foundCl = null;
+      for(const cl of clusters){
+        const dot = nx*cl.nx + ny*cl.ny + nz*cl.nz;
+        if(dot >= cosThresh){ foundCl = cl; break; }
+      }
+      if(foundCl){
+        foundCl.idxs.push(idx);
+        // Running average + renormalize
+        const n = foundCl.idxs.length;
+        foundCl.nx = (foundCl.nx * (n-1) + nx) / n;
+        foundCl.ny = (foundCl.ny * (n-1) + ny) / n;
+        foundCl.nz = (foundCl.nz * (n-1) + nz) / n;
+        const len = Math.sqrt(foundCl.nx*foundCl.nx + foundCl.ny*foundCl.ny + foundCl.nz*foundCl.nz);
+        if(len > 1e-6){ foundCl.nx /= len; foundCl.ny /= len; foundCl.nz /= len; }
+      } else {
+        clusters.push({ idxs: [idx], nx, ny, nz });
+      }
+    }
+    // Schrijf cluster-normal naar al z'n leden
+    for(const cl of clusters){
+      for(const idx of cl.idxs){
+        out[idx*3]   = cl.nx;
+        out[idx*3+1] = cl.ny;
+        out[idx*3+2] = cl.nz;
+      }
+    }
+  });
+  const newGeo = geometry.clone();
+  newGeo.setAttribute('normal', new THREE.BufferAttribute(out, 3));
+  return newGeo;
+}
+
+function applySmoothShading(enabled){
+  if(!activeGLBGroups) return;
+  Object.values(activeGLBGroups).forEach(grp=>{
+    if(!grp || !grp.traverse) return;
+    grp.traverse(o=>{
+      if(!o.isMesh || !o.geometry || o.userData.isOutline) return;
+      if(enabled){
+        // Backup origineel eenmalig
+        if(!o.userData._origGeo){
+          o.userData._origGeo = o.geometry;
+        }
+        // Custom smoothing als nog niet berekend
+        if(!o.userData._smoothGeo){
+          try {
+            // tolerance 1e-4, hoek-drempel 35° (scherpe randen >35° blijven hard)
+            o.userData._smoothGeo = _smoothNormalsByPosition(o.userData._origGeo, 1e-4, 35);
+          } catch(e){
+            console.warn('[smooth] mislukt', e);
+            return;
+          }
+        }
+        o.geometry = o.userData._smoothGeo;
+      } else {
+        if(o.userData._origGeo){
+          o.geometry = o.userData._origGeo;
+        }
+      }
+      if(o.material){
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach(mat=>{
+          if(mat){
+            mat.flatShading = false;
+            mat.needsUpdate = true;
+          }
+        });
+      }
+    });
+  });
+}
+
 function toggleExplode(){
   exT = exT===0 ? 1 : 0;
   document.getElementById("bEx").classList.toggle("on", exT===1);
@@ -2748,11 +4185,42 @@ function setPeerColor(hex){
   const dot = document.getElementById('dot-peer');
   if(dot) dot.style.background = hex;
 
-  // Highlight actieve knop
+  // Highlight actieve knop (legacy, oude knoppen bestaan niet meer)
   document.querySelectorAll('#ktemp-btns .cb').forEach(b => {
     b.classList.toggle('on', b.title === _kTempLabel(hex));
   });
+
+  // Kelvin slider thumb + label syncen — schat kelvin terug uit hex via nearest stop
+  if(typeof KELVIN_STOPS !== 'undefined'){
+    let bestK = 3000, bestD = Infinity;
+    KELVIN_STOPS.forEach(s=>{
+      const c = new THREE.Color(s.hex);
+      const d = Math.abs(c.r-col.r) + Math.abs(c.g-col.g) + Math.abs(c.b-col.b);
+      if(d < bestD){ bestD = d; bestK = s.k; }
+    });
+    // Fine interpolation: scan tussen aanliggende stops
+    for(let i=0;i<KELVIN_STOPS.length-1;i++){
+      const a = KELVIN_STOPS[i], b = KELVIN_STOPS[i+1];
+      if(bestK === a.k || bestK === b.k){
+        // Probeer fine match
+        for(let t=0;t<=1;t+=0.05){
+          const ca = new THREE.Color(a.hex), cb = new THREE.Color(b.hex);
+          const mix = ca.clone().lerp(cb, t);
+          const d = Math.abs(mix.r-col.r) + Math.abs(mix.g-col.g) + Math.abs(mix.b-col.b);
+          if(d < bestD){ bestD = d; bestK = a.k + (b.k-a.k)*t; }
+        }
+        break;
+      }
+    }
+    const thumb = document.getElementById('kelvinThumb');
+    if(thumb) thumb.style.left = kelvinToPct(bestK) + '%';
+    const lbl = document.getElementById('kelvinVal');
+    if(lbl) lbl.textContent = Math.round(bestK) + 'K';
+  }
+
   buildColorGrid();
+  // Clear sfeer als deze call niet uit applySfeer komt
+  if(typeof clearSfeerActive === 'function') clearSfeerActive();
 }
 
 function _kTempLabel(hex){
@@ -2766,6 +4234,11 @@ function setPeerIntensity(v){
   peerIntensity = Math.max(0, Math.min(1, v));
   const el = document.getElementById('peerIntVal');
   if(el) el.textContent = Math.round(peerIntensity*100) + '%';
+  // Slider value sync (voor als deze call van een sfeer komt en niet van de UI)
+  const sl = document.getElementById('peerIntSlider');
+  if(sl && Math.abs(parseInt(sl.value) - Math.round(peerIntensity*100)) > 0){
+    sl.value = Math.round(peerIntensity*100);
+  }
 
   const mat = MGLB['peer'];
   if(mat && lampOn){
@@ -2779,12 +4252,15 @@ function setPeerIntensity(v){
   kapGlow.intensity    = lampOn ? peerIntensity * 1.2 : 0;
   kapGlow.distance     = 2.0;
   updateKapGlow();
+  // Clear sfeer als deze call niet uit applySfeer komt
+  if(typeof clearSfeerActive === 'function') clearSfeerActive();
 }
 
 // setLamp bijwerken zodat ook de inline kleurtemperatuur-knop mee update
 const _setLampOrig = setLamp;
 // Kap: opacity daalt bij lamp aan zodat binnenpatroon zichtbaar wordt
 // emissive geeft de warme SSS gloed
+// transmission schaalt mee met lamp intensiteit (Physical material)
 function updateKapGlow() {
   const kapMat = MGLB['kap'];
   if(!kapMat) return;
@@ -2801,6 +4277,19 @@ function updateKapGlow() {
   } else {
     kapMat.opacity = 1.0;
     kapMat.transparent = false;
+  }
+
+  // Transmission groeit met lamp intensiteit zodat de peer écht doorschijnt bij aan
+  // Lamp uit = bijna geen transmission, lamp aan = volle preset waarde
+  if(kapMat.isMeshPhysicalMaterial){
+    const tmBase = kp.transmission * 0.15;       // basis bij lamp uit (zeer subtiel)
+    const tmFull = kp.transmission;              // max bij lamp vol aan
+    kapMat.transmission = tmBase + (tmFull - tmBase) * t;
+    kapMat.thickness = kp.thickness;
+    kapMat.ior = 1.46;
+    // Warme tint die het licht oppikt als 't door PLA reist
+    if(kapMat.attenuationColor) kapMat.attenuationColor.set('#FFB060');
+    kapMat.attenuationDistance = 2.0;
   }
 
   // Emissive = warme kap-tint gemengd met de werkelijke kapkleur
@@ -2877,6 +4366,8 @@ cvs.addEventListener("click", e => {
     updateSelectionOutline();
     buildColorGrid();
     buildMatList();
+    if(typeof updateSelectionChip === 'function') updateSelectionChip();
+    if(typeof updateAfwerkingVisibility === 'function') updateAfwerkingVisibility();
   }
 });
 
@@ -3277,22 +4768,32 @@ async function startAR(){
   arOverlay=document.createElement('div');
   arOverlay.style.cssText='position:fixed;inset:0;z-index:9000;pointer-events:none';
   arOverlay.innerHTML=`
+    <style>
+      @keyframes arPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.85}50%{transform:translate(-50%,-50%) scale(1.4);opacity:.25}}
+      @keyframes arRing{0%{transform:translate(-50%,-50%) scale(.6);opacity:.9}100%{transform:translate(-50%,-50%) scale(1.6);opacity:0}}
+      .ar-scanner{position:absolute;top:50%;left:50%;width:60px;height:60px;pointer-events:none}
+      .ar-scanner::before{content:"";position:absolute;top:50%;left:50%;width:60px;height:60px;border:2px solid rgba(200,136,74,.85);border-radius:50%;animation:arRing 1.8s cubic-bezier(.2,.6,.4,1) infinite}
+      .ar-scanner::after{content:"";position:absolute;top:50%;left:50%;width:60px;height:60px;border:2px solid rgba(200,136,74,.85);border-radius:50%;animation:arRing 1.8s cubic-bezier(.2,.6,.4,1) infinite;animation-delay:.9s}
+      .ar-scanner-dot{position:absolute;top:50%;left:50%;width:12px;height:12px;background:rgba(200,136,74,.9);border-radius:50%;animation:arPulse 1.2s ease-in-out infinite}
+    </style>
     <div id="arHint" style="position:absolute;top:24px;left:50%;transform:translateX(-50%);
       font-family:Space Mono,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
       color:#fff;text-shadow:0 2px 8px #000;padding:6px 14px;background:rgba(0,0,0,.5);
-      white-space:nowrap;pointer-events:none">Richt op een vlak</div>
+      white-space:nowrap;pointer-events:none;max-width:90vw;overflow:hidden;text-overflow:ellipsis">Beweeg telefoon langzaam rond een vlak</div>
+    <div id="arScanner" class="ar-scanner"><div class="ar-scanner-dot"></div></div>
     <div style="position:absolute;bottom:0;left:0;right:0;
       padding:12px 16px calc(12px + env(safe-area-inset-bottom));
       background:rgba(12,14,18,.92);backdrop-filter:blur(10px);
       border-top:1px solid rgba(255,255,255,.08);
-      display:flex;align-items:center;gap:8px;pointer-events:all">
+      display:flex;align-items:center;gap:8px;pointer-events:all;flex-wrap:wrap">
       <!-- Links: sluiten + opnieuw -->
       <div style="display:flex;gap:6px;flex-shrink:0">
         <button id="arClose" style="height:48px;padding:0 14px;background:none;border:1px solid rgba(255,255,255,.2);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase">✕</button>
         <button id="arReset" style="display:none;height:48px;padding:0 14px;background:none;border:1px solid rgba(200,136,74,.4);color:#C8884A;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase">↺</button>
       </div>
-      <!-- Midden: plaatsen knop -->
-      <button id="arPlace" style="display:none;flex:1;height:48px;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase">Hier plaatsen</button>
+      <!-- Midden: plaatsen knoppen -->
+      <button id="arPlace" style="display:none;flex:1;min-width:120px;height:48px;background:rgba(200,136,74,.95);border:none;color:#0C0E12;font-family:Space Mono,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase">Hier plaatsen</button>
+      <button id="arPlaceManual" style="display:none;flex:1;min-width:120px;height:48px;background:rgba(200,136,74,.18);border:1px solid rgba(200,136,74,.6);color:#EDE4D0;font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase">Plaats voor je</button>
       <!-- Draai knoppen -->
       <div id="arControls" style="display:none;gap:8px;align-items:center;flex-shrink:0">
         <button id="arL" style="width:52px;height:52px;background:rgba(200,136,74,.12);border:1px solid rgba(200,136,74,.5);color:#EDE4D0;font-size:22px;border-radius:3px;touch-action:none">↺</button>
@@ -3304,15 +4805,45 @@ async function startAR(){
   // Basis knoppen (onclick werkt altijd)
   document.getElementById('arClose').onclick=()=>{if(arSess)arSess.end();};
   document.getElementById('arPlace').onclick=()=>_arPlace();
+  document.getElementById('arPlaceManual').onclick=()=>_arPlaceManual();
   document.getElementById('arReset').onclick=()=>_arReset();
 
-  // Reticle
-  arReticle=new THREE.Mesh(
-    new THREE.RingGeometry(0.08,0.12,32).rotateX(-Math.PI/2),
-    new THREE.MeshBasicMaterial({color:0xC8884A,side:THREE.DoubleSide,depthWrite:false})
+  // Reticle: groep met outer ring + inner pulse + crosshair voor maximale zichtbaarheid
+  arReticle=new THREE.Group();
+  const _retOuter = new THREE.Mesh(
+    new THREE.RingGeometry(0.10, 0.13, 48).rotateX(-Math.PI/2),
+    new THREE.MeshBasicMaterial({color:0xC8884A, side:THREE.DoubleSide, depthWrite:false, transparent:true, opacity:0.95})
   );
+  const _retInner = new THREE.Mesh(
+    new THREE.RingGeometry(0.04, 0.055, 32).rotateX(-Math.PI/2),
+    new THREE.MeshBasicMaterial({color:0xFFE8A0, side:THREE.DoubleSide, depthWrite:false, transparent:true, opacity:0.85})
+  );
+  _retInner.name = '__arPulse';
+  const _retDot = new THREE.Mesh(
+    new THREE.CircleGeometry(0.014, 24).rotateX(-Math.PI/2),
+    new THREE.MeshBasicMaterial({color:0xFFFFFF, depthWrite:false, transparent:true, opacity:0.95})
+  );
+  // Crosshair-tikjes op N/E/S/W (in vloer-vlak)
+  const _tickMat = new THREE.LineBasicMaterial({color:0xC8884A, transparent:true, opacity:0.8});
+  const _ticks = [
+    [[ 0.14, 0,  0], [ 0.20, 0,  0]],  // oost
+    [[-0.14, 0,  0], [-0.20, 0,  0]],  // west
+    [[ 0,    0,  0.14], [ 0,    0,  0.20]],  // zuid
+    [[ 0,    0, -0.14], [ 0,    0, -0.20]],  // noord
+  ];
+  _ticks.forEach(seg => {
+    const g = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(seg[0][0], seg[0][1], seg[0][2]),
+      new THREE.Vector3(seg[1][0], seg[1][1], seg[1][2])
+    ]);
+    arReticle.add(new THREE.Line(g, _tickMat));
+  });
+  arReticle.add(_retOuter, _retInner, _retDot);
   arReticle.matrixAutoUpdate=false; arReticle.visible=false; SC.add(arReticle);
   LAMP.visible=false; arPlaced=false; arLastPos=null; arLastQuat=null;
+  // Tijd-tracking voor escalerende hints
+  window._arScanStart = performance.now();
+  window._arHintStage = 0;
 
   try{
     arSess=await navigator.xr.requestSession('immersive-ar',{
@@ -3344,8 +4875,9 @@ async function startAR(){
       arHitSrc=await arSess.requestHitTestSource({space:vs});
     }catch(e){
       arHitSrc=null;
-      document.getElementById('arPlace').style.display='block';
-      document.getElementById('arHint').textContent='Tik Hier plaatsen';
+      const _mp = document.getElementById('arPlaceManual'); if(_mp) _mp.style.display='block';
+      const _sc = document.getElementById('arScanner'); if(_sc) _sc.style.display='none';
+      document.getElementById('arHint').textContent='Hit-test niet beschikbaar — tik Plaats voor je';
     }
 
     arSess.addEventListener('end',_arEnd);
@@ -3361,18 +4893,50 @@ async function startAR(){
           if(pose){
             arReticle.visible=true;
             arReticle.matrix.fromArray(pose.transform.matrix);
-            // Bevriest niet na plaatsing - altijd bijwerken voor herplaatsing
+            // Pulse-animatie op binnen-ring
+            const pulseT = performance.now() * 0.004;
+            const pulseS = 1 + Math.sin(pulseT) * 0.20;
+            const pulseInner = arReticle.getObjectByName('__arPulse');
+            if(pulseInner){
+              pulseInner.scale.set(pulseS, 1, pulseS);
+              pulseInner.material.opacity = 0.5 + Math.abs(Math.sin(pulseT)) * 0.45;
+            }
+            // Bevriest niet na plaatsing — altijd bijwerken voor herplaatsing
             const _m4=new THREE.Matrix4().fromArray(pose.transform.matrix);
             if(!arLastPos) arLastPos=new THREE.Vector3();
             if(!arLastQuat) arLastQuat=new THREE.Quaternion();
             _m4.decompose(arLastPos, arLastQuat, new THREE.Vector3());
             document.getElementById('arPlace').style.display='block';
+            document.getElementById('arPlaceManual').style.display='none';
             document.getElementById('arHint').textContent='Vlak gevonden — tik Hier plaatsen';
+            document.getElementById('arScanner').style.display='none';
+            window._arHintStage = 99; // hit gevonden, hint freeze
           }
         } else {
           arReticle.visible=false;
           document.getElementById('arPlace').style.display='none';
-          document.getElementById('arHint').textContent='Richt op een vlak';
+          // Escalerende hints obv tijd sinds AR-start
+          const elapsed = (performance.now() - window._arScanStart) / 1000;
+          const hintEl = document.getElementById('arHint');
+          const manualBtn = document.getElementById('arPlaceManual');
+          const scanner = document.getElementById('arScanner');
+          if(scanner) scanner.style.display = 'block';
+          if(elapsed < 3 && window._arHintStage !== 1){
+            hintEl.textContent = 'Beweeg telefoon langzaam over een vlak';
+            window._arHintStage = 1;
+          } else if(elapsed >= 3 && elapsed < 6 && window._arHintStage !== 2){
+            hintEl.textContent = 'Scan trager, richt op vloer of tafel';
+            window._arHintStage = 2;
+          } else if(elapsed >= 6 && elapsed < 10 && window._arHintStage !== 3){
+            hintEl.textContent = 'Probeer meer licht of textuur op het vlak';
+            window._arHintStage = 3;
+            // Toon manual placement als alternatief
+            if(manualBtn) manualBtn.style.display = 'block';
+          } else if(elapsed >= 10 && window._arHintStage !== 4){
+            hintEl.textContent = 'Geen vlak? Tik Plaats voor je';
+            window._arHintStage = 4;
+            if(manualBtn) manualBtn.style.display = 'block';
+          }
         }
       }
       R.state.buffers.color.setClear(0,0,0,0);
@@ -3383,6 +4947,28 @@ async function startAR(){
     _arEnd();
     _arToast(err.name+': '+err.message);
   }
+}
+
+// Handmatige plaatsing: 1m voor de camera op vloer-hoogte (fallback als hit-test faalt)
+function _arPlaceManual(){
+  if(!CAM || arPlaced) return;
+  // Camera positie + richting in XR-wereld
+  const camPos = new THREE.Vector3();
+  const camDir = new THREE.Vector3();
+  CAM.getWorldPosition(camPos);
+  CAM.getWorldDirection(camDir);
+  // Project richting op horizontaal vlak
+  camDir.y = 0;
+  if(camDir.lengthSq() < 0.001) camDir.set(0,0,-1);
+  camDir.normalize();
+  // Plaats 1m voor camera, op vloer-hoogte (y=0 bij local-floor, anders 1m onder camera)
+  const floorY = arLocalSp ? 0 : (camPos.y - 1.0);
+  arLastPos = camPos.clone().addScaledVector(camDir, 1.0);
+  arLastPos.y = floorY;
+  arLastQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0), Math.atan2(camDir.x, camDir.z));
+  // Forceer reticle even visible zodat _arPlace door de guard komt
+  if(arReticle) arReticle.visible = true;
+  _arPlace();
 }
 
 function _arPlace(){
@@ -3413,6 +4999,8 @@ function _arPlace(){
   // arPlaced al true, reticle al onzichtbaar via render loop
   if(arReticle) arReticle.visible=false;
   document.getElementById('arPlace').style.display='none';
+  const _mp = document.getElementById('arPlaceManual'); if(_mp) _mp.style.display='none';
+  const _sc = document.getElementById('arScanner'); if(_sc) _sc.style.display='none';
   document.getElementById('arReset').style.display='block';
   document.getElementById('arControls').style.display='flex';
   document.getElementById('arHint').textContent='Beweeg · Draai';
@@ -3430,7 +5018,12 @@ function _arReset(){
   document.getElementById('arReset').style.display='none';
   document.getElementById('arControls').style.display='none';
   document.getElementById('arPlace').style.display='none';
-  document.getElementById('arHint').textContent='Richt op een vlak';
+  const _mp = document.getElementById('arPlaceManual'); if(_mp) _mp.style.display='none';
+  const _sc = document.getElementById('arScanner'); if(_sc) _sc.style.display='block';
+  document.getElementById('arHint').textContent='Beweeg telefoon langzaam over een vlak';
+  // Reset scan-tijd zodat hints opnieuw escaleren
+  window._arScanStart = performance.now();
+  window._arHintStage = 0;
 }
 
 function _arStartTick(){
