@@ -2174,6 +2174,10 @@ input, textarea, select {
 
 <script>
 (function() {
+  // Forceer pagina bovenaan bij laden
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+
   var loader = document.getElementById('loader');
   var loaderText = document.getElementById('loaderText');
 
@@ -2208,9 +2212,17 @@ input, textarea, select {
     if(!loader) return;
     loader.style.opacity = '0';
     loader.style.visibility = 'hidden';
-    setTimeout(function() { loader.style.display='none'; }, 800);
+    setTimeout(function() {
+      loader.style.display='none';
+      window.scrollTo(0, 0);
+    }, 800);
   }, 3800);
 })();
+
+// Extra safety: scroll to top na window load
+window.addEventListener('load', function() {
+  setTimeout(function() { window.scrollTo(0, 0); }, 50);
+});
 </script>
 
 <div class="topbanner" data-i18n="topbanner">
