@@ -88,8 +88,8 @@
   --dark: #12151A;
   --dark2: #181C23;
   --dark3: #1E232C;
-  --text: #A8B0B8;
-  --text-dim: #606870;
+  --text: #C5CCD3;
+  --text-dim: #8A9099;
 }
 
 html { scroll-behavior: smooth; background: var(--dark); overflow-x: clip; }
@@ -2130,8 +2130,8 @@ input, textarea, select {
     </svg>
   </div>
 
-  <span id="loaderText" style="font-family:'Space Mono',monospace;font-size:22px;letter-spacing:.38em;text-transform:uppercase;color:#EDE4D0;opacity:0;margin-top:16px;text-align:center;line-height:1">RHOMBI</span>
-  <span id="loaderSub" style="font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.28em;text-transform:uppercase;color:rgba(200,136,74,.45);opacity:0;margin-top:8px;text-align:center">Modulaire lichtobjecten</span>
+  <span id="loaderText" style="font-family:'Space Mono',monospace;font-size:30px;letter-spacing:.38em;text-transform:uppercase;color:#EDE4D0;opacity:0;margin-top:20px;text-align:center;line-height:1">RHOMBI</span>
+  <span id="loaderSub" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:rgba(200,136,74,.7);opacity:0;margin-top:12px;text-align:center">Modulaire lichtobjecten</span>
 </div>
 
 <style>
@@ -2225,7 +2225,7 @@ input, textarea, select {
     <li><a href="#geometrie" onclick="closeMobileMenu()" data-i18n="nav-geo">Geometrie</a></li>
     <li><a href="#types" onclick="closeMobileMenu()" data-i18n="nav-types">Varianten</a></li>
     <li><a href="#configurator" onclick="closeMobileMenu()" data-i18n="nav-conf">Configurator</a></li>
-    <li><a href="rhombi-prijslijst.html" data-i18n="nav-prijslijst">Prijslijst</a></li>
+    <li><a href="rhombi-prijslijst.html" data-i18n="nav-prijslijst">Prijscalculator</a></li>
     <li><a href="#prijzen" onclick="closeMobileMenu()" data-i18n="nav-prijzen">Prijzen</a></li>
     <li><a href="#types" onclick="closeMobileMenu()" data-i18n="nav-types">Varianten</a></li>
     <li><a href="#carousel" onclick="closeMobileMenu()" data-i18n="nav-sfeer">Sfeer</a></li>
@@ -2255,7 +2255,7 @@ input, textarea, select {
           <li><a href="#geometrie" data-i18n="nav-geo">Geometrie</a></li>
           <li><a href="#types" data-i18n="nav-types">Varianten</a></li>
           <li><a href="#configurator" data-i18n="nav-conf">Configurator</a></li>
-          <li><a href="rhombi-prijslijst.html" data-i18n="nav-prijslijst">Prijslijst</a></li>
+          <li><a href="rhombi-prijslijst.html" data-i18n="nav-prijslijst">Prijscalculator</a></li>
           <li><a href="#prijzen" data-i18n="nav-prijzen">Prijzen</a></li>
           <li><a href="#types" data-i18n="nav-types">Varianten</a></li>
           <li><a href="#carousel" data-i18n="nav-sfeer">Sfeer</a></li>
@@ -2592,6 +2592,7 @@ input, textarea, select {
       <h2 class="section-title"><span data-i18n="uitleg-t1">Licht als</span><br><em data-i18n="uitleg-t2">materiaal.</em></h2>
       <p data-i18n="uitleg-p1">Rhombi is een persoonlijk onderzoek naar de grenzen van wat 3D-printtechnologie visueel en functioneel kan betekenen. Elk onderdeel is ontworpen om te kunnen worden geprint op een standaard FDM-printer.</p>
       <p data-i18n="uitleg-p2">De kap filtert en vervormt het licht op een manier die afhangt van de printrichting, de laagdikte en de kleur van het filament. Geen twee exemplaren zijn exact hetzelfde.</p>
+      <p data-i18n="uitleg-p3" style="font-size:13px;color:var(--text-dim);line-height:1.75;margin-top:12px">De objecten kunnen zichtbare printsporen bevatten — een kenmerk van het digitale maakproces. Bij langdurige blootstelling aan direct zonlicht kan lichte verkleuring optreden.</p>
     </div>
   </div>
 </section>
@@ -3457,7 +3458,7 @@ const TRANSLATIONS = {
     'ont-p2': 'In uiteenlopende projecten, van ruimtelijke ontwerpen tot visuele representaties, streeft hij naar helderheid in vorm en een subtiele, gelaagde ruimtelijke ervaring. Vincent maakt gebruik van technieken zoals 3D-modellering, digitale fabricage en visualisatie om ontwerpen te ontwikkelen en te verfijnen. Met deze werkwijze verbindt hij het architectonische met het sculpturale, waarbij licht niet enkel functioneel is maar een integraal onderdeel vormt van het ontwerpconcept.',
     'ont-p3': 'Als ontwerper zoekt hij naar objecten die zowel een rustige aanwezigheid als een expressieve vormkwaliteit bezitten en die uitnodigen om licht en ruimte op een nieuwe manier te ervaren.',
     'nav-conf': 'Configurator',
-    'nav-prijslijst': 'Prijslijst',
+    'nav-prijslijst': 'Prijscalculator',
     'nav-prijzen': 'Prijzen',
     'nav-types': 'Varianten',
     'nav-sfeer': 'Sfeer',
@@ -3500,6 +3501,7 @@ const TRANSLATIONS = {
     'uitleg-t2': 'materiaal.',
     'uitleg-p1': 'Rhombi is een persoonlijk onderzoek naar de grenzen van wat 3D-printtechnologie visueel en functioneel kan betekenen. Elk onderdeel is ontworpen om te kunnen worden geprint op een standaard FDM-printer.',
     'uitleg-p2': 'De kap filtert en vervormt het licht op een manier die afhangt van de printrichting, de laagdikte en de kleur van het filament. Geen twee exemplaren zijn exact hetzelfde.',
+    'uitleg-p3': 'De objecten kunnen zichtbare printsporen bevatten — een kenmerk van het digitale maakproces. Bij langdurige blootstelling aan direct zonlicht kan lichte verkleuring optreden.',
     'spec-materiaal': 'Materiaal',
     'spec-fitting': 'Fitting',
     'spec-componenten': 'Componenten',
@@ -3571,7 +3573,7 @@ const TRANSLATIONS = {
     'ont-p2': 'Across diverse projects — from spatial designs to visual representations — he strives for clarity of form and a subtle, layered spatial experience. Vincent uses techniques such as 3D modelling, digital fabrication and visualisation to develop and refine his designs. Through this approach he connects the architectural with the sculptural, where light is not merely functional but an integral part of the design concept.',
     'ont-p3': 'As a designer he seeks objects that possess both a quiet presence and an expressive formal quality, inviting people to experience light and space in a new way.',
     'nav-conf': 'Configurator',
-    'nav-prijslijst': 'Price list',
+    'nav-prijslijst': 'Price calculator',
     'nav-prijzen': 'Prices',
     'nav-types': 'Variants',
     'nav-sfeer': 'Atmosphere',
@@ -3614,6 +3616,7 @@ const TRANSLATIONS = {
     'uitleg-t2': 'material.',
     'uitleg-p1': 'Rhombi is a personal exploration of the visual and functional possibilities of 3D-print technology. Every component is designed to be printed on a standard FDM printer.',
     'uitleg-p2': 'The shade filters and bends light in ways that depend on print direction, layer height and filament colour. No two pieces are exactly alike.',
+    'uitleg-p3': 'The objects may show visible print lines — a characteristic of the digital fabrication process. Prolonged exposure to direct sunlight may cause slight colour fading.',
     'spec-materiaal': 'Material',
     'spec-fitting': 'Socket',
     'spec-componenten': 'Components',
@@ -3685,7 +3688,7 @@ const TRANSLATIONS = {
     'ont-p2': 'In unterschiedlichen Projekten — von Raumgestaltungen bis hin zu visuellen Darstellungen — strebt er nach Klarheit der Form und einer subtilen, vielschichtigen Raumwahrnehmung. Vincent nutzt Techniken wie 3D-Modellierung, digitale Fertigung und Visualisierung, um Entwürfe zu entwickeln und zu verfeinern. Mit diesem Ansatz verbindet er das Architektonische mit dem Skulpturalen, wobei Licht nicht nur funktional ist, sondern ein integraler Bestandteil des Entwurfskonzepts.',
     'ont-p3': 'Als Designer sucht er nach Objekten, die sowohl eine ruhige Präsenz als auch eine ausdrucksstarke Formqualität besitzen und dazu einladen, Licht und Raum auf eine neue Weise zu erleben.',
     'nav-conf': 'Konfigurator',
-    'nav-prijslijst': 'Preisliste',
+    'nav-prijslijst': 'Preisrechner',
     'nav-prijzen': 'Preise',
     'nav-mat': 'Material',
     'nav-types': 'Varianten',
@@ -3728,6 +3731,7 @@ const TRANSLATIONS = {
     'uitleg-t2': 'Material.',
     'uitleg-p1': 'Rhombi ist eine persönliche Erforschung der visuellen und funktionalen Möglichkeiten des 3D-Drucks. Jedes Bauteil wurde so entwickelt, dass es auf einem handelsüblichen FDM-Drucker gedruckt werden kann.',
     'uitleg-p2': 'Der Schirm filtert und bricht das Licht auf eine Weise, die von der Druckrichtung, der Schichthöhe und der Farbe des Filaments abhängt. Keine zwei Exemplare sind genau gleich.',
+    'uitleg-p3': 'Die Objekte können sichtbare Druckspuren aufweisen — ein Merkmal des digitalen Herstellungsprozesses. Bei längerer Aussetzung an direktem Sonnenlicht kann es zu leichter Verfärbung kommen.',
     'spec-materiaal': 'Material',
     'spec-fitting': 'Fassung',
     'spec-componenten': 'Bauteile',
