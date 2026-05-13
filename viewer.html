@@ -115,6 +115,12 @@ canvas{display:block;border-radius:2px}
 .tbs-vis-btn.hidden-part{color:#c07070;border-color:rgba(192,112,112,.35)}
 .tbs-vis-btn.hidden-part:hover{color:#e08080;border-color:#e08080;background:rgba(60,30,30,.92)}
 
+.tbs-reset{background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);color:var(--text);cursor:pointer;padding:6px 10px;border-radius:4px;display:none;align-items:center;justify-content:center;transition:all .15s;touch-action:manipulation}
+.tbs-reset.on{display:inline-flex}
+.tbs-reset:hover{border-color:var(--amber);color:var(--amber);background:rgba(35,30,28,.92)}
+.tbs-reset:hover svg{transform:rotate(-180deg)}
+.tbs-reset svg{width:16px;height:16px;transition:transform .35s ease}
+
 .tbs-close{background:rgba(20,24,30,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px 12px;border-radius:4px;line-height:1;transition:all .15s;touch-action:manipulation}
 .tbs-close:hover{color:var(--amber);border-color:var(--amber);background:rgba(35,30,28,.92)}
 
@@ -258,19 +264,38 @@ canvas{display:block;border-radius:2px}
 .focus-active .lamp-part-dim{opacity:.35}
 
 @media (max-width:768px){
-  .topbar-sel{top:14px;left:50%;max-width:calc(100% - 28px)}
-  .tbs-row1{gap:3px}
-  .tbs-trigger{padding:3px 7px 3px 4px;font-size:8px;gap:4px}
-  .tbs-trigger-icon{width:16px;height:16px}
-  .tbs-trigger-icon svg{width:14px;height:14px}
-  .tbs-color-trigger-swatch{width:16px;height:16px}
-  .tbs-trigger-name{max-width:80px}
-  .scope-toggle button{padding:4px 7px;font-size:7px;letter-spacing:.06em}
-  .color-fan-card{width:52px;margin-left:-26px;margin-top:-26px}
-  .color-fan-card-swatch{width:38px;height:38px}
-  .color-fan-card-swatch.icon-swatch svg{width:22px;height:22px}
-  .color-fan-card-name{font-size:7px;max-width:52px}
-  .color-fan-close{width:32px;height:32px;font-size:13px}
+  .topbar-sel{top:14px;left:50%;max-width:calc(100% - 20px)}
+  .tbs-row1{gap:4px}
+  .tbs-trigger{padding:6px 11px 6px 7px;font-size:11px;gap:6px;border-radius:4px}
+  .tbs-trigger-icon{width:22px;height:22px;border-radius:3px}
+  .tbs-trigger-icon svg{width:20px;height:20px}
+  .tbs-color-trigger-swatch{width:22px;height:22px;border-radius:3px}
+  .tbs-mat-trigger-swatch{width:22px;height:22px;border-radius:3px}
+  .tbs-trigger-name{max-width:110px}
+  .tbs-trigger-arrow{font-size:12px}
+  .scope-toggle{border-radius:4px}
+  .scope-toggle button{padding:6px 10px;font-size:9px;letter-spacing:.08em}
+  .tbs-vis-btn{padding:6px 10px;border-radius:4px}
+  .tbs-reset{padding:6px 10px;border-radius:4px}
+  .tbs-reset svg{width:18px;height:18px}
+  .tbs-close{padding:5px 12px;font-size:16px;border-radius:4px}
+  /* Carousel meer ruimte voor grotere swatches */
+  .color-fan.mobile-carousel .color-fan-cards{top:80px;height:110px;padding:0 calc(50vw - 40px)}
+  .color-fan.mobile-carousel .color-fan-card{flex:0 0 80px;width:80px}
+  .color-fan.mobile-carousel .color-fan-card-swatch{width:70px;height:70px;border-radius:6px}
+  .color-fan.mobile-carousel .color-fan-card-swatch.icon-swatch svg{width:40px;height:40px}
+  .color-fan.mobile-carousel .color-fan-card-name{font-size:11px;max-width:80px;letter-spacing:.04em}
+  .color-fan.mobile-carousel::after{top:85px;width:84px;height:84px;border-radius:11px}
+  .color-fan.mobile-carousel .color-fan-close{top:200px;width:38px;height:38px;font-size:15px}
+  /* Oog-toggle op cards iets groter voor duim-tap */
+  .color-fan-card-vis-toggle{width:26px;height:26px;top:-5px;right:-5px}
+  .color-fan-card-vis-toggle svg{width:15px;height:11px}
+  /* Radial fan (mocht 'ie alsnog renderen op tablet) iets kleiner dan desktop */
+  .color-fan-card{width:62px;margin-left:-31px;margin-top:-31px}
+  .color-fan-card-swatch{width:46px;height:46px}
+  .color-fan-card-swatch.icon-swatch svg{width:28px;height:28px}
+  .color-fan-card-name{font-size:9px;max-width:62px}
+  .color-fan-close{width:36px;height:36px;font-size:14px}
 }
 .sw{aspect-ratio:1;cursor:pointer;border:1.5px solid transparent;transition:all .16s;position:relative;overflow:hidden;clip-path:polygon(6px 0%,100% 0%,100% 100%,0% 100%,0% 6px);border-radius:0 0 3px 0}
 .sw:hover{transform:scale(1.08);border-color:rgba(200,136,74,.5)}
@@ -713,6 +738,12 @@ canvas { background: transparent !important; }
       <button id="scopeBtn-all" onclick="setMatColorScope('all')">Alles</button>
     </div>
     <button class="tbs-vis-btn" id="tbsVisBtn" onclick="togglePartVisFromTopbar(event)" title="Verberg dit onderdeel"></button>
+    <button class="tbs-reset" id="tbsResetBtn" onclick="resetAllPartsVis()" title="Toon alle onderdelen weer">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/>
+        <polyline points="2.2 2.5 2.2 4.8 4.5 4.8"/>
+      </svg>
+    </button>
     <button class="tbs-close" onclick="clearSelection()" title="Deselecteer">✕</button>
   </div>
 </div>
@@ -2559,7 +2590,7 @@ function fitCameraToGLB() {
   camTh = 0.4;        // licht van de hoek
   camPh = 0.52;       // aangenaam 3/4 aanzicht
   panX  = center.x;
-  panY  = center.y; // camera kijkt naar het midden van het model
+  panY  = center.y + (isMobile ? size.y * 0.18 : 0); // mobile: model wat omlaag zodat tabs niet de lamp bedekken
   console.log('[Rhombi] Camera fit: maxDim=' + maxDim.toFixed(2) + ' camR=' + camR.toFixed(2) + ' center=' + center.y.toFixed(2));
 }
 
@@ -2823,11 +2854,24 @@ function togglePartVis(id, e) {
 // ── Topbar verberg-knop voor het geselecteerde onderdeel ──
 function updateTopbarVisBtn(){
   const btn = document.getElementById('tbsVisBtn');
-  if(!btn || !selP) return;
-  const isHidden = PART_VIS[selP] === false;
-  btn.innerHTML = isHidden ? EYE_OFF_SVG : EYE_ON_SVG;
-  btn.classList.toggle('hidden-part', isHidden);
-  btn.title = isHidden ? 'Toon dit onderdeel weer' : 'Verberg dit onderdeel';
+  if(btn && selP){
+    const isHidden = PART_VIS[selP] === false;
+    btn.innerHTML = isHidden ? EYE_OFF_SVG : EYE_ON_SVG;
+    btn.classList.toggle('hidden-part', isHidden);
+    btn.title = isHidden ? 'Toon dit onderdeel weer' : 'Verberg dit onderdeel';
+  }
+  // Reset-knop alleen tonen als er ergens iets verborgen is
+  const resetBtn = document.getElementById('tbsResetBtn');
+  if(resetBtn){
+    const anyHidden = Object.values(PART_VIS).some(v => v === false);
+    resetBtn.classList.toggle('on', anyHidden);
+  }
+}
+
+// Wrapper voor de reset-knop in de topbar
+function resetAllPartsVis(){
+  showAllParts();
+  updateTopbarVisBtn();
 }
 
 // ── Reset: alle onderdelen weer zichtbaar maken ──
@@ -5139,6 +5183,7 @@ async function startAR(){
     new THREE.RingGeometry(0.10, 0.13, 48).rotateX(-Math.PI/2),
     new THREE.MeshBasicMaterial({color:0xC8884A, side:THREE.DoubleSide, depthWrite:false, transparent:true, opacity:0.95})
   );
+  _retOuter.name = '__arOuter';
   const _retInner = new THREE.Mesh(
     new THREE.RingGeometry(0.04, 0.055, 32).rotateX(-Math.PI/2),
     new THREE.MeshBasicMaterial({color:0xFFE8A0, side:THREE.DoubleSide, depthWrite:false, transparent:true, opacity:0.85})
@@ -5209,59 +5254,102 @@ async function startAR(){
 
     // Render loop
     R.setAnimationLoop((t,frame)=>{
-      // Hit-test
-      if(frame&&arHitSrc&&!arPlaced){
-        const hits=frame.getHitTestResults(arHitSrc);
-        const ref=arLocalSp||R.xr.getReferenceSpace();
-        if(hits.length&&ref){
-          const pose=hits[0].getPose(ref);
-          if(pose){
-            arReticle.visible=true;
-            arReticle.matrix.fromArray(pose.transform.matrix);
-            // Pulse-animatie op binnen-ring
-            const pulseT = performance.now() * 0.004;
-            const pulseS = 1 + Math.sin(pulseT) * 0.20;
-            const pulseInner = arReticle.getObjectByName('__arPulse');
-            if(pulseInner){
-              pulseInner.scale.set(pulseS, 1, pulseS);
-              pulseInner.material.opacity = 0.5 + Math.abs(Math.sin(pulseT)) * 0.45;
+      // Reticle logica: altijd zichtbaar zodra AR start
+      // 1. Probeer hit-test (echte vlak detectie)
+      // 2. Geen hit? Project camera-richting op vloer als fallback
+      if(frame && !arPlaced){
+        const ref = arLocalSp || R.xr.getReferenceSpace();
+        let gotHit = false;
+        // Stap 1: hit-test
+        if(arHitSrc){
+          const hits = frame.getHitTestResults(arHitSrc);
+          if(hits.length && ref){
+            const pose = hits[0].getPose(ref);
+            if(pose){
+              gotHit = true;
+              arReticle.visible = true;
+              arReticle.matrix.fromArray(pose.transform.matrix);
+              const _m4 = new THREE.Matrix4().fromArray(pose.transform.matrix);
+              if(!arLastPos) arLastPos = new THREE.Vector3();
+              if(!arLastQuat) arLastQuat = new THREE.Quaternion();
+              _m4.decompose(arLastPos, arLastQuat, new THREE.Vector3());
+              // Verified-hit visuele staat: amber/cream
+              const outerHit = arReticle.getObjectByName('__arOuter');
+              if(outerHit && outerHit.material.color.getHex() !== 0xC8884A){
+                outerHit.material.color.setHex(0xC8884A);
+                outerHit.material.opacity = 0.95;
+              }
+              document.getElementById('arHint').textContent = 'Vlak gevonden — tik Hier plaatsen';
+              document.getElementById('arScanner').style.display = 'none';
+              window._arHintStage = 99;
             }
-            // Bevriest niet na plaatsing — altijd bijwerken voor herplaatsing
-            const _m4=new THREE.Matrix4().fromArray(pose.transform.matrix);
-            if(!arLastPos) arLastPos=new THREE.Vector3();
-            if(!arLastQuat) arLastQuat=new THREE.Quaternion();
-            _m4.decompose(arLastPos, arLastQuat, new THREE.Vector3());
-            document.getElementById('arPlace').style.display='block';
-            document.getElementById('arPlaceManual').style.display='none';
-            document.getElementById('arHint').textContent='Vlak gevonden — tik Hier plaatsen';
-            document.getElementById('arScanner').style.display='none';
-            window._arHintStage = 99; // hit gevonden, hint freeze
           }
-        } else {
-          arReticle.visible=false;
-          document.getElementById('arPlace').style.display='none';
-          // Escalerende hints obv tijd sinds AR-start
+        }
+        // Stap 2: geen echte hit? Project camera-richting op vloer (always-on reticle)
+        if(!gotHit){
+          const camPos = new THREE.Vector3();
+          const camDir = new THREE.Vector3();
+          CAM.getWorldPosition(camPos);
+          CAM.getWorldDirection(camDir);
+          // Bepaal vloer hoogte (y=0 als local-floor reference, anders 1m onder camera als grove gok)
+          const floorY = arLocalSp ? 0 : (camPos.y - 1.4);
+          // Project camera-ray op vloer-vlak: solve voor t in (camPos + t*camDir).y == floorY
+          // Voor stabiele plaatsing als telefoon recht vooruit kijkt: minimale dy voorkomen
+          let targetY = floorY;
+          let dy = camDir.y;
+          let dist;
+          if(dy < -0.05){
+            // Telefoon kijkt naar beneden: project echt
+            dist = (camPos.y - targetY) / -dy;
+          } else {
+            // Telefoon kijkt horizontaal/omhoog: forceer 1.2m voor camera op vloerhoogte
+            dist = 1.2;
+          }
+          dist = Math.min(Math.max(dist, 0.5), 4.0); // clamp 0.5-4m
+          const targetPos = camPos.clone().addScaledVector(camDir, dist);
+          targetPos.y = targetY;
+          // Rotation: telefoon's Y-rotatie op de vloer
+          const yaw = Math.atan2(camDir.x, camDir.z);
+          if(!arLastPos) arLastPos = new THREE.Vector3();
+          if(!arLastQuat) arLastQuat = new THREE.Quaternion();
+          arLastPos.copy(targetPos);
+          arLastQuat.setFromAxisAngle(new THREE.Vector3(0,1,0), yaw);
+          // Smooth reticle naar deze positie (LERP voor stabiliteit)
+          const m = new THREE.Matrix4().compose(targetPos, arLastQuat, new THREE.Vector3(1,1,1));
+          arReticle.matrix.copy(m);
+          arReticle.visible = true;
+          // Tentative visuele staat: lichtere/dimmer amber zodat verschil zichtbaar is
+          const outerNo = arReticle.getObjectByName('__arOuter');
+          if(outerNo && outerNo.material.opacity !== 0.55){
+            outerNo.material.color.setHex(0xA8A8A8);
+            outerNo.material.opacity = 0.55;
+          }
+        }
+        // Pulse-animatie op binnen-ring (altijd actief)
+        const pulseT = performance.now() * 0.004;
+        const pulseS = 1 + Math.sin(pulseT) * 0.20;
+        const pulseInner = arReticle.getObjectByName('__arPulse');
+        if(pulseInner){
+          pulseInner.scale.set(pulseS, 1, pulseS);
+          pulseInner.material.opacity = 0.5 + Math.abs(Math.sin(pulseT)) * 0.45;
+        }
+        // Plaats-knop direct beschikbaar zodra AR loopt (reticle is altijd zichtbaar)
+        const placeBtn = document.getElementById('arPlace');
+        if(placeBtn && placeBtn.style.display !== 'block') placeBtn.style.display = 'block';
+        document.getElementById('arPlaceManual').style.display = 'none';
+        // Hint update (alleen als nog geen hit)
+        if(!gotHit){
           const elapsed = (performance.now() - window._arScanStart) / 1000;
           const hintEl = document.getElementById('arHint');
-          const manualBtn = document.getElementById('arPlaceManual');
-          const scanner = document.getElementById('arScanner');
-          if(scanner) scanner.style.display = 'block';
-          if(elapsed < 3 && window._arHintStage !== 1){
-            hintEl.textContent = 'Beweeg telefoon langzaam over een vlak';
+          if(elapsed < 4 && window._arHintStage !== 1){
+            hintEl.textContent = 'Richt telefoon waar je de lamp wilt plaatsen';
             window._arHintStage = 1;
-          } else if(elapsed >= 3 && elapsed < 6 && window._arHintStage !== 2){
-            hintEl.textContent = 'Scan trager, richt op vloer of tafel';
+          } else if(elapsed >= 4 && window._arHintStage !== 2){
+            hintEl.textContent = 'Tik Hier plaatsen waar de ring staat';
             window._arHintStage = 2;
-          } else if(elapsed >= 6 && elapsed < 10 && window._arHintStage !== 3){
-            hintEl.textContent = 'Probeer meer licht of textuur op het vlak';
-            window._arHintStage = 3;
-            // Toon manual placement als alternatief
-            if(manualBtn) manualBtn.style.display = 'block';
-          } else if(elapsed >= 10 && window._arHintStage !== 4){
-            hintEl.textContent = 'Geen vlak? Tik Plaats voor je';
-            window._arHintStage = 4;
-            if(manualBtn) manualBtn.style.display = 'block';
           }
+          const scanner = document.getElementById('arScanner');
+          if(scanner) scanner.style.display = 'none'; // niet meer nodig: reticle is er al
         }
       }
       R.state.buffers.color.setClear(0,0,0,0);
