@@ -4,6 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Rhombi — 3D Configurator</title>
+
+<!-- Open Graph / LinkedIn / Facebook social preview -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rhombi.nl/viewer">
+<meta property="og:title" content="Rhombi — 3D Configurator">
+<meta property="og:description" content="Configure your own Rhombi lamp: choose colour, material and finish on every part, see the light glow through translucent PLA in real-time, and place a 1:1 scale version in your own room through AR.">
+<meta property="og:image" content="https://rhombi.nl/fotos/og-configurator.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Rhombi">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card (gebruikt door X, ook gelezen door andere platforms) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rhombi — 3D Configurator">
+<meta name="twitter:description" content="Configure your own Rhombi lamp in 3D. Choose colour, material and finish, see real-time light through translucent PLA, place at 1:1 scale in AR.">
+<meta name="twitter:image" content="https://rhombi.nl/fotos/og-configurator.jpg">
+
+<!-- Algemene meta -->
+<meta name="description" content="Interactive 3D configurator for the Rhombi modular lamp series. Customize materials, colours and parts in real-time. AR placement on Android.">
+<meta name="author" content="Vincent Hector">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
@@ -631,6 +652,7 @@ canvas { background: transparent !important; }
     <div style="display:flex;gap:3px;margin-bottom:3px">
       <button class="cb" id="bEx" onclick="toggleExplode()" style="flex:1;margin:0"><span>Exploded</span><span>⬡</span></button>
       <button class="cb" onclick="resetView()" style="flex:1;margin:0"><span>Reset cam</span><span>⊙</span></button>
+      <button class="cb" onclick="zoomAll()" style="flex:1;margin:0" title="Zoom uit naar al het model"><span>Zoom alles</span><span>⤢</span></button>
     </div>
     <button class="cb" id="bSp" onclick="toggleSpin()"><span>Auto-rotatie</span><span>↻</span></button>
   </div>
@@ -884,7 +906,7 @@ const VARIANTS=[
   },
 
   // ── Binnenkort ───────────────────────────────────────────────────
-  {id:"accent", icon:"◈", lbl:"Accent", yOffset:-0.10,
+  {id:"accent", icon:"◈", lbl:"Accent", yOffset:0,
    tit:"Rhombi Accent", sub:"Accentlamp · slanke sokkel",
    glb:"rhombi-accent.glb",
    excludeNodes:["voet_t"],  // alleen voet_a gebruiken
@@ -4705,6 +4727,44 @@ function setLamp(on) {
 // ── POLYCOUNT ────────────────────────────────────────────────────────
 
 function resetView(){const c=curV.cam;camTh=c.th;camPh=c.ph;camR=c.r;panX=0;panY=0}
+
+// Zoom alles: behoudt huidige kijkhoek, schaalt camera-afstand zodat ALLE
+// onderdelen (ook verborgen ones, exploded posities, alles) in beeld passen
+function zoomAll(){
+  if(!activeGLBGroups) return;
+  const box = new THREE.Box3();
+  // Pak ook verborgen onderdelen en exploded posities mee
+  Object.entries(activeGLBGroups).forEach(([pid, g]) => {
+    if(pid === '__lampPos' || !g.isObject3D) return;
+    g.traverse(o => {
+      if(o.userData && o.userData.isOutline) return;
+      if(!o.isMesh) return;
+      // Forceer visible voor de bbox berekening, ook al staat 'ie uit
+      const wasVisible = o.visible;
+      o.visible = true;
+      o.updateWorldMatrix(true, false);
+      box.expandByObject(o);
+      o.visible = wasVisible;
+    });
+  });
+  if(box.isEmpty()) return;
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  // Bereken minimaal benodigde afstand voor FOV
+  // Diagonaal van size in X/Y plus marge zodat alles past binnen viewport
+  const diag = Math.sqrt(size.x*size.x + size.y*size.y + size.z*size.z) * 0.65;
+  const fovRad = CAM.fov * Math.PI / 180;
+  const aspect = R.domElement.width / Math.max(R.domElement.height, 1);
+  // Verticale fit
+  const distV = diag / Math.tan(fovRad / 2);
+  // Horizontale fit (smaller aspect ratio = meer afstand nodig)
+  const distH = diag / (Math.tan(fovRad / 2) * aspect);
+  camR = Math.max(distV, distH) * 1.18; // 18% extra marge
+  // Behoud huidige camTh/camPh (kijkhoek), pan naar nieuwe center
+  panX = center.x;
+  panY = center.y + (isMobile ? size.y * 0.18 : 0);
+  console.log('[Rhombi] Zoom all: diag=' + diag.toFixed(2) + ' camR=' + camR.toFixed(2));
+}
 
 // ═══════════════════════════════════════════
 // ORBIT
