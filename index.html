@@ -2708,14 +2708,15 @@ window.addEventListener('load', function() {
     cv.style.width = w+'px'; cv.style.height = h+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
     cx=w/2; cy=h/2;
-    lensR=Math.min(w,h)*0.34;
+    lensR=Math.min(w,h)*0.28;
     spacing=Math.max(36, Math.min(60, Math.min(w,h)/13));
-    step=Math.max(14, spacing*0.34);
+    step=Math.max(9, spacing*0.22);
   }
   if(window.ResizeObserver){ new ResizeObserver(resize).observe(root); }
   window.addEventListener('resize', resize);
   resize();
   let mX=cx, mY=cy, lx=cx, ly=cy, hasPointer=false;
+  let fx=cx, fy=cy;
   root.addEventListener('pointermove', e=>{
     const r = cv.getBoundingClientRect();
     mX = e.clientX - r.left; mY = e.clientY - r.top; hasPointer = true;
@@ -2726,14 +2727,18 @@ window.addEventListener('load', function() {
   function lightPos(t){
     const tx = hasPointer ? mX : cx + Math.sin(t*0.30)*w*0.22;
     const ty = hasPointer ? mY : cy + Math.cos(t*0.23)*h*0.20;
-    lx += (tx-lx)*0.045; ly += (ty-ly)*0.045;
+    lx += (tx-lx)*0.10; ly += (ty-ly)*0.10;
+    fx += (lx-fx)*0.06; fy += (ly-fy)*0.06;
   }
   function warp(x,y,t,amp){
     const nx=(x-cx)/200, ny=(y-cy)/200;
     let ox = Math.sin(ny*1.15 + t*0.85)*amp + Math.sin((nx+ny)*0.7 - t*0.5)*amp*0.6;
     let oy = Math.cos(nx*1.05 - t*0.72)*amp + Math.cos((nx-ny)*0.8 + t*0.45)*amp*0.6;
-    const ddx=x-lx, ddy=y-ly, dist=Math.hypot(ddx,ddy);
-    const bulge = Math.exp(-(dist*dist)/(2*lensR*lensR)) * 78;
+    const ddx=x-fx, ddy=y-fy, dist=Math.hypot(ddx,ddy);
+    const falloff = Math.exp(-(dist*dist)/(2*lensR*lensR));
+    const pullX = (lx - fx), pullY = (ly - fy);
+    ox += pullX * falloff * 0.9; oy += pullY * falloff * 0.9;
+    const bulge = falloff * 28;
     ox += (ddx/(dist+1))*bulge; oy += (ddy/(dist+1))*bulge;
     return [x+ox, y+oy];
   }
@@ -2778,9 +2783,6 @@ window.addEventListener('load', function() {
     drawFamily( Math.PI/4, spacing, 0.30, t, 30, 1.0); ctx.restore();
     ctx.save(); ctx.translate(-Math.cos(-Math.PI/4)*ph, -Math.sin(-Math.PI/4)*ph);
     drawFamily(-Math.PI/4, spacing, 0.30, t, 30, 1.0); ctx.restore();
-    const starA=0.09*(0.5+0.5*Math.sin(t*0.35));
-    drawFamily(0, spacing*1.5, starA, t, 20, 0.8);
-    drawFamily(Math.PI/2, spacing*1.5, starA, t, 20, 0.8);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
