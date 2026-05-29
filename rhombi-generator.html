@@ -194,6 +194,24 @@
     .rh-gen .rh-grain{animation:none}
     .rh-gen [class^="rh-"]{animation-duration:.01s!important}
   }
+  .rh-gen .rh-audio{
+    display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center;margin-top:1.6rem;
+    opacity:0;animation:rh-rise 1s 1.1s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .rh-gen .rh-audio-btn{
+    pointer-events:auto;display:inline-flex;align-items:center;gap:.55em;
+    font-family:'Space Mono',monospace;font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;
+    color:rgba(237,228,208,.7);background:rgba(18,21,26,.5);backdrop-filter:blur(4px);
+    border:1px solid rgba(200,136,74,.28);border-radius:2px;padding:.7em 1.1em;cursor:pointer;
+    transition:.3s;
+  }
+  .rh-gen .rh-audio-btn svg{width:15px;height:15px;flex:none}
+  .rh-gen .rh-audio-btn:hover{color:var(--cream);border-color:var(--amber)}
+  .rh-gen .rh-audio-btn.active{color:var(--amber);border-color:var(--amber);
+    background:rgba(200,136,74,.14);box-shadow:0 0 22px rgba(200,136,74,.2)}
+  .rh-gen .rh-audio-btn.active svg{animation:rh-audio-pulse 1.4s ease-in-out infinite}
+  @keyframes rh-audio-pulse{0%,100%{opacity:.6}50%{opacity:1}}
+  .rh-gen .rh-audio-btn.warn{color:#E08A6A;border-color:rgba(224,138,106,.6)}
 </style>
 
 <section class="rh-gen">
@@ -225,7 +243,7 @@
 
     <div class="rh-eyebrow" data-i18n="gen-label">Stel je samen</div>
     <h2 class="rh-title"><span data-i18n="gen-t1">Ontwerp je eigen</span> <b>Rhombi</b></h2>
-    <p class="rh-tagline" data-i18n="gen-sub">Kies een model in de 3D&#8209;configurator, of teken je eigen ruitpatroon dat het licht filtert.</p>
+    <p class="rh-tagline" data-i18n="gen-sub">Bekijk elke variant in 3D — wissel materiaal en kleur, en zie je lichtobject van alle kanten.</p>
 
     <div class="rh-cards">
       <a class="rh-card" href="viewer.html?variant=tafel">
@@ -240,20 +258,21 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </span>
       </a>
+    </div>
 
-      <a class="rh-card" href="rhombi-patroonmaker.html">
-        <svg class="rh-card-icon" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" aria-hidden="true">
-          <path d="M50 5 L95 50 L50 95 L5 50 Z"/>
-          <path d="M50 27 L73 50 L50 73 L27 50 Z" stroke-width="3"/>
-          <path d="M50 5 L50 95 M5 50 L95 50" stroke-width="2" opacity=".5"/>
-        </svg>
-        <span class="rh-card-tag">◆ Patroonmaker</span>
-        <span class="rh-card-name" data-i18n="gen-c2-name">Teken je patroon</span>
-        <span class="rh-card-desc" data-i18n="gen-c2-desc">Ontwerp je eigen geometrische ruitpatroon. Bepaal zelf de lijnen die het licht breken en filteren.</span>
-        <span class="rh-card-go"><span data-i18n="gen-c2-go">Open patroonmaker</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </span>
-      </a>
+    <div class="rh-audio">
+      <button class="rh-audio-btn" id="rhMicBtn" onclick="rhToggleMic()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg>
+        <span>Laat reageren op geluid</span>
+      </button>
+      <button class="rh-audio-btn" id="rhMidiBtn" onclick="rhToggleMidi()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M7 6v8M11 6v8M15 6v8M5 14h14"/></svg>
+        <span>MIDI-keyboard</span>
+      </button>
+      <button class="rh-audio-btn" id="rhExtraBtn" onclick="rhToggleExtra()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>
+        <span>Extra patroon</span>
+      </button>
     </div>
   </div>
 
@@ -272,7 +291,7 @@
   const ctx = cv.getContext('2d');
   let w, h, cx, cy, dpr, lensR, spacing, step;
 
-  const AMBER=[200,136,74], CREAM=[237,228,208];
+  const AMBER=[200,136,74], CREAM=[237,228,208], CORAL=[216,90,48];
   const lp=(a,b,t)=>a+(b-a)*t;
   const mix=(c1,c2,t)=>`rgb(${Math.round(lp(c1[0],c2[0],t))},${Math.round(lp(c1[1],c2[1],t))},${Math.round(lp(c1[2],c2[2],t))})`;
 
@@ -306,43 +325,53 @@
   function lightPos(t){
     const tx = hasPointer ? mX : cx + Math.sin(t*0.30)*w*0.22;
     const ty = hasPointer ? mY : cy + Math.cos(t*0.23)*h*0.20;
-    // lx,ly = de cursor (volgt vlot) ; fx,fy = trage volger (veert na → elastisch)
     lx += (tx-lx)*0.10; ly += (ty-ly)*0.10;
     fx += (lx-fx)*0.06; fy += (ly-fy)*0.06;
   }
 
-  function warp(x,y,t,amp){
+  // ── Audio-banden (gevuld door de microfoon/MIDI engine onderaan) ──
+  const A = (window.rhAudio = window.rhAudio || {});
+  A.lo = A.lo||0; A.mi = A.mi||0; A.hi = A.hi||0; A.pulse = A.pulse||0; A.active = A.active||false;
+  let lo=0, mi=0, hi=0, loPulse=0, hiSpark=0, hiBlink=0, prevHi=0;
+  let flowDir=0, flowDirVel=0, kickKick=0;
+  let extraLayer = false;            // tweede ruitlaag (toggle), standaard uit
+  window.rhSetExtraLayer = v => { extraLayer = !!v; };
+
+  function warp(x,y,t,ampBase){
+    const amp = ampBase + mi*55;                       // MID → vervormingssterkte
     const nx=(x-cx)/200, ny=(y-cy)/200;
     let ox = Math.sin(ny*1.15 + t*0.85)*amp + Math.sin((nx+ny)*0.7 - t*0.5)*amp*0.6;
     let oy = Math.cos(nx*1.05 - t*0.72)*amp + Math.cos((nx-ny)*0.8 + t*0.45)*amp*0.6;
-    // Invloedsgebied gecentreerd op de TRAGE volger (fx,fy), niet de cursor zelf.
-    // Daardoor 'rekt' het patroon mee en veert terug zodra de cursor verder is.
+    if(hiSpark>0.01){                                  // HOOG → fijne trilling
+      ox += Math.sin(x*0.14 + t*30)*hiSpark*5;
+      oy += Math.cos(y*0.14 + t*30)*hiSpark*5;
+    }
     const ddx=x-fx, ddy=y-fy, dist=Math.hypot(ddx,ddy);
-    const falloff = Math.exp(-(dist*dist)/(2*lensR*lensR)); // 1 dichtbij → 0 ver weg
-    // Het patroon wordt zacht naar de cursor (lx,ly) toe getrokken vanaf de trage plek.
-    // De 'rek' = afstand tussen cursor en trage volger → ontstaat alleen bij beweging.
-    const pullX = (lx - fx), pullY = (ly - fy);
-    ox += pullX * falloff * 0.9;
-    oy += pullY * falloff * 0.9;
-    // Lichte radiale bolling zodat het gebied ook 'ademt'
-    const bulge = falloff * 28;
-    ox += (ddx/(dist+1))*bulge;
-    oy += (ddy/(dist+1))*bulge;
+    const falloff = Math.exp(-(dist*dist)/(2*lensR*lensR));
+    ox += (lx-fx)*falloff*0.9; oy += (ly-fy)*falloff*0.9;   // cursor-trek (elastisch)
+    const bulge = falloff*(28 + loPulse*55);               // LAAG → bolling ademt op de bas
+    ox += (ddx/(dist+1))*bulge; oy += (ddy/(dist+1))*bulge;
     return [x+ox, y+oy];
   }
 
-  function drawFamily(angle, gap, baseAlpha, t, amp, lw){
+  function drawFamily(angle, gap, baseAlpha, t, amp, colShift, lwBase){
     const dx=Math.cos(angle), dy=Math.sin(angle);
     const px=-dy, py=dx;
-    const R=Math.hypot(w,h)*0.65;
+    const R=Math.hypot(w,h)*0.75;
     const n=Math.ceil(R/gap);
-    ctx.lineWidth=lw; ctx.lineJoin='round'; ctx.lineCap='round';
+    ctx.lineJoin='round'; ctx.lineCap='round';
     for(let k=-n;k<=n;k++){
       const off=k*gap, bx=cx+px*off, by=cy+py*off;
       const md=Math.hypot(bx-lx, by-ly);
       const lit=Math.max(0, 1 - md/(Math.min(w,h)*0.6));
-      ctx.strokeStyle=mix(AMBER,CREAM,lit*0.7);
-      ctx.globalAlpha=baseAlpha + lit*0.5;
+      // Lijndikte: basis + bas-zwelling + MID dikte-golf per lijn + HOOG knipper
+      const midWave = Math.sin(k*0.5 + t*3.0)*0.5 + 0.5;
+      ctx.lineWidth = Math.max(0.4, lwBase + lo*1.4 + mi*midWave*2.2 + hiBlink*1.6);
+      // Kleur: HOOG → cream/wit, LAAG → coral
+      let col = mix(AMBER,CREAM, Math.min(1, lit*0.7 + hi*0.6 + colShift));
+      if(lo>0.2){ const a=col.match(/\d+/g); col=mix([+a[0],+a[1],+a[2]],CORAL, Math.min(0.45, lo*0.4)); }
+      ctx.strokeStyle=col;
+      ctx.globalAlpha=baseAlpha + lit*0.5 + hi*0.12;
       const pts=[];
       for(let s=-R;s<=R;s+=step){ pts.push(warp(bx+dx*s, by+dy*s, t, amp)); }
       ctx.beginPath();
@@ -358,23 +387,59 @@
     }
   }
 
+  function bandAvg(d,a,b){ let s=0; for(let i=a;i<b;i++) s+=d[i]; return s/((b-a)*255); }
+
   let running = true;
   const startT=performance.now();
+  let phase = 0, lastFrame = performance.now();
   function frame(){
     if(!running) return;
-    const t=(performance.now()-startT)/1000;
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - lastFrame)/1000); lastFrame = now;
+    const t=(now-startT)/1000;
     lightPos(t);
+
+    // Doelwaarden per band uit de engine (mic/MIDI vult A.lo/mi/hi; MIDI gebruikt A.pulse)
+    let tlo = A.lo + A.pulse, tmi = A.mi + A.pulse*0.6, thi = A.hi + A.pulse*0.4, kick=0;
+    if(tlo > lo + 0.25) kick=1;
+    A.pulse *= 0.90;
+    // Smoothing: bas traag/zwaar, mid midden, hoog snel
+    lo += (tlo-lo)*0.18; mi += (tmi-mi)*0.25; hi += (thi-hi)*0.45;
+    loPulse = Math.max(loPulse*0.90, lo);
+    hiSpark += (hi-hiSpark)*0.5;
+    if(hi-prevHi>0.10) hiBlink=Math.min(1.2, hiBlink+(hi-prevHi)*3); prevHi=hi; hiBlink*=0.80;
+
+    // Flow-richting: MID roteert traag, kick kantelt, HOOG wiebelt
+    flowDirVel += mi*0.5*dt;
+    if(kick) kickKick = (Math.random()<0.5?-1:1)*0.6;
+    kickKick *= 0.88;
+    const wobble = Math.sin(t*22)*hi*0.12;
+    flowDir += (flowDirVel + kickKick*4)*dt; flowDirVel *= 0.96;
+    const baseAngle = Math.PI/4 + flowDir + wobble + loPulse*0.15;
+    const speed = 8 + mi*26 + loPulse*10; phase += speed*dt;
+
+    const lineAlpha = 0.30 + Math.min(0.40, (mi+hi)*0.3);
     ctx.globalAlpha=1; ctx.fillStyle='#12151A'; ctx.fillRect(0,0,w,h);
-    const g=ctx.createRadialGradient(lx,ly,0, lx,ly, lensR*2.6);
-    g.addColorStop(0,'rgba(226,168,98,0.18)');
+    const glowBoost = 1 + lo*0.9;
+    const g=ctx.createRadialGradient(lx,ly,0, lx,ly, lensR*2.6*glowBoost);
+    g.addColorStop(0,'rgba(226,168,98,'+(0.16+hi*0.3)+')');
     g.addColorStop(0.5,'rgba(200,136,74,0.05)');
     g.addColorStop(1,'rgba(200,136,74,0)');
     ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
-    const ph=(t*8)%spacing;
-    ctx.save(); ctx.translate( Math.cos(Math.PI/4)*ph,  Math.sin(Math.PI/4)*ph);
-    drawFamily( Math.PI/4, spacing, 0.30, t, 30, 1.0); ctx.restore();
-    ctx.save(); ctx.translate(-Math.cos(-Math.PI/4)*ph, -Math.sin(-Math.PI/4)*ph);
-    drawFamily(-Math.PI/4, spacing, 0.30, t, 30, 1.0); ctx.restore();
+
+    const ph=phase%spacing, a1=baseAngle, a2=baseAngle+Math.PI/2;
+    ctx.save(); ctx.translate( Math.cos(a1)*ph,  Math.sin(a1)*ph);
+    drawFamily(a1, spacing, lineAlpha, t, 14, 0, 1.0); ctx.restore();
+    ctx.save(); ctx.translate( Math.cos(a2)*ph,  Math.sin(a2)*ph);
+    drawFamily(a2, spacing, lineAlpha, t, 14, 0, 1.0); ctx.restore();
+    // EXTRA LAAG: fijner, tegendraaiend, sprankelt op hoog
+    if(extraLayer){
+      const ea=-baseAngle*1.6 + t*0.05, eph=(phase*0.6)%(spacing*0.62), ealpha=0.10+hi*0.30;
+      ctx.save(); ctx.translate( Math.cos(ea)*eph,  Math.sin(ea)*eph);
+      drawFamily(ea, spacing*0.62, ealpha, t, 9, 0.3, 0.6); ctx.restore();
+      ctx.save(); ctx.translate( Math.cos(ea+Math.PI/2)*eph,  Math.sin(ea+Math.PI/2)*eph);
+      drawFamily(ea+Math.PI/2, spacing*0.62, ealpha, t, 9, 0.3, 0.6); ctx.restore();
+    }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -442,7 +507,7 @@
       'gen-back': 'Terug naar site',
       'gen-label': 'Stel je samen',
       'gen-t1': 'Ontwerp je eigen',
-      'gen-sub': 'Kies een model in de 3D&#8209;configurator, of teken je eigen ruitpatroon dat het licht filtert.',
+      'gen-sub': 'Bekijk elke variant in 3D — wissel materiaal en kleur, en zie je lichtobject van alle kanten.',
       'gen-c1-name': 'Kies je model',
       'gen-c1-desc': 'Bekijk elke variant in 3D. Wissel materiaal en kleur, draai en zoom, en zie je lichtobject van alle kanten.',
       'gen-c1-go': 'Open configurator',
@@ -454,7 +519,7 @@
       'gen-back': 'Back to site',
       'gen-label': 'Configure',
       'gen-t1': 'Design your own',
-      'gen-sub': 'Pick a model in the 3D configurator, or draw your own diamond pattern that filters the light.',
+      'gen-sub': 'View every variant in 3D — switch material and colour, and see your light object from every angle.',
       'gen-c1-name': 'Choose your model',
       'gen-c1-desc': 'View every variant in 3D. Switch material and colour, rotate and zoom, and see your light object from every angle.',
       'gen-c1-go': 'Open configurator',
@@ -466,7 +531,7 @@
       'gen-back': 'Zurück zur Website',
       'gen-label': 'Zusammenstellen',
       'gen-t1': 'Gestalte dein eigenes',
-      'gen-sub': 'Wähle ein Modell im 3D-Konfigurator oder zeichne dein eigenes Rautenmuster, das das Licht filtert.',
+      'gen-sub': 'Betrachte jede Variante in 3D — wechsle Material und Farbe und sieh dein Lichtobjekt von allen Seiten.',
       'gen-c1-name': 'Modell wählen',
       'gen-c1-desc': 'Betrachte jede Variante in 3D. Wechsle Material und Farbe, drehe und zoome, und sieh dein Lichtobjekt von allen Seiten.',
       'gen-c1-go': 'Konfigurator öffnen',
@@ -487,6 +552,9 @@
     if(backSpan && dict['gen-back']) backSpan.textContent = dict['gen-back'];
     // Document taal + knoppen
     document.documentElement.lang = lang;
+    window.RH_GEN_LANG = lang;
+    // Audio-knoppen herlabelen naar huidige taal (alleen als ze niet 'actief' staan)
+    if(typeof window.rhRelabelAudio === 'function') window.rhRelabelAudio();
     ['nl','en','de'].forEach(l=>{
       const b = document.getElementById('genBtn-'+l);
       if(b) b.classList.toggle('active', l===lang);
@@ -512,5 +580,137 @@
 })();
 </script>
 
+<script>
+// ── Audio-reactie: microfoon + MIDI ──
+(function(){
+  const A = (window.rhAudio = window.rhAudio || { level:0, pulse:0, active:false });
+  const micBtn  = document.getElementById('rhMicBtn');
+  const midiBtn = document.getElementById('rhMidiBtn');
+
+  // ===== Microfoon =====
+  let audioCtx=null, analyser=null, micStream=null, micData=null, micRAF=null, micOn=false;
+  async function startMic(){
+    try{
+      micStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false } });
+    }catch(e){
+      flash(micBtn, txt('gen-mic-geen'));
+      return;
+    }
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') await audioCtx.resume();
+    const src = audioCtx.createMediaStreamSource(micStream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024; analyser.smoothingTimeConstant = 0.75;
+    src.connect(analyser);
+    micData = new Uint8Array(analyser.frequencyBinCount);
+    micOn = true; A.active = true;
+    micBtn.classList.add('active');
+    setLabel(micBtn, txt('gen-mic-aan'));
+    loopMic();
+  }
+  function bandAvgEng(d,a,b){ let s=0; for(let i=a;i<b;i++) s+=d[i]; return s/((b-a)*255); }
+  function loopMic(){
+    if(!micOn) return;
+    analyser.getByteFrequencyData(micData);
+    const N = micData.length;
+    A.lo = bandAvgEng(micData, 0, Math.floor(N*0.08)) * 2.4;                 // bas/kick
+    A.mi = bandAvgEng(micData, Math.floor(N*0.08), Math.floor(N*0.35)) * 2.6; // mid
+    A.hi = bandAvgEng(micData, Math.floor(N*0.35), Math.floor(N*0.85)) * 3.2; // hoog
+    micRAF = requestAnimationFrame(loopMic);
+  }
+  function stopMic(){
+    micOn=false; A.lo=0; A.mi=0; A.hi=0;
+    if(micRAF) cancelAnimationFrame(micRAF);
+    if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
+    micBtn.classList.remove('active');
+    setLabel(micBtn, txt('gen-mic'));
+    A.active = midiOn;
+  }
+  window.rhToggleMic = function(){ micOn ? stopMic() : startMic(); };
+
+  // ===== MIDI =====
+  let midiAccess=null, midiOn=false;
+  async function startMidi(){
+    if(!navigator.requestMIDIAccess){
+      flash(midiBtn, txt('gen-midi-geen')); return;
+    }
+    try{
+      midiAccess = await navigator.requestMIDIAccess();
+    }catch(e){
+      flash(midiBtn, txt('gen-midi-geen')); return;
+    }
+    const inputs = [...midiAccess.inputs.values()];
+    if(inputs.length===0){
+      flash(midiBtn, txt('gen-midi-geen')); return;
+    }
+    inputs.forEach(inp => inp.onmidimessage = onMidi);
+    midiAccess.onstatechange = ()=>{
+      [...midiAccess.inputs.values()].forEach(inp => inp.onmidimessage = onMidi);
+    };
+    midiOn = true; A.active = true;
+    midiBtn.classList.add('active');
+    setLabel(midiBtn, txt('gen-midi-aan'));
+  }
+  function onMidi(e){
+    const [status, note, vel] = e.data;
+    const cmd = status & 0xf0;
+    if(cmd===0x90 && vel>0){       // note-on
+      A.pulse = Math.min(1.5, A.pulse + (vel/127)*0.9);
+    }
+  }
+  function stopMidi(){
+    midiOn=false;
+    if(midiAccess){ [...midiAccess.inputs.values()].forEach(inp => inp.onmidimessage=null); }
+    midiBtn.classList.remove('active');
+    setLabel(midiBtn, txt('gen-midi'));
+    A.active = micOn;
+  }
+  window.rhToggleMidi = function(){ midiOn ? stopMidi() : startMidi(); };
+
+  // ===== Extra patroonlaag =====
+  const extraBtn = document.getElementById('rhExtraBtn');
+  let extraOn = false;
+  window.rhToggleExtra = function(){
+    extraOn = !extraOn;
+    if(window.rhSetExtraLayer) window.rhSetExtraLayer(extraOn);
+    extraBtn.classList.toggle('active', extraOn);
+    setLabel(extraBtn, txt(extraOn ? 'gen-extra-aan' : 'gen-extra'));
+  };
+
+  // ===== helpers =====
+  function setLabel(btn, t){ const s=btn.querySelector('span'); if(s) s.textContent=t; }
+  function flash(btn, t){
+    const s=btn.querySelector('span'); if(!s) return;
+    const orig=s.textContent; s.textContent=t; btn.classList.add('warn');
+    setTimeout(()=>{ s.textContent=orig; btn.classList.remove('warn'); }, 2200);
+  }
+  // Vertaalde labels (valt terug op NL)
+  function txt(key){
+    const L = (window.RH_GEN_LANG)||'nl';
+    const D = {
+      nl:{ 'gen-mic':'Laat reageren op geluid','gen-mic-aan':'Luistert… (klik om te stoppen)','gen-mic-geen':'Geen microfoon-toegang',
+           'gen-midi':'MIDI-keyboard','gen-midi-aan':'MIDI actief (klik om te stoppen)','gen-midi-geen':'Geen MIDI-apparaat gevonden',
+           'gen-extra':'Extra patroon','gen-extra-aan':'Extra patroon: aan' },
+      en:{ 'gen-mic':'React to sound','gen-mic-aan':'Listening… (click to stop)','gen-mic-geen':'No microphone access',
+           'gen-midi':'MIDI keyboard','gen-midi-aan':'MIDI active (click to stop)','gen-midi-geen':'No MIDI device found',
+           'gen-extra':'Extra pattern','gen-extra-aan':'Extra pattern: on' },
+      de:{ 'gen-mic':'Auf Klang reagieren','gen-mic-aan':'Hört zu… (zum Stoppen klicken)','gen-mic-geen':'Kein Mikrofonzugriff',
+           'gen-midi':'MIDI-Keyboard','gen-midi-aan':'MIDI aktiv (zum Stoppen klicken)','gen-midi-geen':'Kein MIDI-Gerät gefunden',
+           'gen-extra':'Extra Muster','gen-extra-aan':'Extra Muster: an' }
+    };
+    return (D[L]&&D[L][key]) || D.nl[key] || key;
+  }
+  // Herlabel knoppen bij taalwissel (alleen in rust-staat)
+  window.rhRelabelAudio = function(){
+    if(!micOn)  setLabel(micBtn,  txt('gen-mic'));
+    else        setLabel(micBtn,  txt('gen-mic-aan'));
+    if(!midiOn) setLabel(midiBtn, txt('gen-midi'));
+    else        setLabel(midiBtn, txt('gen-midi-aan'));
+    setLabel(extraBtn, txt(extraOn ? 'gen-extra-aan' : 'gen-extra'));
+  };
+  // Stop alles als de pagina sluit
+  window.addEventListener('pagehide', ()=>{ stopMic(); });
+})();
+</script>
 </body>
 </html>
