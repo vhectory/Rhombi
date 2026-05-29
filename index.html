@@ -2633,6 +2633,7 @@ window.addEventListener('load', function() {
             <span class="mat-slide-name">Basic</span>
             <p class="mat-slide-desc">Glad oppervlak met een lichte satijnglans. Licht schijnt helder en egaal door de kap. De standaard keuze.</p>
             <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Glad</span></div><div class="mat-slide-prop"><span>Licht</span><span>Helder · egaal</span></div><div class="mat-slide-prop"><span>Glans</span><span>Licht satijn</span></div></div>
+            <button class="kleur-waaier-btn" onclick="openKleurenwaaier('pla-basic','PLA Basic')">◆ Bekijk kleuren</button>
           </div>
         </div>
         <div class="mat-slide">
@@ -2645,6 +2646,7 @@ window.addEventListener('load', function() {
             <span class="mat-slide-name">Mat</span>
             <p class="mat-slide-desc">Volledig matte afwerking. Licht wordt diffuus verstrooid voor een zachte, warme sfeer.</p>
             <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Mat</span></div><div class="mat-slide-prop"><span>Licht</span><span>Diffuus · warm</span></div><div class="mat-slide-prop"><span>Glans</span><span>Geen</span></div></div>
+            <button class="kleur-waaier-btn" onclick="openKleurenwaaier('pla-mat','PLA Mat')">◆ Bekijk kleuren</button>
           </div>
         </div>
         <div class="mat-slide">
@@ -2657,18 +2659,20 @@ window.addEventListener('load', function() {
             <span class="mat-slide-name">Carbon</span>
             <p class="mat-slide-desc">Koolstofvezel versterkt PLA. Donker en industrieel. Licht filtert spaarzaam door de textuur.</p>
             <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Vezeltextuur</span></div><div class="mat-slide-prop"><span>Licht</span><span>Spaarzaam · dramatisch</span></div><div class="mat-slide-prop"><span>Glans</span><span>Subtiel</span></div></div>
+            <button class="kleur-waaier-btn" onclick="openKleurenwaaier('pla-cf','PLA Carbon')">◆ Bekijk kleuren</button>
           </div>
         </div>
         <div class="mat-slide">
-          <div class="mat-slide-photo rhombi-frame" style="background:linear-gradient(135deg, #9A9A9A 0%, #C8C8C8 40%, #787878 80%, #B0B0B0 100%)">
-            <img decoding="async" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-folder="materiaal/metal" alt="Rhombi Metal" loading="lazy"
+          <div class="mat-slide-photo rhombi-frame" style="background:linear-gradient(135deg, #2A1A4A 0%, #5A2880 35%, #1C3D58 70%, #6A3820 100%)">
+            <img decoding="async" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-folder="materiaal/nebula" alt="Rhombi Nebula" loading="lazy"
               onerror="this.style.display='none'">
           </div>
           <div class="mat-slide-text">
-            <span class="mat-slide-tag">◆ Metal PLA</span>
-            <span class="mat-slide-name">Metal</span>
-            <p class="mat-slide-desc">Metaalpoeder in het filament geeft een echte metaalglans. Reflecterend, zwaar van uitstraling.</p>
-            <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Metaalglans</span></div><div class="mat-slide-prop"><span>Licht</span><span>Gereflecteerd</span></div><div class="mat-slide-prop"><span>Glans</span><span>Hoog</span></div></div>
+            <span class="mat-slide-tag">◆ PLA Nebula</span>
+            <span class="mat-slide-name">Nebula</span>
+            <p class="mat-slide-desc">Diepe, kosmische kleuren met subtiele glans en glittervlekken. Licht onthult een mysterieus, sterrenstelsel-achtig oppervlak.</p>
+            <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Glans · glittervlekken</span></div><div class="mat-slide-prop"><span>Licht</span><span>Onthult dieptewerking</span></div><div class="mat-slide-prop"><span>Glans</span><span>Mat · met sparkles</span></div></div>
+            <button class="kleur-waaier-btn" onclick="openKleurenwaaier('pla-nebula','PLA Nebula')">◆ Bekijk kleuren</button>
           </div>
         </div>
         <div class="mat-slide">
@@ -2681,6 +2685,7 @@ window.addEventListener('load', function() {
             <span class="mat-slide-name">Translucent</span>
             <p class="mat-slide-desc">Doorschijnend materiaal voor maximale lichtdoorlatendheid. De printstructuur wordt zelf onderdeel van het effect.</p>
             <div class="mat-slide-props"><div class="mat-slide-prop"><span>Oppervlak</span><span>Transparant</span></div><div class="mat-slide-prop"><span>Licht</span><span>Maximaal · structuur zichtbaar</span></div><div class="mat-slide-prop"><span>Glans</span><span>Licht</span></div></div>
+            <button class="kleur-waaier-btn" onclick="openKleurenwaaier('pla-translucent','PLA Translucent')">◆ Bekijk kleuren</button>
           </div>
         </div>
       </div>
@@ -2689,7 +2694,7 @@ window.addEventListener('load', function() {
       <span class="mat-label" data-idx="0">Basic</span>
       <span class="mat-label" data-idx="1">Mat</span>
       <span class="mat-label" data-idx="2">Carbon</span>
-      <span class="mat-label" data-idx="3">Metal</span>
+      <span class="mat-label" data-idx="3">Nebula</span>
       <span class="mat-label" data-idx="4">Translucent</span>
     </div>
     <div class="materialen-nav">
@@ -4235,5 +4240,213 @@ document.addEventListener('DOMContentLoaded', () => {
   <button onclick="closeConfigurator()" style="position:absolute;top:20px;right:24px;z-index:10;background:none;border:1px solid rgba(200,136,74,.4);color:var(--cream);font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:10px 20px;cursor:pointer">✕ Sluiten</button>
   <iframe id="confFrame" src="" style="width:100%;height:100%;border:none;display:block" allow="xr-spatial-tracking; camera; accelerometer; gyroscope" allowfullscreen></iframe>
 </div>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- KLEURENWAAIER OVERLAY                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<style>
+.kleur-waaier-btn {
+  margin-top: 18px;
+  background: none; border: 1px solid rgba(200,136,74,.4);
+  color: var(--amber); font-family: var(--mono);
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  padding: 10px 20px; cursor: pointer;
+  transition: all .25s;
+  align-self: flex-start;
+}
+.kleur-waaier-btn:hover {
+  background: var(--amber); color: var(--dark);
+  border-color: var(--amber);
+}
+
+.waaier-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(18,21,26,.94); backdrop-filter: blur(10px);
+  display: none; align-items: center; justify-content: center;
+  padding: 32px; opacity: 0;
+  transition: opacity .3s;
+}
+.waaier-overlay.open {
+  display: flex; opacity: 1;
+}
+.waaier-modal {
+  background: var(--dark2); color: var(--cream);
+  max-width: 1100px; width: 100%; max-height: 90vh;
+  padding: 40px 48px;
+  border: 1px solid rgba(200,136,74,.2);
+  overflow-y: auto;
+  position: relative;
+  transform: scale(.96);
+  transition: transform .3s;
+}
+.waaier-overlay.open .waaier-modal {
+  transform: scale(1);
+}
+.waaier-close {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none;
+  color: var(--text-dim); cursor: pointer;
+  font-size: 24px; line-height: 1; padding: 8px 12px;
+  transition: color .2s;
+}
+.waaier-close:hover { color: var(--amber); }
+
+.waaier-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: .28em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 10px;
+}
+.waaier-title {
+  font-family: var(--sans); font-size: 32px; font-weight: 300;
+  color: var(--cream); line-height: 1.1; margin: 0 0 8px;
+}
+.waaier-intro {
+  font-size: 13px; line-height: 1.6; color: var(--text);
+  margin-bottom: 6px;
+}
+.waaier-note {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .04em;
+  color: var(--text-dim); margin-bottom: 24px;
+}
+
+.waaier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+  gap: 8px 6px;
+  margin-top: 8px;
+}
+.waaier-swatch {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px;
+}
+.waaier-swatch svg {
+  width: 100%; aspect-ratio: 1.1 / 1; display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+}
+.waaier-name {
+  font-family: var(--sans); font-size: 10px; color: var(--cream);
+  text-align: center; line-height: 1.2; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.waaier-hex {
+  font-family: var(--mono); font-size: 8px; color: var(--text-dim);
+  letter-spacing: 0;
+}
+
+@media (max-width: 720px) {
+  .waaier-overlay { padding: 16px; }
+  .waaier-modal { padding: 28px 22px; }
+  .waaier-title { font-size: 24px; }
+  .waaier-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
+}
+</style>
+
+<div class="waaier-overlay" id="waaierOverlay" onclick="if(event.target===this)sluitKleurenwaaier()">
+  <div class="waaier-modal">
+    <button class="waaier-close" onclick="sluitKleurenwaaier()" aria-label="Sluiten">×</button>
+    <div class="waaier-label" id="waaierLabel">◆ Kleurenoverzicht</div>
+    <h3 class="waaier-title" id="waaierTitle">PLA Basic</h3>
+    <p class="waaier-intro" id="waaierIntro">Beschikbare kleuren binnen dit materiaal.</p>
+    <p class="waaier-note">Beschikbaarheid kan wisselen — vraag in de galerie of via rhombi.nl naar actuele voorraad.</p>
+    <div class="waaier-grid" id="waaierGrid"></div>
+  </div>
+</div>
+
+<script>
+// Kleur data uit configurator
+const WAAIER_KLEUREN = {
+  "pla-basic": [
+    {n:"Wit",h:"#F2F0EE"},{n:"Lichtroze",h:"#F0D8CC"},{n:"Lichtgrijs",h:"#D0CCCA"},
+    {n:"Geel",h:"#F0D800"},{n:"Oranjegeel",h:"#F0A800"},{n:"Zand",h:"#D4A868"},
+    {n:"Oranje",h:"#F07010"},{n:"Donkeroranje",h:"#D85010"},{n:"Limoen",h:"#90D010"},
+    {n:"Groen",h:"#10B830"},{n:"Donkergroen",h:"#187830"},{n:"Felroze",h:"#F04878"},
+    {n:"Roze",h:"#F07090"},{n:"Magenta",h:"#D01878"},{n:"Rood",h:"#C02020"},
+    {n:"Bordeaux",h:"#881828"},{n:"Lavendel",h:"#9878D0"},{n:"Paars",h:"#601880"},
+    {n:"Cyaan",h:"#00C8C0"},{n:"Lichtblauw",h:"#20A0E0"},{n:"Blauw",h:"#1840C8"},
+    {n:"Marineblauw",h:"#102070"},{n:"Terracotta",h:"#B04830"},{n:"Bruin",h:"#705030"},
+    {n:"Olijf",h:"#686820"},{n:"Grijs",h:"#888880"},{n:"Lichtgrijs 2",h:"#B0B0A8"},
+    {n:"Leisteenblauw",h:"#6878A0"},{n:"Donkergrijs",h:"#484848"},{n:"Zwart",h:"#181818"},
+  ],
+  "pla-mat": [
+    {n:"Wit",h:"#F0EEE8"},{n:"Taupe",h:"#C8B8A0"},{n:"Geel",h:"#E8C800"},
+    {n:"Oranje",h:"#E87840"},{n:"Lichtroze",h:"#F0A8B8"},{n:"Lavendel",h:"#A890D0"},
+    {n:"Magenta",h:"#A00858"},{n:"Rood",h:"#D03028"},{n:"Donkerrood",h:"#A02020"},
+    {n:"Limoen",h:"#A0D020"},{n:"Groen",h:"#30B840"},{n:"Legergroen",h:"#4A6030"},
+    {n:"Mintgroen",h:"#70D8C8"},{n:"Lichtblauw",h:"#50B8E0"},{n:"Blauw",h:"#1858C0"},
+    {n:"Marineblauw",h:"#102050"},{n:"Crème",h:"#EEE0B8"},{n:"Nude",h:"#D8B898"},
+    {n:"Caramel",h:"#B87840"},{n:"Terracotta",h:"#C05830"},{n:"Grijsbruin",h:"#907060"},
+    {n:"Donkerbruin",h:"#5A3820"},{n:"Lichtgrijs",h:"#B0AEA8"},{n:"Grijs",h:"#808078"},
+    {n:"Zwart",h:"#181614"},
+  ],
+  "pla-translucent": [
+    {n:"Teal",h:"#00A898"},{n:"Blauw",h:"#1030C0"},{n:"Paars",h:"#6820A0"},
+    {n:"Oranje",h:"#E06010"},{n:"Rood",h:"#C01820"},{n:"Mintgroen",h:"#80D898"},
+    {n:"Crème",h:"#F0E0A8"},{n:"Roze",h:"#F0A0B8"},{n:"Lichtlila",h:"#C0B0E0"},
+    {n:"Lila",h:"#A890C8"},
+  ],
+  "pla-nebula": [
+    {n:"Paars",h:"#6828A0"},{n:"Donkergroen",h:"#1A5C40"},
+    {n:"Marineblauw",h:"#1E2D58"},{n:"Bruin",h:"#6A3820"},
+  ],
+  "pla-cf": [
+    {n:"Groen",h:"#4A6830"},{n:"Donkerrood",h:"#7A1E1E"},{n:"Lichtblauw",h:"#7A90B0"},
+    {n:"Donkergrijs",h:"#484848"},{n:"Zwart",h:"#151210"},{n:"Blauw",h:"#1E3A80"},
+    {n:"Paars",h:"#602090"},
+  ],
+};
+
+// Kap-vorm uit Rhombi logo
+const WAAIER_KAP_PATH = "M1087.5,543C1087.01,540.55 1085.11,539.12 1083.5,537.5C1009.5,463.5 935.65,389.35 861.36,315.64C847.48,301.87 833.73,287.93 819.47,274.54C784.66,241.85 750.3,208.61 711.49,180.51C690.65,165.42 668.59,152.47 643.96,144.62C631.71,140.72 619.02,138.33 606,138.48C594.83,138.6 583.68,138.08 572.5,138.17C547.13,138.37 523.52,144.21 501,155.48C477.47,167.23 456.29,182.46 436.01,199.02C418.44,213.36 401.57,228.5 384.93,243.93C369.71,258.04 354.82,272.48 339.96,286.96C255.39,369.39 172.82,453.82 89.01,537.01C87,539.01 84.67,540.77 83.51,543.46C84.42,545.81 86.32,547.32 88,549C226.67,687.67 365.35,826.32 503.93,965.07C507.21,968.35 510.48,969.41 514.99,969.62C553.16,971.42 591.33,970.16 629.5,970.44C639.66,970.51 649.83,969.77 660,969.56C661.67,969.53 662.88,968.93 663.98,967.98C665.4,966.74 666.67,965.33 668,964C806,826 944,688 1082,550C1084.01,547.98 1086.27,546.18 1087.5,543.5Z";
+
+function _waaierIsLight(hex) {
+  const r = parseInt(hex.substr(1,2),16);
+  const g = parseInt(hex.substr(3,2),16);
+  const b = parseInt(hex.substr(5,2),16);
+  return (r*299 + g*587 + b*114) / 1000 > 200;
+}
+
+function openKleurenwaaier(matId, matNaam) {
+  const overlay = document.getElementById('waaierOverlay');
+  const title = document.getElementById('waaierTitle');
+  const intro = document.getElementById('waaierIntro');
+  const grid = document.getElementById('waaierGrid');
+  const kleuren = WAAIER_KLEUREN[matId] || [];
+
+  title.textContent = matNaam;
+  intro.textContent = kleuren.length + ' kleuren beschikbaar.';
+  grid.innerHTML = kleuren.map((c,i) => {
+    const stroke = _waaierIsLight(c.h) ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.3)';
+    const gid = 'gw' + matId.replace(/[^a-z0-9]/g,'') + i;
+    return `<div class="waaier-swatch">
+      <svg viewBox="50 100 1100 920" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="${gid}" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="white" stop-opacity="0.3"/>
+            <stop offset="60%" stop-color="white" stop-opacity="0"/>
+            <stop offset="100%" stop-color="black" stop-opacity="0.25"/>
+          </linearGradient>
+        </defs>
+        <path d="${WAAIER_KAP_PATH}" fill="${c.h}" stroke="${stroke}" stroke-width="6"/>
+        <path d="${WAAIER_KAP_PATH}" fill="url(#${gid})"/>
+      </svg>
+      <div class="waaier-name">${c.n}</div>
+      <div class="waaier-hex">${c.h}</div>
+    </div>`;
+  }).join('');
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function sluitKleurenwaaier() {
+  document.getElementById('waaierOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ESC sluit overlay
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') sluitKleurenwaaier();
+});
+</script>
+
 </body>
 </html>
