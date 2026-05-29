@@ -1,30 +1,496 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
   <url>
     <loc>https://rhombi.nl/</loc>
-    <lastmod>2026-05-02</lastmod>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/resized_20260427_160113.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/combii.JPG</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/IMG-20250807-WA0003.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/IMG-20250807-WA0002.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260407_151526~2.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260407_151450.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260406_154505.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260406_114142.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260406_095448~2.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260406_094723.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260225_093800.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260225_093739.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260225_093626.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260225_093517.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260215_175213.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260215_175055.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260214_175505.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260214_153151~2.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20260120_151142.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20251227_111600.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/sfeer/20250118_183242.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/resized_20260427_100212.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/resized_20260427_095020.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20260407_151548~2.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20260406_114356.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20260406_095341.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20260406_094723.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20260406_094623.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20260225_182158.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20260225_095629.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20260225_095501.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20260225_094251.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/kunst/20250912_122652.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hero/resized_20260501_102113.jpg</image:loc>
+      <image:title>Rhombi modulair lichtobject</image:title>
+      <image:caption>Rhombi modulair lichtobject — geometrisch 3D-geprint design, Studio Vhector Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hero/resized_20260427_160113.jpg</image:loc>
+      <image:title>Rhombi modulair lichtobject</image:title>
+      <image:caption>Rhombi modulair lichtobject — geometrisch 3D-geprint design, Studio Vhector Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hero/resized_20260427_095020.jpg</image:loc>
+      <image:title>Rhombi modulair lichtobject</image:title>
+      <image:caption>Rhombi modulair lichtobject — geometrisch 3D-geprint design, Studio Vhector Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hero/20260406_154505.jpg</image:loc>
+      <image:title>Rhombi modulair lichtobject</image:title>
+      <image:caption>Rhombi modulair lichtobject — geometrisch 3D-geprint design, Studio Vhector Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hero/20260406_114142.jpg</image:loc>
+      <image:title>Rhombi modulair lichtobject</image:title>
+      <image:caption>Rhombi modulair lichtobject — geometrisch 3D-geprint design, Studio Vhector Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hero/20260225_182210.jpg</image:loc>
+      <image:title>Rhombi modulair lichtobject</image:title>
+      <image:caption>Rhombi modulair lichtobject — geometrisch 3D-geprint design, Studio Vhector Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hero/20260225_103336.jpg</image:loc>
+      <image:title>Rhombi modulair lichtobject</image:title>
+      <image:caption>Rhombi modulair lichtobject — geometrisch 3D-geprint design, Studio Vhector Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hero/20260225_093517.jpg</image:loc>
+      <image:title>Rhombi modulair lichtobject</image:title>
+      <image:caption>Rhombi modulair lichtobject — geometrisch 3D-geprint design, Studio Vhector Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hero/20260214_175505.jpg</image:loc>
+      <image:title>Rhombi modulair lichtobject</image:title>
+      <image:caption>Rhombi modulair lichtobject — geometrisch 3D-geprint design, Studio Vhector Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/resized_20260427_100212.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/resized_20260427_095020.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/original_7df9f40d-eb91-4ccf-8d86-ae9fd11abde0_20260225_182112.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260406_095904~2.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260406_094540.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260225_182158.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260225_182128.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260225_154259.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260225_123108.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260215_175055(1).jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260215_114157.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260214_153218.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260121_132319.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20260121_131017.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20251227_110714.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20251227_110658.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20251227_110324.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/tafel/20251227_110242.jpg</image:loc>
+      <image:title>Rhombi tafellichtobject</image:title>
+      <image:caption>Rhombi tafellichtobject — modulair geometrisch design, 3D-geprint PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/accent/resized_20260410_161158.jpg</image:loc>
+      <image:title>Rhombi accentlichtobject</image:title>
+      <image:caption>Rhombi accentlichtobject — sculpturaal geometrisch lichtobject, 3D-geprint.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/accent/20260406_114238.jpg</image:loc>
+      <image:title>Rhombi accentlichtobject</image:title>
+      <image:caption>Rhombi accentlichtobject — sculpturaal geometrisch lichtobject, 3D-geprint.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/accent/20260406_095738~2.jpg</image:loc>
+      <image:title>Rhombi accentlichtobject</image:title>
+      <image:caption>Rhombi accentlichtobject — sculpturaal geometrisch lichtobject, 3D-geprint.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/accent/20260406_095352~2.jpg</image:loc>
+      <image:title>Rhombi accentlichtobject</image:title>
+      <image:caption>Rhombi accentlichtobject — sculpturaal geometrisch lichtobject, 3D-geprint.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/accent/20260225_094513.jpg</image:loc>
+      <image:title>Rhombi accentlichtobject</image:title>
+      <image:caption>Rhombi accentlichtobject — sculpturaal geometrisch lichtobject, 3D-geprint.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/accent/20250104_091541.jpg</image:loc>
+      <image:title>Rhombi accentlichtobject</image:title>
+      <image:caption>Rhombi accentlichtobject — sculpturaal geometrisch lichtobject, 3D-geprint.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/accent/20241101_190630.jpg</image:loc>
+      <image:title>Rhombi accentlichtobject</image:title>
+      <image:caption>Rhombi accentlichtobject — sculpturaal geometrisch lichtobject, 3D-geprint.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/wand/resized_20260510_124508.jpg</image:loc>
+      <image:title>Rhombi wandlichtobject</image:title>
+      <image:caption>Rhombi wandlichtobject — geometrisch lichtobject voor wandmontage.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/wand/20250822_135224.jpg</image:loc>
+      <image:title>Rhombi wandlichtobject</image:title>
+      <image:caption>Rhombi wandlichtobject — geometrisch lichtobject voor wandmontage.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/plafond/resized_20260501_102113.jpg</image:loc>
+      <image:title>Rhombi plafondlichtobject</image:title>
+      <image:caption>Rhombi plafondlichtobject — geometrisch lichtobject voor het plafond, 3D-geprint.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/plafond/20260117_184346.jpg</image:loc>
+      <image:title>Rhombi plafondlichtobject</image:title>
+      <image:caption>Rhombi plafondlichtobject — geometrisch lichtobject voor het plafond, 3D-geprint.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/resized_20260510_134905.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/resized_20260510_134045.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/resized_20260510_133922.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/resized_20260510_133727.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/resized_20260430_144743.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/resized_20260430_144611.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/resized_20260416_135316.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/20260202_095239.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/20260202_095233.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/hang/20260123_120703.jpg</image:loc>
+      <image:title>Rhombi hanglichtobject</image:title>
+      <image:caption>Rhombi hanglichtobject — geometrisch hangend lichtobject, modulair design.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/uitleg/resized_20260430_144743.jpg</image:loc>
+      <image:title>Rhombi lichtobject in interieur</image:title>
+      <image:caption>Rhombi lichtobject in interieur — Galerie T Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/uitleg/20260407_151526~2.jpg</image:loc>
+      <image:title>Rhombi lichtobject in interieur</image:title>
+      <image:caption>Rhombi lichtobject in interieur — Galerie T Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/uitleg/20260406_114142.jpg</image:loc>
+      <image:title>Rhombi lichtobject in interieur</image:title>
+      <image:caption>Rhombi lichtobject in interieur — Galerie T Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/uitleg/20260225_123108.jpg</image:loc>
+      <image:title>Rhombi lichtobject in interieur</image:title>
+      <image:caption>Rhombi lichtobject in interieur — Galerie T Middelburg.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/ontwerper/IMG-20250912-WA0003-EDIT.jpg</image:loc>
+      <image:title>Studio Vhector — Vincent Hector</image:title>
+      <image:caption>Vincent Hector, ontwerper van Rhombi lichtobjecten.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/geometrie/20260406_100005~2.jpg</image:loc>
+      <image:title>Rhombi geometrie detail</image:title>
+      <image:caption>Detail van het geometrische ruitpatroon in een Rhombi lichtobject.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/materiaal/basic/20260225_135423.jpg</image:loc>
+      <image:title>Rhombi PLA Basic</image:title>
+      <image:caption>Rhombi lichtobject in PLA Basic afwerking.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/materiaal/mat/20260225_160722.jpg</image:loc>
+      <image:title>Rhombi PLA Mat</image:title>
+      <image:caption>Rhombi lichtobject in matte PLA afwerking.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/materiaal/mat/20260225_160646.jpg</image:loc>
+      <image:title>Rhombi PLA Mat</image:title>
+      <image:caption>Rhombi lichtobject in matte PLA afwerking.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/materiaal/cf/20260226_091901.jpg</image:loc>
+      <image:title>Rhombi PLA Carbon</image:title>
+      <image:caption>Rhombi lichtobject in carbonvezel PLA.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/materiaal/metal/20260225_160620.jpg</image:loc>
+      <image:title>Rhombi lichtobject</image:title>
+      <image:caption>Rhombi geometrisch lichtobject, Studio Vhector.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://rhombi.nl/fotos/materiaal/translucent/translucent.JPG</image:loc>
+      <image:title>Rhombi PLA Translucent</image:title>
+      <image:caption>Rhombi lichtobject in doorschijnend PLA.</image:caption>
+    </image:image>
   </url>
 
   <url>
     <loc>https://rhombi.nl/viewer.html</loc>
-    <lastmod>2026-05-02</lastmod>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://rhombi.nl/rhombi-prijslijst.html</loc>
-    <lastmod>2026-05-02</lastmod>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
     <loc>https://rhombi.nl/rhombi-matrix-prijslijst.html</loc>
-    <lastmod>2026-05-02</lastmod>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
