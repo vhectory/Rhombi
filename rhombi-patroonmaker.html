@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rhombi — Patroon Maker v2.05</title>
+<!-- STL alvast vooraf downloaden zodat ze klaar zijn als de JS ze nodig heeft -->
+<link rel="preload" href="stl/kap.stl" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="stl/kap_rest.stl" as="fetch" crossorigin="anonymous">
 <style>
   :root{
     --bg:#0E1116;
@@ -20,45 +23,45 @@
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;overflow:hidden}
   body{display:flex}
 
-  .sidebar{width:300px;background:var(--bg2);border-right:1px solid rgba(255,255,255,.06);padding:18px;overflow-y:auto;flex-shrink:0;z-index:3}
+  .sidebar{width:340px;background:var(--bg2);border-right:1px solid rgba(255,255,255,.06);padding:18px;overflow-y:auto;flex-shrink:0;z-index:3}
   .brand{display:flex;align-items:center;gap:10px;margin-bottom:4px}
   .brand-mark{width:20px;height:20px;color:var(--amber)}
-  .brand-name{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:13px;color:var(--cream);letter-spacing:.04em}
-  .subtitle{font-size:8px;color:var(--text-dim);letter-spacing:.18em;text-transform:uppercase;margin-bottom:22px}
+  .brand-name{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:16px;color:var(--cream);letter-spacing:.04em}
+  .subtitle{font-size:10px;color:var(--text-dim);letter-spacing:.18em;text-transform:uppercase;margin-bottom:22px}
 
   .section{margin-bottom:22px}
-  .section-title{display:flex;align-items:center;gap:8px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;font-weight:400}
+  .section-title{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;font-weight:400}
   .section-title::before{content:"◆";color:var(--amber);font-size:7px}
 
   .control{margin-bottom:11px}
   .control-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
-  .control-label{font-size:8px;color:var(--cream);letter-spacing:.10em;text-transform:uppercase}
-  .control-value{font-size:8px;color:var(--amber);font-feature-settings:"tnum"}
+  .control-label{font-size:11px;color:var(--cream);letter-spacing:.10em;text-transform:uppercase}
+  .control-value{font-size:11px;color:var(--amber);font-feature-settings:"tnum"}
   input[type=range]{width:100%;accent-color:var(--amber);height:3px;cursor:pointer;background:rgba(255,255,255,.06);-webkit-appearance:none}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--amber);cursor:pointer;border:0}
 
   .preset-row{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-bottom:8px}
   .preset-row.three{grid-template-columns:repeat(3,1fr)}
-  .preset-btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:7px 6px;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s}
+  .preset-btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:9px 7px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s}
   .preset-btn:hover{border-color:rgba(200,136,74,.45);color:var(--cream)}
   .preset-btn.on{background:rgba(200,136,74,.16);border-color:var(--amber);color:var(--amber)}
   /* Pattern badges: numbered, square-ish, more compact than preset-btn defaults */
   #patternBadges{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:8px}
-  #patternBadges .pattern-badge{min-width:30px;padding:7px 8px;font-size:10px;letter-spacing:0}
-  #patternBadges #addPattern{min-width:30px;padding:7px 8px;font-size:12px;letter-spacing:0}
+  #patternBadges .pattern-badge{min-width:34px;padding:9px 10px;font-size:13px;letter-spacing:0}
+  #patternBadges #addPattern{min-width:34px;padding:9px 10px;font-size:15px;letter-spacing:0}
 
   .action-row{display:flex;gap:4px;margin-top:8px}
-  .action-btn{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);color:var(--cream);padding:9px 6px;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s}
+  .action-btn{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);color:var(--cream);padding:11px 7px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s}
   .action-btn:hover{border-color:var(--amber);color:var(--amber)}
   .action-btn.primary{background:rgba(200,136,74,.14);border-color:var(--amber);color:var(--amber)}
   .action-btn.primary:hover{background:rgba(200,136,74,.22)}
 
   .toggle-row{display:flex;gap:4px;margin-bottom:8px}
-  .toggle-btn{flex:1;background:transparent;border:1px solid rgba(255,255,255,.10);color:var(--text-dim);padding:6px;font-family:'Space Mono',monospace;font-size:7px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s}
+  .toggle-btn{flex:1;background:transparent;border:1px solid rgba(255,255,255,.10);color:var(--text-dim);padding:8px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s}
   .toggle-btn.on{background:rgba(200,136,74,.16);border-color:var(--amber);color:var(--amber)}
   #symSubRow.disabled{opacity:.35;pointer-events:none}
 
-  .info{font-size:8px;color:var(--text-dim);line-height:1.55;letter-spacing:.04em;margin-top:6px}
+  .info{font-size:11px;color:var(--text-dim);line-height:1.55;letter-spacing:.04em;margin-top:6px}
 
   .color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
   .color-swatch{aspect-ratio:1;border:1px solid rgba(255,255,255,.10);border-radius:2px;cursor:pointer;transition:all .15s;position:relative}
@@ -77,31 +80,31 @@
     .sidebar{width:100%;max-height:50vh;border-right:none;border-top:1px solid rgba(255,255,255,.06);padding:14px;order:2;flex-shrink:0}
     .section{margin-bottom:14px}
   }
-  .top-info{position:absolute;top:14px;left:14px;font-size:8px;color:var(--text-dim);letter-spacing:.18em;text-transform:uppercase;pointer-events:none;z-index:5}
+  .top-info{position:absolute;top:14px;left:14px;font-size:10px;color:var(--text-dim);letter-spacing:.18em;text-transform:uppercase;pointer-events:none;z-index:5}
   .top-info span{color:var(--cream)}
 
   .mode-pill{position:absolute;top:14px;right:14px;display:flex;gap:4px;background:rgba(20,24,30,.85);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);border-radius:3px;padding:3px;z-index:5}
-  .mode-btn{background:transparent;border:0;color:var(--text-dim);padding:6px 10px;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s}
+  .mode-btn{background:transparent;border:0;color:var(--text-dim);padding:8px 12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s}
   .mode-btn.on{background:rgba(200,136,74,.20);color:var(--amber)}
 
   .view-pill{position:absolute;top:60px;right:14px;display:flex;flex-direction:column;gap:4px;background:rgba(20,24,30,.85);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.10);border-radius:3px;padding:4px;z-index:5}
-  .view-btn{background:transparent;border:0;color:var(--text-dim);padding:6px 10px;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap;min-width:80px;text-align:left}
+  .view-btn{background:transparent;border:0;color:var(--text-dim);padding:8px 12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s;white-space:nowrap;min-width:96px;text-align:left}
   .view-btn:hover{color:var(--cream);background:rgba(255,255,255,.04)}
   .view-btn.on{background:rgba(200,136,74,.20);color:var(--amber)}
 
-  .hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--text-dim);letter-spacing:.10em;text-transform:uppercase;background:rgba(0,0,0,.4);padding:6px 12px;border-radius:2px;pointer-events:none;white-space:nowrap}
+  .hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text-dim);letter-spacing:.10em;text-transform:uppercase;background:rgba(0,0,0,.4);padding:6px 12px;border-radius:2px;pointer-events:none;white-space:nowrap}
   /* v2.04: STL drop-zone overlay */
   .stl-drop-zone{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(28,33,41,.96);border:2px dashed rgba(200,136,74,.45);border-radius:4px;padding:28px 40px;text-align:center;font-family:'Space Mono',monospace;color:var(--cream);z-index:10;cursor:pointer;user-select:none;transition:border-color .15s,background .15s;min-width:300px}
   .stl-drop-zone:hover,.stl-drop-zone.dragover{border-color:var(--amber);background:rgba(28,33,41,.99)}
   .stl-drop-zone.hidden{display:none}
-  .stl-drop-zone .dz-title{color:var(--amber);font-size:8px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:12px}
+  .stl-drop-zone .dz-title{color:var(--amber);font-size:10px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:12px}
   .stl-drop-zone .dz-title::before{content:"\25C6  "}
-  .stl-drop-zone .dz-main{font-size:11px;color:var(--cream);letter-spacing:.04em;margin-bottom:4px}
-  .stl-drop-zone .dz-sub{font-size:9px;color:var(--text-dim);letter-spacing:.06em}
-  .stl-drop-zone .dz-status{margin-top:14px;font-size:8px;color:var(--text-dim);letter-spacing:.08em;font-feature-settings:"tnum"}
+  .stl-drop-zone .dz-main{font-size:14px;color:var(--cream);letter-spacing:.04em;margin-bottom:4px}
+  .stl-drop-zone .dz-sub{font-size:11px;color:var(--text-dim);letter-spacing:.06em}
+  .stl-drop-zone .dz-status{margin-top:14px;font-size:10px;color:var(--text-dim);letter-spacing:.08em;font-feature-settings:"tnum"}
 
   /* v2.05: face selection sidebar hint */
-  .hint-text{font-size:8px;color:var(--text-dim);margin-top:8px;letter-spacing:.06em;line-height:1.5}
+  .hint-text{font-size:10px;color:var(--text-dim);margin-top:8px;letter-spacing:.06em;line-height:1.5}
   .hint-text strong{color:var(--cream);font-weight:400}
 
   /* v2.05.33: Tutorial overlay */
@@ -127,33 +130,33 @@
     50%{box-shadow:0 0 0 6px rgba(200,136,74,0),0 0 24px rgba(200,136,74,.6)}
   }
   .tutorial-card{
-    background:rgba(14,17,22,.985);border:1px solid rgba(200,136,74,.45);border-radius:6px;
-    width:440px;padding:22px 24px 18px 24px;color:var(--cream);
+    background:rgba(24,28,35,.98);border:2px solid var(--amber);border-radius:8px;
+    width:480px;max-width:calc(100vw - 36px);padding:26px 28px 20px 28px;color:var(--cream);
     font-family:'Space Mono',monospace;
-    box-shadow:0 18px 60px rgba(0,0,0,.85),0 0 0 1px rgba(200,136,74,.25),0 0 40px rgba(200,136,74,.12);
-    position:relative;backdrop-filter:blur(12px);
+    box-shadow:0 24px 70px rgba(0,0,0,.9),0 0 0 1px rgba(200,136,74,.4),0 0 60px rgba(200,136,74,.22);
+    position:relative;backdrop-filter:blur(14px);
   }
-  .tutorial-step-num{font-size:9px;color:var(--text-dim);letter-spacing:.15em;margin-bottom:6px}
-  .tutorial-title{font-size:15px;color:var(--amber);margin-bottom:10px;letter-spacing:.04em;font-weight:400}
-  .tutorial-body{font-size:11px;line-height:1.65;color:var(--cream);min-height:88px;max-height:200px;overflow-y:auto}
-  .tutorial-body p{margin:0 0 6px 0}
-  .tutorial-body strong{color:var(--amber);font-weight:400}
-  .tutorial-body .key{display:inline-block;background:#1d2127;border:1px solid #2a2f37;
-    border-radius:3px;padding:1px 5px;font-size:10px;color:var(--cream)}
-  .tutorial-body .color-box{display:inline-block;width:9px;height:9px;border-radius:2px;
-    vertical-align:middle;margin-right:3px;margin-left:1px;border:1px solid rgba(0,0,0,.3)}
+  .tutorial-step-num{font-size:12px;color:var(--amber);letter-spacing:.18em;margin-bottom:8px;text-transform:uppercase}
+  .tutorial-title{font-size:19px;color:var(--amber);margin-bottom:12px;letter-spacing:.02em;font-weight:400}
+  .tutorial-body{font-size:14px;line-height:1.7;color:var(--cream);min-height:88px;max-height:240px;overflow-y:auto}
+  .tutorial-body p{margin:0 0 8px 0}
+  .tutorial-body strong{color:#E2A862;font-weight:700}
+  .tutorial-body .key{display:inline-block;background:#1d2127;border:1px solid var(--amber);
+    border-radius:3px;padding:2px 7px;font-size:12px;color:var(--cream)}
+  .tutorial-body .color-box{display:inline-block;width:11px;height:11px;border-radius:2px;
+    vertical-align:middle;margin-right:4px;margin-left:1px;border:1px solid rgba(0,0,0,.3)}
   .tutorial-nav{
-    margin-top:14px;display:flex;align-items:center;gap:8px;
+    margin-top:18px;display:flex;align-items:center;gap:8px;
   }
-  .tutorial-nav .nav-dots{flex:1;display:flex;gap:4px;justify-content:center}
+  .tutorial-nav .nav-dots{flex:1;display:flex;gap:5px;justify-content:center}
   .tutorial-nav .nav-dot{
-    width:5px;height:5px;border-radius:50%;background:#2a2f37;
+    width:7px;height:7px;border-radius:50%;background:#3a4049;
     transition:background .2s ease;
   }
   .tutorial-nav .nav-dot.on{background:var(--amber)}
   .tutorial-nav button{
-    background:#1d2127;border:1px solid #2a2f37;color:var(--cream);
-    padding:6px 14px;font-family:'Space Mono',monospace;font-size:10px;
+    background:#1d2127;border:1px solid #3a4049;color:var(--cream);
+    padding:8px 18px;font-family:'Space Mono',monospace;font-size:12px;
     border-radius:3px;cursor:pointer;letter-spacing:.05em;
   }
   .tutorial-nav button:hover{border-color:var(--amber);color:var(--amber)}
@@ -161,12 +164,12 @@
   .tutorial-nav button.primary:hover{background:#D89953;color:#0E1116}
   .tutorial-nav button:disabled{opacity:.3;cursor:not-allowed}
   .tutorial-skip{
-    position:absolute;top:10px;right:14px;font-size:10px;color:var(--text-dim);
-    background:none;border:none;cursor:pointer;letter-spacing:.06em;padding:2px 4px;
+    position:absolute;top:12px;right:16px;font-size:12px;color:var(--text-dim);
+    background:none;border:none;cursor:pointer;letter-spacing:.06em;padding:3px 6px;
   }
   .tutorial-skip:hover{color:var(--amber)}
   .tutorial-demo-status{
-    font-size:9px;color:var(--amber);opacity:.85;margin-top:6px;letter-spacing:.06em;
+    font-size:11px;color:var(--amber);opacity:.85;margin-top:6px;letter-spacing:.06em;
     display:flex;align-items:center;gap:6px;
   }
   .tutorial-demo-status::before{
@@ -248,7 +251,7 @@
       <div class="control-row"><span class="control-label">Bereik schaal/rotatie (mm)</span><span class="control-value" id="vWarpFalloff">40</span></div>
       <input type="range" id="warpFalloff" min="10" max="400" step="5" value="40">
     </div>
-    <div class="info" style="font-size:9px;opacity:.55;margin-top:-4px;margin-bottom:8px">Selecteer een cage handle om te warpen.</div>
+    <div class="info" style="font-size:11px;opacity:.55;margin-top:-4px;margin-bottom:8px">Selecteer een cage handle om te warpen.</div>
     <div class="control">
       <div class="control-row"><span class="control-label">Aantal ruiten</span><span class="control-value" id="vDensity">10</span></div>
       <input type="range" id="density" min="6" max="24" step="2" value="10">
@@ -257,12 +260,12 @@
       <div class="control-row"><span class="control-label">Subdivisies</span><span class="control-value" id="vSubdivisions">64</span></div>
       <input type="range" id="subdivisions" min="24" max="160" step="8" value="64">
     </div>
-    <div class="info" style="font-size:9px;opacity:.55;margin-top:-2px">Resolutie tube cross-sections. Hoger = meer polygonen langs de tube.</div>
+    <div class="info" style="font-size:11px;opacity:.55;margin-top:-2px">Resolutie tube cross-sections. Hoger = meer polygonen langs de tube.</div>
     <div class="control">
       <div class="control-row"><span class="control-label">Smooth lijnen</span><span class="control-value" id="vSmoothness">0</span></div>
       <input type="range" id="smoothness" min="0" max="30" step="1" value="0">
     </div>
-    <div class="info" style="font-size:9px;opacity:.55;margin-top:-2px">Vloeiendheid van het pad zelf. Hoger = meer iteraties van lokale averaging. Werkt op floor én wand patroon.</div>
+    <div class="info" style="font-size:11px;opacity:.55;margin-top:-2px">Vloeiendheid van het pad zelf. Hoger = meer iteraties van lokale averaging. Werkt op floor én wand patroon.</div>
     <div class="control">
       <div class="control-row"><span class="control-label">Handle grootte</span><span class="control-value" id="vHandleScale">100</span></div>
       <input type="range" id="handleScale" min="50" max="200" step="10" value="75">
@@ -279,7 +282,7 @@
       <button class="action-btn" id="btnLoadFile" style="flex:1;padding:4px;font-size:11px">Laad bestand</button>
     </div>
     <input type="file" id="loadFileInput" accept=".json,application/json" style="display:none">
-    <div class="info" style="font-size:9px;opacity:.55;margin-top:4px;line-height:1.4">Bewaar als .json bestand op je computer. Laad eerder opgeslagen .json terug.</div>
+    <div class="info" style="font-size:11px;opacity:.55;margin-top:4px;line-height:1.4">Bewaar als .json bestand op je computer. Laad eerder opgeslagen .json terug.</div>
   </div>
 
   <div class="section">
@@ -356,7 +359,7 @@
     <div class="toggle-row" style="margin-bottom:4px;gap:4px">
       <button class="toggle-btn" id="tgLabelsPatternDir" style="flex:1">Patroon richtingen</button>
     </div>
-    <div class="info" style="font-size:9px;line-height:1.5;margin-top:4px;opacity:.6">
+    <div class="info" style="font-size:11px;line-height:1.5;margin-top:4px;opacity:.6">
       <span style="color:#5fb85f">groen</span> = normaal (naar buiten),
       <span style="color:#5f9fff">blauw</span> = tangent (langs outline).
       Nummering N1-N8 / T1-T8 per anchor punt.<br>
@@ -388,7 +391,7 @@
       <button class="action-btn" id="btnSmooth">Smooth lijnen</button>
       <button class="action-btn" id="btnReset">Reset alles</button>
     </div>
-    <div id="exportInfo" class="info" style="font-size:9px;line-height:1.5;margin-top:6px">
+    <div id="exportInfo" class="info" style="font-size:11px;line-height:1.5;margin-top:6px">
       Afmeting: <span id="vExportDim" style="color:var(--cream)">—</span><br>
       Driehoeken: <span id="vExportTris" style="color:var(--cream)">—</span>
     </div>
@@ -397,7 +400,7 @@
   <div class="section">
     <div class="section-title">Face selectie</div>
     <div class="toggle-row" style="display:flex;gap:4px;margin-bottom:8px">
-      <button class="toggle-btn" id="tgFaceSelect" style="flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:7px 6px;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:2px">Selectie mode: uit</button>
+      <button class="toggle-btn" id="tgFaceSelect" style="flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:7px 6px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:2px">Selectie mode: uit</button>
     </div>
     <div id="faceSelectControls" style="display:none">
       <div class="control">
@@ -6893,8 +6896,10 @@ function initFaceSelectionUI(){
 async function init(){
   initStlDropZone();
   initFaceSelectionUI();
+  // Beide STL's parallel laden = sneller. kap is verplicht, kap_rest optioneel.
+  const restPromise = loadKapRestStl().catch(e => console.warn('kap_rest STL load mislukt:', e));
   await loadKapStl();
-  try { await loadKapRestStl(); } catch(e) { console.warn('kap_rest STL load mislukt:', e); }
+  await restPromise;
   cageState = makeFreshCage('rhombi', cageN);
   wallCageState = makeFreshWallCage();
   renderPatternBadges();
