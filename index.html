@@ -4797,13 +4797,22 @@ document.addEventListener('keydown', e => {
     setLabel(micBtn, txt('mic-aan')); loopMic();
   }
   function bandAvgEng(d,a,b){ let s=0; for(let i=a;i<b;i++) s+=d[i]; return s/((b-a)*255); }
+  function shape(v, gate, gain, exp){
+    let x = (v - gate) / (1 - gate);
+    if(x <= 0) return 0;
+    if(x > 1) x = 1;
+    return Math.pow(x, exp) * gain;
+  }
   function loopMic(){
     if(!micOn) return;
     analyser.getByteFrequencyData(micData);
     const N=micData.length;
-    A.lo = bandAvgEng(micData, 0, Math.floor(N*0.08))*2.4;
-    A.mi = bandAvgEng(micData, Math.floor(N*0.08), Math.floor(N*0.35))*2.6;
-    A.hi = bandAvgEng(micData, Math.floor(N*0.35), Math.floor(N*0.85))*3.2;
+    const rawLo = bandAvgEng(micData, 0, Math.floor(N*0.08));
+    const rawMi = bandAvgEng(micData, Math.floor(N*0.08), Math.floor(N*0.35));
+    const rawHi = bandAvgEng(micData, Math.floor(N*0.35), Math.floor(N*0.85));
+    A.lo = shape(rawLo, 0.14, 1.15, 1.8);
+    A.mi = shape(rawMi, 0.09, 1.20, 1.9);
+    A.hi = shape(rawHi, 0.07, 1.30, 2.0);
     micRAF=requestAnimationFrame(loopMic);
   }
   function stopMic(){
