@@ -180,6 +180,16 @@
     background:none;border:none;cursor:pointer;letter-spacing:.06em;padding:3px 6px;
   }
   .tutorial-skip:hover{color:var(--amber)}
+  .tutorial-lang{
+    position:absolute;top:10px;left:16px;display:flex;gap:4px;
+  }
+  .tutorial-lang button{
+    font-size:11px;color:var(--text-dim);background:none;
+    border:1px solid rgba(200,136,74,.3);border-radius:3px;cursor:pointer;
+    padding:2px 7px;letter-spacing:.08em;transition:all .15s;
+  }
+  .tutorial-lang button:hover{color:var(--amber);border-color:var(--amber)}
+  .tutorial-lang button.on{color:#12151A;background:var(--amber);border-color:var(--amber);font-weight:700}
   .tutorial-demo-status{
     font-size:11px;color:var(--amber);opacity:.85;margin-top:6px;letter-spacing:.06em;
     display:flex;align-items:center;gap:6px;
@@ -7229,9 +7239,10 @@ function tutPhaseCycle(phases){
 
 const TUTORIAL_STEPS = [
   {
-    title: "Welkom bij Rhombi patroon",
-    body: `<p>Dit is de pattern editor voor de Rhombi hanglamp. In deze tutorial loop je in een paar minuten door alle belangrijke functies, met live demonstraties.</p>
-           <p style="margin-top:6px">Tutorial card staat rechtsonder, viewport blijft zichtbaar. Open opnieuw via <strong>?</strong> rechtsboven.</p>`,
+    title: { nl: "Welkom bij Rhombi patroon", en: "Welcome to Rhombi pattern" },
+    body: { nl: `<p>Dit is de pattern editor voor de Rhombi hanglamp. In deze tutorial loop je in een paar minuten door alle belangrijke functies, met live demonstraties.</p>
+           <p style="margin-top:6px">Tutorial card staat rechtsonder, viewport blijft zichtbaar. Open opnieuw via <strong>?</strong> rechtsboven.</p>`, en: `<p>This is the pattern editor for the Rhombi pendant lamp. In this tutorial you'll go through all the key features in a few minutes, with live demonstrations.</p>
+           <p style="margin-top:6px">The tutorial card sits bottom right, the viewport stays visible. Reopen it via <strong>?</strong> top right.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       // v2.05.85: welkom-step heeft ook een subtiel cage scale puls zodat
@@ -7248,9 +7259,10 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Vloer handles (cage)",
-    body: `<p>De oranje bolletjes op de vloer zijn de <strong>cage handles</strong>. We selecteren nu het middelste handle en laten 'm pulseren zodat je 'm goed ziet.</p>
-           <p style="margin-top:6px">Begin met 3x3 voor grote bewegingen, switch naar 5x5 of 7x7 voor fijnere controle.</p>`,
+    title: { nl: "Vloer handles (cage)", en: "Floor handles (cage)" },
+    body: { nl: `<p>De oranje bolletjes op de vloer zijn de <strong>cage handles</strong>. We selecteren nu het middelste handle en laten 'm pulseren zodat je 'm goed ziet.</p>
+           <p style="margin-top:6px">Begin met 3x3 voor grote bewegingen, switch naar 5x5 of 7x7 voor fijnere controle.</p>`, en: `<p>The orange dots on the floor are the <strong>cage handles</strong>. We now select the centre handle and make it pulse so you can spot it clearly.</p>
+           <p style="margin-top:6px">Start with 3x3 for large movements, switch to 5x5 or 7x7 for finer control.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       const r = R(); if(!r || !r.cageState) return;
@@ -7274,14 +7286,20 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Verplaatsen met pijlen",
-    body: `<p>De geselecteerde handle heeft drie pijlen:</p>
+    title: { nl: "Verplaatsen met pijlen", en: "Move with arrows" },
+    body: { nl: `<p>De geselecteerde handle heeft drie pijlen:</p>
            <p style="margin-top:4px">
              <span class="color-box" style="background:#D8504C"></span> rood = X richting<br>
              <span class="color-box" style="background:#3B8A4E"></span> groen = Z richting<br>
              <span class="color-box" style="background:#4080D0"></span> blauw = lift (omhoog)
            </p>
-           <p style="margin-top:6px">Demo: om de beurt X, Z, en lift worden geanimeerd.</p>`,
+           <p style="margin-top:6px">Demo: om de beurt X, Z, en lift worden geanimeerd.</p>`, en: `<p>The selected handle has three arrows:</p>
+           <p style="margin-top:4px">
+             <span class="color-box" style="background:#D8504C"></span> red = X direction<br>
+             <span class="color-box" style="background:#3B8A4E"></span> green = Z direction<br>
+             <span class="color-box" style="background:#4080D0"></span> blue = lift (upwards)
+           </p>
+           <p style="margin-top:6px">Demo: X, Z and lift are animated in turn.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       const r = R(); if(!r || !r.cageState || !r.cageState.zLifts) return;
@@ -7335,10 +7353,12 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Scale en rotate",
-    body: `<p>Magenta pijl = <strong>scale</strong>, gele ring = <strong>rotate</strong>. Daarmee vervorm je het patroon rondom de handle.</p>
+    title: { nl: "Scale en rotate", en: "Scale and rotate" },
+    body: { nl: `<p>Magenta pijl = <strong>scale</strong>, gele ring = <strong>rotate</strong>. Daarmee vervorm je het patroon rondom de handle.</p>
            <p style="margin-top:6px">Of gebruik de sliders <strong>Warp scale</strong> en <strong>Warp rotation</strong> in de zijbalk.</p>
-           <p style="margin-top:6px">Demo: om de beurt scale en rotate, met een groter bereik (falloff 80mm).</p>`,
+           <p style="margin-top:6px">Demo: om de beurt scale en rotate, met een groter bereik (falloff 80mm).</p>`, en: `<p>Magenta arrow = <strong>scale</strong>, yellow ring = <strong>rotate</strong>. Use them to deform the pattern around the handle.</p>
+           <p style="margin-top:6px">Or use the <strong>Warp scale</strong> and <strong>Warp rotation</strong> sliders in the sidebar.</p>
+           <p style="margin-top:6px">Demo: scale and rotate in turn, with a larger range (falloff 80mm).</p>` },
     showDemoStatus: true,
     onEnter: () => {
       const r = R(); if(!r || !r.cageState || !r.cageState.warps) return;
@@ -7383,10 +7403,12 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Bereik per handle",
-    body: `<p>De slider <strong>Warp falloff</strong> bepaalt het bereik van scale/rotate voor de geselecteerde handle. Elke handle heeft een eigen bereik.</p>
+    title: { nl: "Bereik per handle", en: "Range per handle" },
+    body: { nl: `<p>De slider <strong>Warp falloff</strong> bepaalt het bereik van scale/rotate voor de geselecteerde handle. Elke handle heeft een eigen bereik.</p>
            <p style="margin-top:6px">Klein bereik = lokaal effect. Groot bereik = brede invloed. De paarse cirkel rond de handle toont het bereik visueel.</p>
-           <p style="margin-top:6px">Demo: bereik gaat van 20mm naar 120mm met constant scale 1.3.</p>`,
+           <p style="margin-top:6px">Demo: bereik gaat van 20mm naar 120mm met constant scale 1.3.</p>`, en: `<p>The <strong>Warp falloff</strong> slider sets the range of scale/rotate for the selected handle. Each handle has its own range.</p>
+           <p style="margin-top:6px">Small range = local effect. Large range = broad influence. The purple circle around the handle shows the range visually.</p>
+           <p style="margin-top:6px">Demo: range goes from 20mm to 120mm at a constant scale of 1.3.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       const r = R(); if(!r || !r.cageState || !r.cageState.warps) return;
@@ -7409,14 +7431,20 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Wand handles",
-    body: `<p>De wand heeft handles op twee niveaus:</p>
+    title: { nl: "Wand handles", en: "Wall handles" },
+    body: { nl: `<p>De wand heeft handles op twee niveaus:</p>
            <p style="margin-top:4px">
              <strong>Mid</strong>: halverwege de wand<br>
              <strong>Top</strong>: bovenrand van de wand
            </p>
            <p style="margin-top:6px">Vier hoeken (<strong>H1-H4</strong>) staan vast op de outline kink, kunnen alleen omhoog/omlaag en scale/rotate.</p>
-           <p style="margin-top:6px">Demo: een wand handle wordt op en neer geanimeerd.</p>`,
+           <p style="margin-top:6px">Demo: een wand handle wordt op en neer geanimeerd.</p>`, en: `<p>The wall has handles at two levels:</p>
+           <p style="margin-top:4px">
+             <strong>Mid</strong>: halfway up the wall<br>
+             <strong>Top</strong>: top edge of the wall
+           </p>
+           <p style="margin-top:6px">Four corners (<strong>H1-H4</strong>) are fixed to the outline kink; they can only move up/down and scale/rotate.</p>
+           <p style="margin-top:6px">Demo: a wall handle is animated up and down.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       const r = R(); if(!r || !r.wallCageState || !r.wallCageState.handles.midDA) return;
@@ -7433,10 +7461,12 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Symmetrie",
-    body: `<p>Met toggle <strong>Symmetrie</strong> wordt elke handle automatisch gespiegeld over de A1-C1 diagonaal.</p>
+    title: { nl: "Symmetrie", en: "Symmetry" },
+    body: { nl: `<p>Met toggle <strong>Symmetrie</strong> wordt elke handle automatisch gespiegeld over de A1-C1 diagonaal.</p>
            <p style="margin-top:6px">Sleep handle A omhoog, en handle C beweegt mee. Werkt voor scale, rotation en falloff.</p>
-           <p style="margin-top:6px">Demo: een hoek-handle wordt geanimeerd, zie hoe de mirror partner meebeweegt.</p>`,
+           <p style="margin-top:6px">Demo: een hoek-handle wordt geanimeerd, zie hoe de mirror partner meebeweegt.</p>`, en: `<p>The <strong>Symmetry</strong> toggle automatically mirrors every handle across the A1-C1 diagonal.</p>
+           <p style="margin-top:6px">Drag handle A up, and handle C follows. Works for scale, rotation and falloff.</p>
+           <p style="margin-top:6px">Demo: a corner handle is animated, watch its mirror partner follow.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       const r = R(); if(!r || !r.cageState || !r.cageState.zLifts) return;
@@ -7463,13 +7493,18 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Subdivisies vs smooth lijnen",
-    body: `<p>Twee aparte sliders:</p>
+    title: { nl: "Subdivisies vs smooth lijnen", en: "Subdivisions vs smooth lines" },
+    body: { nl: `<p>Twee aparte sliders:</p>
            <p style="margin-top:4px">
              <strong>Subdivisies</strong>: aantal cross-sections per tube. Hoger = gladdere ronde tubes.<br><br>
              <strong>Smooth lijnen</strong>: hoeveel iteraties van padaverages. Hoger = vloeiendere curves.
            </p>
-           <p style="margin-top:6px">Demo: smooth lijnen wordt van 0 naar 12 geanimeerd.</p>`,
+           <p style="margin-top:6px">Demo: smooth lijnen wordt van 0 naar 12 geanimeerd.</p>`, en: `<p>Two separate sliders:</p>
+           <p style="margin-top:4px">
+             <strong>Subdivisions</strong>: number of cross-sections per tube. Higher = smoother round tubes.<br><br>
+             <strong>Smooth lines</strong>: number of path-averaging iterations. Higher = smoother curves.
+           </p>
+           <p style="margin-top:6px">Demo: smooth lines is animated from 0 to 12.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       const r = R(); if(!r) return;
@@ -7484,14 +7519,20 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Multi-select en sneltoetsen",
-    body: `<p>Houd <span class="key">Shift</span> + klik om meerdere handles te selecteren. Een midden-gizmo verschijnt om ze samen te verplaatsen, scalen of roteren.</p>
+    title: { nl: "Multi-select en sneltoetsen", en: "Multi-select and shortcuts" },
+    body: { nl: `<p>Houd <span class="key">Shift</span> + klik om meerdere handles te selecteren. Een midden-gizmo verschijnt om ze samen te verplaatsen, scalen of roteren.</p>
            <p style="margin-top:6px">
              <span class="key">Esc</span> = alles deselecteren<br>
              <span class="key">Ctrl+Z</span> = ongedaan maken<br>
              <span class="key">Ctrl+Shift+Z</span> = opnieuw
            </p>
-           <p style="margin-top:6px">Demo: twee handles geselecteerd, gezamenlijk scale ping-pongt.</p>`,
+           <p style="margin-top:6px">Demo: twee handles geselecteerd, gezamenlijk scale ping-pongt.</p>`, en: `<p>Hold <span class="key">Shift</span> + click to select multiple handles. A centre gizmo appears to move, scale or rotate them together.</p>
+           <p style="margin-top:6px">
+             <span class="key">Esc</span> = deselect all<br>
+             <span class="key">Ctrl+Z</span> = undo<br>
+             <span class="key">Ctrl+Shift+Z</span> = redo
+           </p>
+           <p style="margin-top:6px">Demo: two handles selected, their combined scale ping-pongs.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       const r = R(); if(!r || !r.cageState || !r.cageState.warps) return;
@@ -7514,9 +7555,10 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Opslaan en laden",
-    body: `<p>Geef je ontwerp een naam en klik <strong>Download</strong>: je krijgt een .json bestand op je computer.</p>
-           <p style="margin-top:6px">Klik <strong>Laad bestand</strong> om een eerder opgeslagen .json terug te laden. Zo kun je ontwerpen archiveren en delen.</p>`,
+    title: { nl: "Opslaan en laden", en: "Save and load" },
+    body: { nl: `<p>Geef je ontwerp een naam en klik <strong>Download</strong>: je krijgt een .json bestand op je computer.</p>
+           <p style="margin-top:6px">Klik <strong>Laad bestand</strong> om een eerder opgeslagen .json terug te laden. Zo kun je ontwerpen archiveren en delen.</p>`, en: `<p>Give your design a name and click <strong>Download</strong>: you'll get a .json file on your computer.</p>
+           <p style="margin-top:6px">Click <strong>Load file</strong> to reload a previously saved .json. This lets you archive and share designs.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       tutHighlight('#btnSave, #btnLoadFile');
@@ -7533,10 +7575,12 @@ const TUTORIAL_STEPS = [
     },
   },
   {
-    title: "Klaar om te ontwerpen",
-    body: `<p>Dat is alles voor nu. Veel succes met het ontwerpen van je Rhombi patroon.</p>
+    title: { nl: "Klaar om te ontwerpen", en: "Ready to design" },
+    body: { nl: `<p>Dat is alles voor nu. Veel succes met het ontwerpen van je Rhombi patroon.</p>
            <p style="margin-top:6px">Tip: experimenteer eerst met grote bewegingen (3x3 cage, grote falloff), en verfijn daarna met meer handles en kleinere bereiken.</p>
-           <p style="margin-top:6px;color:var(--text-dim)">Open deze tutorial altijd opnieuw via de <strong>?</strong> knop.</p>`,
+           <p style="margin-top:6px;color:var(--text-dim)">Open deze tutorial altijd opnieuw via de <strong>?</strong> knop.</p>`, en: `<p>That's all for now. Good luck designing your Rhombi pattern.</p>
+           <p style="margin-top:6px">Tip: experiment with large movements first (3x3 cage, large falloff), then refine with more handles and smaller ranges.</p>
+           <p style="margin-top:6px;color:var(--text-dim)">Reopen this tutorial any time via the <strong>?</strong> button.</p>` },
     showDemoStatus: true,
     onEnter: () => {
       // v2.05.85: laatste step heeft een rotation-pulse voor afsluitend gevoel
@@ -7558,14 +7602,26 @@ function renderTutorialStep(){
   tutClearHighlights();
   tutRestore();
 
+  const _pm = (typeof window !== 'undefined' && window.PM_LANG) ? window.PM_LANG : 'nl';
+  const L = (_pm === 'nl') ? 'nl' : 'en';   // EN en DE gebruiken de Engelse tutorial
+  const txt = {
+    nl: { step: 'STAP', of: '/', prev: 'Vorige', next: 'Volgende', start: 'Begin', demo: 'demo loopt', close: 'Sluiten' },
+    en: { step: 'STEP', of: '/', prev: 'Back', next: 'Next', start: 'Start', demo: 'demo running', close: 'Close' }
+  }[L];
+
   const step = TUTORIAL_STEPS[tutorialStep];
+  const pick = (v) => (v && typeof v === 'object') ? (v[L] || v.nl) : v;
   document.getElementById('tutStepNum').textContent =
-    `STAP ${tutorialStep + 1} / ${TUTORIAL_STEPS.length}`;
-  document.getElementById('tutTitle').textContent = step.title;
-  document.getElementById('tutBody').innerHTML = step.body;
+    `${txt.step} ${tutorialStep + 1} ${txt.of} ${TUTORIAL_STEPS.length}`;
+  document.getElementById('tutTitle').textContent = pick(step.title);
+  document.getElementById('tutBody').innerHTML = pick(step.body);
   document.getElementById('tutPrev').disabled = (tutorialStep === 0);
+  document.getElementById('tutPrev').textContent = txt.prev;
   const nextBtn = document.getElementById('tutNext');
-  nextBtn.textContent = (tutorialStep === TUTORIAL_STEPS.length - 1) ? 'Begin' : 'Volgende';
+  nextBtn.textContent = (tutorialStep === TUTORIAL_STEPS.length - 1) ? txt.start : txt.next;
+  const skipBtn = document.getElementById('tutorialSkip');
+  if(skipBtn) skipBtn.textContent = txt.close;
+  const demoEl = document.getElementById('tutDemoStatus');
   const dotsEl = document.getElementById('tutDots');
   dotsEl.innerHTML = '';
   for(let i = 0; i < TUTORIAL_STEPS.length; i++){
@@ -7573,7 +7629,10 @@ function renderTutorialStep(){
     d.className = 'nav-dot' + (i === tutorialStep ? ' on' : '');
     dotsEl.appendChild(d);
   }
-  document.getElementById('tutDemoStatus').style.display = step.showDemoStatus ? 'flex' : 'none';
+  if(demoEl){
+    demoEl.textContent = txt.demo;
+    demoEl.style.display = step.showDemoStatus ? 'flex' : 'none';
+  }
   if(typeof step.onEnter === 'function'){
     try { step.onEnter(); } catch(e) { console.warn('tutorial onEnter err:', e); }
   }
@@ -7655,6 +7714,13 @@ window.addEventListener('keydown', e => {
     });
     // Dynamische teksten bijwerken (selectie-mode status, view-toggle)
     if(typeof window.pmRefreshDynamic === 'function') window.pmRefreshDynamic();
+    // Tutorial mee laten schakelen als die open staat
+    try {
+      const ov = document.getElementById('tutorialOverlay');
+      if(ov && ov.classList.contains('show') && typeof renderTutorialStep === 'function'){
+        renderTutorialStep();
+      }
+    } catch(e){}
     try{ localStorage.setItem('rhombi_lang', lang); }catch(e){}
   };
 
