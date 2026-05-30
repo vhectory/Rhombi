@@ -2723,7 +2723,7 @@ window.addEventListener('load', function() {
     cx=w/2; cy=h/2;
     lensR=Math.min(w,h)*0.28;
     spacing=Math.max(36, Math.min(60, Math.min(w,h)/13));
-    step=Math.max(9, spacing*0.22);
+    step=Math.max(18, spacing*0.42);
   }
   if(window.ResizeObserver){ new ResizeObserver(resize).observe(root); }
   window.addEventListener('resize', resize);
@@ -2786,7 +2786,7 @@ window.addEventListener('load', function() {
   function drawFamily(angle, gap, baseAlpha, t, amp, colShift, lwBase){
     const dx=Math.cos(angle), dy=Math.sin(angle);
     const px=-dy, py=dx;
-    const R=Math.hypot(w,h)*1.15;
+    const R=Math.hypot(w,h)*0.95;
     const n=Math.ceil(R/gap);
     ctx.lineJoin='round'; ctx.lineCap='round';
     for(let k=-n;k<=n;k++){

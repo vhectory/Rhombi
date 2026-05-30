@@ -326,7 +326,7 @@
     cx=w/2; cy=h/2;
     lensR   = Math.min(w,h)*0.28;
     spacing = Math.max(36, Math.min(60, Math.min(w,h)/13));
-    step    = Math.max(9, spacing*0.22);
+    step    = Math.max(18, spacing*0.42);
   }
   if(window.ResizeObserver){ new ResizeObserver(resize).observe(root); }
   window.addEventListener('resize', resize);
@@ -378,7 +378,7 @@
   function drawFamily(angle, gap, baseAlpha, t, amp, colShift, lwBase){
     const dx=Math.cos(angle), dy=Math.sin(angle);
     const px=-dy, py=dx;
-    const R=Math.hypot(w,h)*0.75;
+    const R=Math.hypot(w,h)*0.62;
     const n=Math.ceil(R/gap);
     ctx.lineJoin='round'; ctx.lineCap='round';
     for(let k=-n;k<=n;k++){
@@ -412,7 +412,7 @@
 
   let running = true;
   const startT=performance.now();
-  let phase = 0, lastFrame = performance.now();
+  let lastFrame = performance.now();
   function frame(){
     if(!running) return;
     const now = performance.now();
@@ -437,7 +437,6 @@
     const wobble = Math.sin(t*22)*hi*0.12;
     flowDir += (flowDirVel + kickKick*4)*dt; flowDirVel *= 0.96;
     const baseAngle = Math.PI/4 + flowDir + wobble + loPulse*0.15;
-    const speed = 8 + mi*26 + loPulse*10; phase += speed*dt;
 
     const lineAlpha = 0.30 + Math.min(0.40, (mi+hi)*0.3);
     ctx.globalAlpha=1; ctx.fillStyle='#12151A'; ctx.fillRect(0,0,w,h);
@@ -448,18 +447,14 @@
     g.addColorStop(1,'rgba(200,136,74,0)');
     ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
 
-    const ph=phase%spacing, a1=baseAngle, a2=baseAngle+Math.PI/2;
-    ctx.save(); ctx.translate( Math.cos(a1)*ph,  Math.sin(a1)*ph);
-    drawFamily(a1, spacing, lineAlpha, t, 14, 0, 1.0); ctx.restore();
-    ctx.save(); ctx.translate( Math.cos(a2)*ph,  Math.sin(a2)*ph);
-    drawFamily(a2, spacing, lineAlpha, t, 14, 0, 1.0); ctx.restore();
+    const a1=baseAngle, a2=baseAngle+Math.PI/2;
+    drawFamily(a1, spacing, lineAlpha, t, 14, 0, 1.0);
+    drawFamily(a2, spacing, lineAlpha, t, 14, 0, 1.0);
     // EXTRA LAAG: fijner, tegendraaiend, sprankelt op hoog
     if(extraLayer){
-      const ea=-baseAngle*1.6 + t*0.05, eph=(phase*0.6)%(spacing*0.62), ealpha=0.10+hi*0.30;
-      ctx.save(); ctx.translate( Math.cos(ea)*eph,  Math.sin(ea)*eph);
-      drawFamily(ea, spacing*0.62, ealpha, t, 9, 0.3, 0.6); ctx.restore();
-      ctx.save(); ctx.translate( Math.cos(ea+Math.PI/2)*eph,  Math.sin(ea+Math.PI/2)*eph);
-      drawFamily(ea+Math.PI/2, spacing*0.62, ealpha, t, 9, 0.3, 0.6); ctx.restore();
+      const ea=-baseAngle*1.6 + t*0.05, ealpha=0.10+hi*0.30;
+      drawFamily(ea, spacing*0.62, ealpha, t, 9, 0.3, 0.6);
+      drawFamily(ea+Math.PI/2, spacing*0.62, ealpha, t, 9, 0.3, 0.6);
     }
     requestAnimationFrame(frame);
   }
