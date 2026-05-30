@@ -110,12 +110,12 @@
   }
   .rh-gen .rh-title{
     font-family:'Space Grotesk',sans-serif;font-weight:300;
-    font-size:clamp(2.2rem,6vw,4.6rem);line-height:1.02;color:var(--cream);letter-spacing:.01em;
+    font-size:clamp(2.2rem,6vw,4.6rem);line-height:1;color:var(--cream);letter-spacing:-.02em;
     margin:.5rem 0 .3rem;max-width:18ch;
     text-shadow:0 0 70px rgba(18,21,26,.92), 0 0 130px rgba(200,136,74,.18);
     opacity:0;transform:translateY(24px);animation:rh-rise 1.1s .4s cubic-bezier(.2,.8,.2,1) forwards;
   }
-  .rh-gen .rh-title b{font-weight:600;color:var(--amber-soft)}
+  .rh-gen .rh-title b{font-weight:300;font-style:italic;color:#D9A870}
   .rh-gen .rh-tagline{
     font-family:'Space Grotesk',sans-serif;font-weight:300;
     font-size:clamp(1rem,2.1vw,1.3rem);color:rgba(237,228,208,.8);max-width:42ch;letter-spacing:.01em;
@@ -241,9 +241,9 @@
       <span class="rh-brand-word">RHOMBI</span>
     </a>
 
-    <div class="rh-eyebrow" data-i18n="gen-label">Stel je samen</div>
-    <h2 class="rh-title"><span data-i18n="gen-t1">Ontwerp je eigen</span> <b>Rhombi</b></h2>
-    <p class="rh-tagline" data-i18n="gen-sub">Bekijk elke variant in 3D — wissel materiaal en kleur, en zie je lichtobject van alle kanten.</p>
+    <div class="rh-eyebrow" data-i18n="gen-label">◆ 3D Generator</div>
+    <h2 class="rh-title"><span data-i18n="gen-t1">Stel je eigen</span> <b>Rhombi</b> <span data-i18n="gen-t2">samen</span></h2>
+    <p class="rh-tagline" data-i18n="gen-sub">Elk <em style="font-style:italic;color:#D9A870">Rhombi</em>-object is opgebouwd uit losse onderdelen. Bekijk elke variant in 3D, wissel materiaal en kleur, en zie je lichtobject van alle kanten.</p>
 
     <div class="rh-cards">
       <a class="rh-card" href="viewer.html?variant=tafel">
@@ -258,16 +258,24 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </span>
       </a>
+      <a class="rh-card" id="rhPatroonCard" href="rhombi-patroonmaker.html" style="display:none">
+        <svg class="rh-card-icon" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" aria-hidden="true">
+          <path d="M50 8 L88 30 L88 70 L50 92 L12 70 L12 30 Z"/>
+          <path d="M30 40 L50 28 L70 40 L70 60 L50 72 L30 60 Z" stroke-width="3" opacity=".6"/>
+        </svg>
+        <span class="rh-card-tag">◆ Studio</span>
+        <span class="rh-card-name">Patroonmaker</span>
+        <span class="rh-card-desc">Ontwerp en exporteer eigen patronen voor de Rhombi-objecten.</span>
+        <span class="rh-card-go"><span>Open patroonmaker</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </a>
     </div>
 
     <div class="rh-audio">
       <button class="rh-audio-btn" id="rhMicBtn" onclick="rhToggleMic()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg>
         <span>Laat reageren op geluid</span>
-      </button>
-      <button class="rh-audio-btn" id="rhMidiBtn" onclick="rhToggleMidi()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M7 6v8M11 6v8M15 6v8M5 14h14"/></svg>
-        <span>MIDI-keyboard</span>
       </button>
       <button class="rh-audio-btn" id="rhExtraBtn" onclick="rhToggleExtra()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>
@@ -283,6 +291,19 @@
   </div>
 </section>
 
+<script>
+// Toon de patroonmaker-kaart alleen als deze pagina standalone (niet-ingebed) is geopend.
+(function(){
+  try {
+    if (window.self === window.top) {
+      const card = document.getElementById('rhPatroonCard');
+      if (card) card.style.display = '';
+    }
+  } catch(e) {
+    // cross-origin iframe → niet tonen
+  }
+})();
+</script>
 <script>
 (function(){
   const root = document.querySelector('.rh-gen');
@@ -505,9 +526,10 @@
   const T = {
     nl: {
       'gen-back': 'Terug naar site',
-      'gen-label': 'Stel je samen',
-      'gen-t1': 'Ontwerp je eigen',
-      'gen-sub': 'Bekijk elke variant in 3D — wissel materiaal en kleur, en zie je lichtobject van alle kanten.',
+      'gen-label': '◆ 3D Generator',
+      'gen-t1': 'Stel je eigen',
+      'gen-t2': 'samen',
+      'gen-sub': 'Elk <em style="font-style:italic;color:#D9A870">Rhombi</em>-object is opgebouwd uit losse onderdelen. Bekijk elke variant in 3D, wissel materiaal en kleur, en zie je lichtobject van alle kanten.',
       'gen-c1-name': 'Kies je model',
       'gen-c1-desc': 'Bekijk elke variant in 3D. Wissel materiaal en kleur, draai en zoom, en zie je lichtobject van alle kanten.',
       'gen-c1-go': 'Open configurator',
@@ -517,9 +539,10 @@
     },
     en: {
       'gen-back': 'Back to site',
-      'gen-label': 'Configure',
-      'gen-t1': 'Design your own',
-      'gen-sub': 'View every variant in 3D — switch material and colour, and see your light object from every angle.',
+      'gen-label': '◆ 3D Generator',
+      'gen-t1': 'Build your own',
+      'gen-t2': '',
+      'gen-sub': 'Every <em style="font-style:italic;color:#D9A870">Rhombi</em> object is built from separate parts. View each variant in 3D, switch material and colour, and see your light object from every angle.',
       'gen-c1-name': 'Choose your model',
       'gen-c1-desc': 'View every variant in 3D. Switch material and colour, rotate and zoom, and see your light object from every angle.',
       'gen-c1-go': 'Open configurator',
@@ -529,9 +552,10 @@
     },
     de: {
       'gen-back': 'Zurück zur Website',
-      'gen-label': 'Zusammenstellen',
-      'gen-t1': 'Gestalte dein eigenes',
-      'gen-sub': 'Betrachte jede Variante in 3D — wechsle Material und Farbe und sieh dein Lichtobjekt von allen Seiten.',
+      'gen-label': '◆ 3D Generator',
+      'gen-t1': 'Stelle dein eigenes',
+      'gen-t2': 'zusammen',
+      'gen-sub': 'Jedes <em style="font-style:italic;color:#D9A870">Rhombi</em>-Objekt besteht aus einzelnen Teilen. Betrachte jede Variante in 3D, wechsle Material und Farbe und sieh dein Lichtobjekt von allen Seiten.',
       'gen-c1-name': 'Modell wählen',
       'gen-c1-desc': 'Betrachte jede Variante in 3D. Wechsle Material und Farbe, drehe und zoome, und sieh dein Lichtobjekt von allen Seiten.',
       'gen-c1-go': 'Konfigurator öffnen',
@@ -585,7 +609,6 @@
 (function(){
   const A = (window.rhAudio = window.rhAudio || { level:0, pulse:0, active:false });
   const micBtn  = document.getElementById('rhMicBtn');
-  const midiBtn = document.getElementById('rhMidiBtn');
 
   // ===== Microfoon =====
   let audioCtx=null, analyser=null, micStream=null, micData=null, micRAF=null, micOn=false;
@@ -624,48 +647,9 @@
     if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
     micBtn.classList.remove('active');
     setLabel(micBtn, txt('gen-mic'));
-    A.active = midiOn;
+    A.active = false;
   }
   window.rhToggleMic = function(){ micOn ? stopMic() : startMic(); };
-
-  // ===== MIDI =====
-  let midiAccess=null, midiOn=false;
-  async function startMidi(){
-    if(!navigator.requestMIDIAccess){
-      flash(midiBtn, txt('gen-midi-geen')); return;
-    }
-    try{
-      midiAccess = await navigator.requestMIDIAccess();
-    }catch(e){
-      flash(midiBtn, txt('gen-midi-geen')); return;
-    }
-    const inputs = [...midiAccess.inputs.values()];
-    if(inputs.length===0){
-      flash(midiBtn, txt('gen-midi-geen')); return;
-    }
-    inputs.forEach(inp => inp.onmidimessage = onMidi);
-    midiAccess.onstatechange = ()=>{
-      [...midiAccess.inputs.values()].forEach(inp => inp.onmidimessage = onMidi);
-    };
-    midiOn = true; A.active = true;
-    midiBtn.classList.add('active');
-    setLabel(midiBtn, txt('gen-midi-aan'));
-  }
-  function onMidi(e){
-    const [status, note, vel] = e.data;
-    const cmd = status & 0xf0;
-    if(cmd===0x90 && vel>0){       // note-on
-      A.pulse = Math.min(1.5, A.pulse + (vel/127)*0.9);
-    }
-  }
-  function stopMidi(){
-    midiOn=false;
-    if(midiAccess){ [...midiAccess.inputs.values()].forEach(inp => inp.onmidimessage=null); }
-    midiBtn.classList.remove('active');
-    setLabel(midiBtn, txt('gen-midi'));
-    A.active = micOn;
-  }
-  window.rhToggleMidi = function(){ midiOn ? stopMidi() : startMidi(); };
 
   // ===== Extra patroonlaag =====
   const extraBtn = document.getElementById('rhExtraBtn');
@@ -704,8 +688,6 @@
   window.rhRelabelAudio = function(){
     if(!micOn)  setLabel(micBtn,  txt('gen-mic'));
     else        setLabel(micBtn,  txt('gen-mic-aan'));
-    if(!midiOn) setLabel(midiBtn, txt('gen-midi'));
-    else        setLabel(midiBtn, txt('gen-midi-aan'));
     setLabel(extraBtn, txt(extraOn ? 'gen-extra-aan' : 'gen-extra'));
   };
   // Stop alles als de pagina sluit
