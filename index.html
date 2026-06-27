@@ -2227,7 +2227,7 @@ window.addEventListener('load', function() {
 
 <div class="topbanner" data-i18n="topbanner">
   ◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg
-  <span class="banner-desktop"><br>Opening studio: zondag 7 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25</span>
+  <span class="banner-desktop"><br>Elke 1e zondag van de maand (Kunst &amp; Cultuurroute) · 13:00–17:00 · Turfkaai 25</span>
   <span class="banner-mobile"><br><span class="nobr">1e zondag v/d maand</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span></span>
 </div>
 
@@ -2381,6 +2381,159 @@ window.addEventListener('load', function() {
   #video-scroll { height: 50vh; }
 }
 </style>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- INSTAGRAM STRIP — laatste posts via Behold -->
+<!-- ═══════════════════════════════════════ -->
+<style>
+  #rh-ig {
+    background: var(--dark);
+    padding: 64px 0 72px;
+    overflow: hidden;
+    position: relative;
+  }
+  #rh-ig .rh-ig-head {
+    max-width: 1280px; margin: 0 auto 28px; padding: 0 48px;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  #rh-ig .rh-ig-title {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 300;
+    font-size: clamp(22px, 3vw, 34px); letter-spacing: -.01em; color: var(--cream);
+  }
+  #rh-ig .rh-ig-title em { font-style: italic; color: var(--amber-pale); }
+  #rh-ig .rh-ig-handle {
+    font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: .08em;
+    color: var(--amber); text-decoration: none; white-space: nowrap;
+    border-bottom: 1px solid rgba(200,136,74,.35); padding-bottom: 2px; transition: color .2s, border-color .2s;
+  }
+  #rh-ig .rh-ig-handle:hover { color: var(--amber-pale); border-color: var(--amber-pale); }
+  #rh-ig .rh-ig-track {
+    display: flex; gap: 16px; padding: 4px 48px 12px;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  #rh-ig .rh-ig-track::-webkit-scrollbar { display: none; }
+  #rh-ig .rh-ig-item {
+    flex: 0 0 auto; width: 240px; height: 240px;
+    scroll-snap-align: start; position: relative;
+    border-radius: 0 14px 0 14px;   /* chamfer top-left, rond bottom-right */
+    overflow: hidden; background: var(--dark2);
+    border: 1px solid rgba(200,136,74,.14);
+    text-decoration: none; display: block;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), border-color .25s, box-shadow .25s;
+  }
+  #rh-ig .rh-ig-item:hover {
+    transform: translateY(-4px);
+    border-color: rgba(200,136,74,.5);
+    box-shadow: 0 12px 40px rgba(200,136,74,.12);
+  }
+  #rh-ig .rh-ig-item img, #rh-ig .rh-ig-item video {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  #rh-ig .rh-ig-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(18,21,26,.78) 0%, rgba(18,21,26,0) 42%);
+    opacity: 0; transition: opacity .25s; display: flex; align-items: flex-end; padding: 14px;
+  }
+  #rh-ig .rh-ig-item:hover .rh-ig-overlay { opacity: 1; }
+  #rh-ig .rh-ig-cap {
+    font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.4; color: var(--cream);
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  #rh-ig .rh-ig-badge {
+    position: absolute; top: 10px; right: 10px; width: 22px; height: 22px;
+    opacity: .85; pointer-events: none;
+  }
+  #rh-ig .rh-ig-fade-l, #rh-ig .rh-ig-fade-r {
+    position: absolute; top: 0; bottom: 0; width: 48px; pointer-events: none; z-index: 2;
+  }
+  #rh-ig .rh-ig-fade-l { left: 0; background: linear-gradient(to right, #12151A, rgba(18,21,26,0)); }
+  #rh-ig .rh-ig-fade-r { right: 0; background: linear-gradient(to left, #12151A, rgba(18,21,26,0)); }
+  #rh-ig .rh-ig-empty {
+    max-width: 1280px; margin: 0 auto; padding: 0 48px;
+    font-family: 'Space Mono', monospace; font-size: 13px; color: rgba(237,228,208,.4);
+  }
+  @media (max-width: 768px) {
+    #rh-ig { padding: 48px 0 52px; }
+    #rh-ig .rh-ig-head { padding: 0 24px; margin-bottom: 20px; }
+    #rh-ig .rh-ig-track { padding: 4px 24px 12px; gap: 12px; }
+    #rh-ig .rh-ig-item { width: 200px; height: 200px; }
+    #rh-ig .rh-ig-fade-l, #rh-ig .rh-ig-fade-r { width: 24px; }
+  }
+</style>
+
+<section id="rh-ig" aria-label="Instagram">
+  <div class="rh-ig-head">
+    <h2 class="rh-ig-title" data-i18n="ig-title">Volg <em>Rhombi</em> op Instagram</h2>
+    <a class="rh-ig-handle" href="https://www.instagram.com/rhombi_lightobjects/" target="_blank" rel="noopener">@rhombi_lightobjects →</a>
+  </div>
+  <div class="rh-ig-fade-l"></div>
+  <div class="rh-ig-fade-r"></div>
+  <div class="rh-ig-track" id="rh-ig-track">
+    <div class="rh-ig-empty" id="rh-ig-empty">Instagram-posts laden…</div>
+  </div>
+</section>
+
+<script>
+(function(){
+  // ── Behold JSON-feed ──
+  // 1. Maak een gratis account op https://behold.so
+  // 2. Koppel je Instagram (Business/Creator account vereist)
+  // 3. Maak een JSON-feed en plak hieronder de unieke feed-URL:
+  const BEHOLD_FEED_URL = 'https://feeds.behold.so/SNJQPSzdkAYFQf9PQj0B';
+
+  const track = document.getElementById('rh-ig-track');
+  const empty = document.getElementById('rh-ig-empty');
+  const MAX_POSTS = 12;
+
+  // Instagram glyph (klein, amber) voor op de tegels
+  const igBadge = '<svg class="rh-ig-badge" viewBox="0 0 24 24" fill="none" stroke="%23D9A870" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="%23D9A870" stroke="none"/></svg>';
+
+  function esc(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  function render(posts){
+    if(!posts || !posts.length){ showEmpty(); return; }
+    track.innerHTML = '';
+    posts.slice(0, MAX_POSTS).forEach(p => {
+      const link = p.permalink || p.link || 'https://www.instagram.com/rhombi_lightobjects/';
+      // Behold levert geoptimaliseerde webp in sizes.{small,medium,large,full}.
+      const sz = p.sizes || {};
+      const img =
+        (sz.medium && sz.medium.mediaUrl) ||
+        (sz.large && sz.large.mediaUrl) ||
+        (sz.small && sz.small.mediaUrl) ||
+        p.mediaUrl || p.thumbnailUrl || '';
+      const cap = esc((p.prunedCaption || p.caption || '').replace(/\s+/g, ' ').trim().slice(0, 140));
+      const a = document.createElement('a');
+      a.className = 'rh-ig-item';
+      a.href = link; a.target = '_blank'; a.rel = 'noopener';
+      a.innerHTML =
+        (img ? '<img src="'+esc(img)+'" alt="" loading="lazy">' : '') +
+        (cap ? '<div class="rh-ig-overlay"><div class="rh-ig-cap">'+cap+'</div></div>' : '') +
+        igBadge;
+      track.appendChild(a);
+    });
+  }
+
+  function showEmpty(){
+    // Stil falen: toon niets storends, alleen een subtiele link
+    empty.innerHTML = 'Bekijk de laatste posts op <a href="https://www.instagram.com/rhombi_lightobjects/" target="_blank" rel="noopener" style="color:var(--amber)">Instagram →</a>';
+  }
+
+  if(!BEHOLD_FEED_URL || BEHOLD_FEED_URL.indexOf('PLAK_HIER') === 0){
+    showEmpty(); return;
+  }
+
+  fetch(BEHOLD_FEED_URL)
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(data => {
+      // Behold geeft { posts: [...] } of direct een array
+      const posts = Array.isArray(data) ? data : (data.posts || []);
+      render(posts);
+    })
+    .catch(() => showEmpty());
+})();
+</script>
 
 <section id="video-scroll">
   <video
@@ -3750,7 +3903,8 @@ window.addEventListener('scroll', () => {
 
 const TRANSLATIONS = {
   nl: {
-    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Opening studio: zondag 7 juni (Kunst &amp; Cultuurroute) · Daarna elke 1e zondag van de maand · 13:00–17:00 · Turfkaai 25',
+    'ig-title': 'Volg <em>Rhombi</em> op Instagram',
+    'topbanner': '◆ Vooralsnog exclusief verkrijgbaar bij <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br>Elke 1e zondag van de maand (Kunst &amp; Cultuurroute) · 13:00–17:00 · Turfkaai 25',
     'type-hint': "Tik voor foto's",
     'type-tafel-label': '◆ Tafellamp',
     'type-hang-label': '◆ Hang',
@@ -3875,7 +4029,8 @@ const TRANSLATIONS = {
     'mat-more': 'Meer mogelijk. Heb je een specifiek filament of afwerking in gedachten? Neem contact op voor de mogelijkheden, de lijst groeit.',
   },
   en: {
-    'topbanner': '◆ Exclusively available at <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br><span class="nobr">Studio opening: Sunday 7 June</span> · <span class="nobr">Every 1st Sunday of the month</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span>',
+    'ig-title': 'Follow <em>Rhombi</em> on Instagram',
+    'topbanner': '◆ Exclusively available at <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br><span class="nobr">Every 1st Sunday of the month (Art &amp; Culture Route)</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span>',
     'type-hint': 'Tap for photos',
     'type-tafel-label': '◆ Table lamp',
     'type-hang-label': '◆ Pendant',
@@ -4000,7 +4155,8 @@ const TRANSLATIONS = {
     'geo-p2': 'The grid breaks the direct light source and creates a warm, layered glow. The name <em style="color:var(--cream)">Rhombi</em> refers to this repetition of forms: not a single gesture, but a composition of geometries that shape the light together.',
   },
   de: {
-    'topbanner': '◆ Exklusiv erhältlich bei <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br><span class="nobr">Studioöffnung: Sonntag 7. Juni</span> · <span class="nobr">Jeden 1. Sonntag im Monat</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span>',
+    'ig-title': 'Folge <em>Rhombi</em> auf Instagram',
+    'topbanner': '◆ Exklusiv erhältlich bei <a href="https://galerie-t.nl" target="_blank" rel="noopener" style="color:inherit;border-bottom:1px solid rgba(0,0,0,.3)">Galerie T</a>, Middelburg<br><span class="nobr">Jeden 1. Sonntag im Monat (Kunst- &amp; Kulturroute)</span> · <span class="nobr">13:00–17:00</span> · <span class="nobr">Turfkaai 25</span>',
     'type-hint': 'Tippen für Fotos',
     'type-tafel-label': '◆ Tischleuchte',
     'type-hang-label': '◆ Hänge',
@@ -4142,7 +4298,7 @@ function setLang(lang) {
     if(el.querySelector('[data-i18n]')) return;
     if(el.classList.contains('topbanner')) {
       el.innerHTML = t[key];
-    } else if(key === 'kunst-sub' || key === 'gen-sub') {
+    } else if(key === 'kunst-sub' || key === 'gen-sub' || key === 'ig-title') {
       el.innerHTML = t[key];
     } else {
       el.textContent = t[key];
