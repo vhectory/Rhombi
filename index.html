@@ -2571,6 +2571,28 @@ window.addEventListener('load', function() {
     })
     .catch(() => showEmpty());
 })();
+
+// Scroll-indicatie geleidelijk transparanter maken naarmate je scrollt
+(function(){
+  const hint = document.querySelector('.hero-scroll');
+  if(!hint) return;
+  let ticking = false;
+  let introKlaar = false;
+  // laat de intro-fadeUp eerst afspelen, neem daarna de opacity over
+  setTimeout(() => { introKlaar = true; hint.style.animation = 'none'; hint.style.opacity = '1'; }, 2300);
+  function update(){
+    if(!introKlaar) return;
+    const eind = window.innerHeight * 0.45;   // volledig transparant op 45% schermhoogte
+    const y = window.scrollY;
+    const o = Math.max(0, Math.min(1, 1 - (y / eind)));   // 1 → 0 lineair
+    hint.style.opacity = o.toFixed(3);
+    hint.style.pointerEvents = (o < 0.05) ? 'none' : '';
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if(!ticking){ window.requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+})();
 </script>
 
 <section id="video-scroll">
