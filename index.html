@@ -2409,12 +2409,13 @@ window.addEventListener('load', function() {
   #rh-ig .rh-ig-handle:hover { color: var(--amber-pale); border-color: var(--amber-pale); }
   #rh-ig .rh-ig-track {
     display: flex; gap: 16px; padding: 4px 48px 12px;
+    justify-content: center; min-width: min-content;
     overflow-x: auto; scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
   }
   #rh-ig .rh-ig-track::-webkit-scrollbar { display: none; }
   #rh-ig .rh-ig-item {
-    flex: 0 0 auto; width: 240px; height: 240px;
+    flex: 0 0 auto; height: 260px; width: fit-content; max-width: 360px;
     scroll-snap-align: start; position: relative;
     border-radius: 0 14px 0 14px;   /* chamfer top-left, rond bottom-right */
     overflow: hidden; background: var(--dark2);
@@ -2428,7 +2429,8 @@ window.addEventListener('load', function() {
     box-shadow: 0 12px 40px rgba(200,136,74,.12);
   }
   #rh-ig .rh-ig-item img, #rh-ig .rh-ig-item video {
-    width: 100%; height: 100%; object-fit: cover; display: block;
+    height: 100%; width: auto; display: block;
+    background: #0E1116;
   }
   #rh-ig .rh-ig-overlay {
     position: absolute; inset: 0;
@@ -2457,7 +2459,7 @@ window.addEventListener('load', function() {
     #rh-ig { padding: 48px 0 52px; }
     #rh-ig .rh-ig-head { padding: 0 24px; margin-bottom: 20px; }
     #rh-ig .rh-ig-track { padding: 4px 24px 12px; gap: 12px; }
-    #rh-ig .rh-ig-item { width: 200px; height: 200px; }
+    #rh-ig .rh-ig-item { height: 210px; width: auto; }
     #rh-ig .rh-ig-fade-l, #rh-ig .rh-ig-fade-r { width: 24px; }
   }
 </style>
