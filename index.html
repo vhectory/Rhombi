@@ -2570,7 +2570,11 @@ window.addEventListener('load', function() {
     showEmpty(); return;
   }
 
-  fetch(BEHOLD_FEED_URL)
+  // Haal de feed op met een uur-cachebust zodat bezoekers de verste Behold-update zien.
+  // (Behold ververst zelf ~1x/dag op de gratis tier; dit omzeilt alleen oude browser-cache.)
+  const _bust = Math.floor(Date.now() / 3600000); // wijzigt elk uur
+  const _url = BEHOLD_FEED_URL + (BEHOLD_FEED_URL.indexOf('?') === -1 ? '?' : '&') + 'v=' + _bust;
+  fetch(_url, { cache: 'no-cache' })
     .then(r => r.ok ? r.json() : Promise.reject(r.status))
     .then(data => {
       // Behold geeft { posts: [...] } of direct een array
