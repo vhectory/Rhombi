@@ -2114,6 +2114,15 @@ input, textarea, select {
 </head>
 <body>
 
+<!-- Verborgen statische kopie zodat Netlify het formulier bij de build detecteert.
+     Het echte, zichtbare formulier verstuurt via JavaScript (fetch). -->
+<form name="contact" netlify netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="contact">
+  <input type="text" name="naam">
+  <input type="email" name="email">
+  <textarea name="bericht"></textarea>
+</form>
+
 <!-- Cursor dot -->
 <div class="cursor" id="cursor"></div>
 <!-- Cursor ring: Rhombi logo, langzaam roterend -->
@@ -3554,7 +3563,7 @@ window.addEventListener('load', function() {
   <p class="reveal" style="transition-delay:.15s" data-i18n="cta-sub">Rhombi is ontworpen voor interieur, expositie en designcontext. Neem contact op voor informatie, bestellingen of maatwerk.</p>
 
   <!-- Contact formulier -->
-  <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field"
+  <form name="contact" id="contactForm" method="POST" data-netlify="true" netlify-honeypot="bot-field"
     class="contact-form reveal" style="transition-delay:.25s">
     <input type="hidden" name="form-name" value="contact">
     <p style="display:none"><input name="bot-field"></p>
@@ -3574,7 +3583,57 @@ window.addEventListener('load', function() {
         Instagram
       </a>
     </div>
+    <div id="contactFormMsg" style="display:none;margin-top:16px;padding:14px 16px;border-radius:0 12px 0 12px;font-size:14px;line-height:1.5"></div>
   </form>
+
+  <script>
+  (function(){
+    const form = document.getElementById('contactForm');
+    if(!form) return;
+    const msg = document.getElementById('contactFormMsg');
+    const teksten = {
+      nl: { ok: '✓ Bedankt, je bericht is verstuurd. Ik neem zo snel mogelijk contact op.', fout: 'Er ging iets mis bij het versturen. Probeer het later opnieuw of mail via Instagram.', bezig: 'Versturen…', knop: 'Neem contact op' },
+      en: { ok: '✓ Thank you, your message has been sent. I\'ll get back to you soon.', fout: 'Something went wrong. Please try again later or reach out via Instagram.', bezig: 'Sending…', knop: 'Get in touch' },
+      de: { ok: '✓ Danke, deine Nachricht wurde gesendet. Ich melde mich bald.', fout: 'Etwas ist schiefgelaufen. Bitte später erneut versuchen oder via Instagram melden.', bezig: 'Senden…', knop: 'Kontakt aufnehmen' }
+    };
+    function T(){ const l = (window.PM_LANG || document.documentElement.lang || 'nl'); return teksten[l] || teksten.nl; }
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const btn = form.querySelector('button[type="submit"]');
+      const t = T();
+      const origBtn = btn ? btn.textContent : '';
+      if(btn){ btn.disabled = true; btn.textContent = t.bezig; }
+      msg.style.display = 'none';
+
+      const data = new FormData(form);
+      fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(data).toString()
+      })
+      .then(res => {
+        if(!res.ok) throw new Error(res.status);
+        msg.textContent = t.ok;
+        msg.style.background = 'rgba(200,136,74,.14)';
+        msg.style.color = '#EDE4D0';
+        msg.style.border = '1px solid rgba(200,136,74,.4)';
+        msg.style.display = 'block';
+        form.reset();
+      })
+      .catch(() => {
+        msg.textContent = t.fout;
+        msg.style.background = 'rgba(180,70,60,.14)';
+        msg.style.color = '#EDE4D0';
+        msg.style.border = '1px solid rgba(180,70,60,.4)';
+        msg.style.display = 'block';
+      })
+      .finally(() => {
+        if(btn){ btn.disabled = false; btn.textContent = origBtn || t.knop; }
+      });
+    });
+  })();
+  </script>
 
   <!-- Kaart -->
   <div class="contact-map reveal" style="transition-delay:.4s">
