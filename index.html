@@ -74,7 +74,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -858,7 +858,7 @@ footer {
 /* ── HANDLEIDING: intro (overzicht + maten) ── */
 .handleiding-intro {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 3px;
   margin-top: 24px;
   margin-bottom: 3px;
@@ -868,9 +868,33 @@ footer {
 .handleiding-intro-main { overflow: hidden; }
 .handleiding-intro-side { display: contents; }
 .handleiding-intro-side > div { overflow: hidden; }
+
+/* Mobiel: geen hoge stapel van 3 blokken, maar een swipebare carrousel */
+@media (max-width: 900px) {
+  .handleiding-intro {
+    display: flex;
+    grid-template-columns: none;
+    height: auto;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 6px;
+  }
+  .handleiding-intro::-webkit-scrollbar { display: none; }
+  .handleiding-intro > div {
+    flex: 0 0 82%;
+    scroll-snap-align: center;
+    aspect-ratio: 4/3;
+    border-radius: 0 12px 0 12px;
+    background: var(--dark3);
+  }
+  /* subtiele hint dat er meer te swipen valt */
+  .handleiding-intro > div:last-child { margin-right: 4px; }
+}
 @media (max-width: 600px) {
-  .handleiding-intro { grid-template-columns: 1fr; height: auto; }
-  .handleiding-intro > div { aspect-ratio: 4/3; }
+  .handleiding-intro > div { flex-basis: 86%; }
 }
 
 /* ── ONDERDELEN CAROUSEL ── */
@@ -1094,7 +1118,6 @@ footer {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
-  .handleiding-intro { grid-template-columns: 1fr; }
   .handleiding-intro-side { grid-template-rows: unset; grid-template-columns: 1fr 1fr; }
   .parts-strip { grid-template-columns: repeat(5, 1fr); }
 }
@@ -1527,6 +1550,32 @@ nav.scrolled {
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+}
+.contact-file {
+  display: inline-flex; align-items: center; gap: 12px;
+  margin: 14px 0 2px; cursor: pointer; flex-wrap: wrap;
+}
+.contact-file input[type="file"] {
+  position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden;
+}
+.contact-file-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .06em;
+  color: var(--amber-pale); padding: 9px 16px;
+  border: 1px solid rgba(200,136,74,.35); border-radius: 0 10px 0 10px;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.contact-file-btn::before {
+  content: '⊕'; font-size: 15px; line-height: 1;
+}
+.contact-file:hover .contact-file-btn {
+  border-color: var(--amber-pale); color: var(--cream);
+  background: rgba(200,136,74,.08);
+}
+.contact-file-name {
+  font-family: 'Space Mono', monospace; font-size: 12px;
+  color: rgba(237,228,208,.6); max-width: 220px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .whatsapp-btn {
   display: flex;
@@ -2121,6 +2170,7 @@ input, textarea, select {
   <input type="text" name="naam">
   <input type="email" name="email">
   <textarea name="bericht"></textarea>
+  <input type="file" name="bijlage">
 </form>
 
 <!-- Cursor dot -->
@@ -2352,7 +2402,6 @@ window.addEventListener('load', function() {
     <div class="hero-img-frame rhombi-frame">
       <img decoding="async" id="heroImg" src="fotos/hero/20260206_172451.jpg" data-folder="hero"
         alt="Rhombi modulair lichtobject — geometrisch 3D-geprint design in warm amber licht"
-           alt=""
            loading="eager" fetchpriority="high"
            style="transition:opacity .4s" onload="this.style.opacity='1'" onerror="this.style.opacity='1'">
     </div>
@@ -2619,8 +2668,8 @@ window.addEventListener('load', function() {
 <section id="video-scroll">
   <video
     id="scrollVideo"
-    src="video/rhombi.mp4"
-    muted playsinline preload="auto"
+    data-src="video/rhombi.mp4"
+    muted playsinline preload="none"
   ></video>
 
   <div id="video-vignette-top"></div>
@@ -2638,6 +2687,30 @@ window.addEventListener('load', function() {
   const video   = document.getElementById('scrollVideo');
   const overlay = document.getElementById('scrollVideoText');
   if (!video) return;
+
+  // On-demand laden: video-bestand pas ophalen als de sectie in de buurt komt.
+  // On-demand laden op basis van scrolldiepte: de video-scrub-sectie gebruikt
+  // sticky/transform, waardoor een IntersectionObserver 'm meteen als zichtbaar ziet.
+  // Daarom laden we het videobestand pas als de bezoeker een eind naar beneden scrollt.
+  let videoLaadGestart = false;
+  function startVideoLaden() {
+    if (videoLaadGestart) return;
+    videoLaadGestart = true;
+    const bron = video.getAttribute('data-src');
+    if (bron && !video.getAttribute('src')) {
+      video.setAttribute('preload', 'auto');
+      video.setAttribute('src', bron);
+      video.load();
+    }
+    window.removeEventListener('scroll', checkVideoLaden);
+  }
+  function checkVideoLaden() {
+    // laad zodra ~1 schermhoogte gescrolld is (video zit verderop dan dat)
+    if (window.scrollY > window.innerHeight * 0.8) startVideoLaden();
+  }
+  window.addEventListener('scroll', checkVideoLaden, { passive: true });
+  // vangnet: als er na 6s niet gescrolld is, laad alsnog rustig op de achtergrond
+  setTimeout(startVideoLaden, 6000);
 
   let ready = false;
   let targetTime = 0;
@@ -3254,6 +3327,10 @@ window.addEventListener('load', function() {
       <img decoding="async" src="fotos/handleiding/maat_voor.png" alt="Maatvoering vooraanzicht" style="width:100%;height:100%;object-fit:contain;padding:16px" loading="lazy"
         onerror="this.closest('div').style.display='none'">
     </div>
+    <div style="overflow:hidden;background:var(--dark3)">
+      <img decoding="async" src="fotos/handleiding/compleet.png" alt="Rhombi compleet gemonteerd" style="width:100%;height:100%;object-fit:contain;padding:16px" loading="lazy"
+        onerror="this.closest('div').style.display='none'">
+    </div>
   </div>
 
   <!-- Parts -->
@@ -3265,7 +3342,7 @@ window.addEventListener('load', function() {
         <div class="onderdelen-track" id="onderdelenTrack">
         <div class="onderdeel-slide">
           <div class="onderdeel-slide-img" style="background:var(--dark3)">
-            <img src="fotos/handleiding/part_01_kap.png" alt="Kap" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+            <img src="fotos/handleiding/part_01_kap.png" alt="Kap" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
           </div>
           <div class="onderdeel-slide-text">
             <span class="onderdeel-slide-num">01</span>
@@ -3275,7 +3352,7 @@ window.addEventListener('load', function() {
         </div>
         <div class="onderdeel-slide">
           <div class="onderdeel-slide-img" style="background:var(--dark3)">
-            <img src="fotos/handleiding/part_02_vleugel_L.png" alt="Vleugel L" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+            <img src="fotos/handleiding/part_02_vleugel_L.png" alt="Vleugel L" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
           </div>
           <div class="onderdeel-slide-text">
             <span class="onderdeel-slide-num">02</span>
@@ -3285,7 +3362,7 @@ window.addEventListener('load', function() {
         </div>
         <div class="onderdeel-slide">
           <div class="onderdeel-slide-img" style="background:var(--dark3)">
-            <img src="fotos/handleiding/part_03_vleugel_R.png" alt="Vleugel R" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+            <img src="fotos/handleiding/part_03_vleugel_R.png" alt="Vleugel R" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
           </div>
           <div class="onderdeel-slide-text">
             <span class="onderdeel-slide-num">03</span>
@@ -3295,7 +3372,7 @@ window.addEventListener('load', function() {
         </div>
         <div class="onderdeel-slide">
           <div class="onderdeel-slide-img" style="background:var(--dark3)">
-            <img src="fotos/handleiding/part_04_kern.png" alt="Kern" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+            <img src="fotos/handleiding/part_04_kern.png" alt="Kern" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
           </div>
           <div class="onderdeel-slide-text">
             <span class="onderdeel-slide-num">04</span>
@@ -3305,7 +3382,7 @@ window.addEventListener('load', function() {
         </div>
         <div class="onderdeel-slide">
           <div class="onderdeel-slide-img" style="background:var(--dark3)">
-            <img src="fotos/handleiding/part_05_ring.png" alt="Ring" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+            <img src="fotos/handleiding/part_05_ring.png" alt="Ring" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
           </div>
           <div class="onderdeel-slide-text">
             <span class="onderdeel-slide-num">05</span>
@@ -3315,7 +3392,7 @@ window.addEventListener('load', function() {
         </div>
         <div class="onderdeel-slide">
           <div class="onderdeel-slide-img" style="background:var(--dark3)">
-            <img src="fotos/handleiding/part_06_kader_L.png" alt="Kader L" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+            <img src="fotos/handleiding/part_06_kader_L.png" alt="Kader L" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
           </div>
           <div class="onderdeel-slide-text">
             <span class="onderdeel-slide-num">06</span>
@@ -3325,7 +3402,7 @@ window.addEventListener('load', function() {
         </div>
         <div class="onderdeel-slide">
           <div class="onderdeel-slide-img" style="background:var(--dark3)">
-            <img src="fotos/handleiding/part_07_kader_R.png" alt="Kader R" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+            <img src="fotos/handleiding/part_07_kader_R.png" alt="Kader R" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
           </div>
           <div class="onderdeel-slide-text">
             <span class="onderdeel-slide-num">07</span>
@@ -3335,7 +3412,7 @@ window.addEventListener('load', function() {
         </div>
         <div class="onderdeel-slide">
           <div class="onderdeel-slide-img" style="background:var(--dark3)">
-            <img src="fotos/handleiding/part_08_kader.png" alt="Kader" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
+            <img src="fotos/handleiding/part_08_kader.png" alt="Kader" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:16px">
           </div>
           <div class="onderdeel-slide-text">
             <span class="onderdeel-slide-num">08</span>
@@ -3434,10 +3511,6 @@ window.addEventListener('load', function() {
   </div>
 
   <!-- Compleet -->
-  <div class="handleiding-final reveal rhombi-frame" style="background:var(--dark3)">
-    <img decoding="async" src="fotos/handleiding/compleet.png" alt="Rhombi compleet gemonteerd" loading="lazy"
-      onerror="this.closest('div').style.display='none'">
-  </div>
 
 </section>
 <!-- ONTWERPER -->
@@ -3564,6 +3637,7 @@ window.addEventListener('load', function() {
 
   <!-- Contact formulier -->
   <form name="contact" id="contactForm" method="POST" data-netlify="true" netlify-honeypot="bot-field"
+    enctype="multipart/form-data"
     class="contact-form reveal" style="transition-delay:.25s">
     <input type="hidden" name="form-name" value="contact">
     <p style="display:none"><input name="bot-field"></p>
@@ -3572,6 +3646,11 @@ window.addEventListener('load', function() {
       <input type="email" name="email" placeholder="E-mailadres" required>
     </div>
     <textarea name="bericht" placeholder="Bericht" rows="4" required></textarea>
+    <label class="contact-file">
+      <input type="file" name="bijlage" id="contactBijlage">
+      <span class="contact-file-btn" data-i18n="cta-file">Bijlage toevoegen (optioneel)</span>
+      <span class="contact-file-name" id="contactBijlageNaam"></span>
+    </label>
     <div class="contact-form-footer">
       <button type="submit" class="btn-primary" data-i18n="cta-btn1">Neem contact op</button>
       <a href="/whatsapp" target="_blank" class="btn-ghost whatsapp-btn">
@@ -3598,6 +3677,15 @@ window.addEventListener('load', function() {
     };
     function T(){ const l = (window.PM_LANG || document.documentElement.lang || 'nl'); return teksten[l] || teksten.nl; }
 
+    // Toon de gekozen bestandsnaam naast de knop
+    const fileInput = document.getElementById('contactBijlage');
+    const fileNaam = document.getElementById('contactBijlageNaam');
+    if(fileInput && fileNaam){
+      fileInput.addEventListener('change', function(){
+        fileNaam.textContent = (fileInput.files && fileInput.files.length) ? fileInput.files[0].name : '';
+      });
+    }
+
     form.addEventListener('submit', function(e){
       e.preventDefault();
       const btn = form.querySelector('button[type="submit"]');
@@ -3606,12 +3694,10 @@ window.addEventListener('load', function() {
       if(btn){ btn.disabled = true; btn.textContent = t.bezig; }
       msg.style.display = 'none';
 
+      // FormData direct versturen (multipart) zodat een eventuele bijlage meegaat.
+      // GEEN Content-Type header zetten: de browser voegt zelf de juiste boundary toe.
       const data = new FormData(form);
-      fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(data).toString()
-      })
+      fetch('/', { method: 'POST', body: data })
       .then(res => {
         if(!res.ok) throw new Error(res.status);
         msg.textContent = t.ok;
@@ -3620,6 +3706,7 @@ window.addEventListener('load', function() {
         msg.style.border = '1px solid rgba(200,136,74,.4)';
         msg.style.display = 'block';
         form.reset();
+        if(fileNaam) fileNaam.textContent = '';
       })
       .catch(() => {
         msg.textContent = t.fout;
@@ -4147,6 +4234,7 @@ const TRANSLATIONS = {
     'cta-t2': 'en autonoom object.',
     'cta-sub': 'Rhombi is ontworpen voor interieur, expositie en designcontext. Neem contact op voor informatie, bestellingen of maatwerk.',
     'cta-btn1': 'Neem contact op',
+    'cta-file': 'Bijlage toevoegen (optioneel)',
     'cta-btn2': 'Bekijk varianten',
     'footer-note': 'Ontwerp: Vincent Hector · Vhector · Rotterdam, NL',
     'lb-close': '✕ Sluiten',
@@ -4274,6 +4362,7 @@ const TRANSLATIONS = {
     'cta-t2': 'and autonomous object.',
     'cta-sub': 'Rhombi is designed for interior, exhibition and design contexts. Get in touch for information, orders or custom work.',
     'cta-btn1': 'Get in touch',
+    'cta-file': 'Add attachment (optional)',
     'cta-btn2': 'View variants',
     'footer-note': 'Design: Vincent Hector — Vhector · Rotterdam, NL',
     'lb-close': '✕ Close',
@@ -4401,6 +4490,7 @@ const TRANSLATIONS = {
     'cta-t2': 'und autonomem Objekt.',
     'cta-sub': 'Rhombi ist für Interieur, Ausstellung und Designkontexte konzipiert. Kontakt aufnehmen für Informationen, Bestellungen oder Sonderwünsche.',
     'cta-btn1': 'Kontakt aufnehmen',
+    'cta-file': 'Anhang hinzufügen (optional)',
     'cta-btn2': 'Varianten ansehen',
     'footer-note': 'Entwurf: Vincent Hector — Vhector · Rotterdam, NL',
     'lb-close': '✕ Schließen',
